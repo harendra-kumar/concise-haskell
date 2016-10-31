@@ -1,52 +1,82 @@
 Category Theory
 ===============
 
--  The general key point is that there is a correspondence (which
-   implies difference as well) between parallel worlds. And we derive an
-   operation in a world from an operation in another one by just
-   defining a transformation because there is a correspondence. This
-   allows reuse.
+The key point is that there is a correspondence (which
+implies difference as well) between parallel worlds. And we derive an
+operation in a world from an operation in another one by just
+defining a transformation because there is a correspondence. This
+allows reuse.
 
--  Categorical structures and Algebraic structures should not be mixed
-   up - they can be thought of as different domains. Though there are
-   parallels between the two.
-
-Categories [Not closed]
+Branches of mathematics
 -----------------------
 
-In general - there are things (objects) and there are operations
-(morphisms).
+Abstract Algebra
+----------------
 
--  The most general structure is a semicategory or a semigroupoid. It
-   has objects (things) and morphisms (operations). Morphisms (arrows)
-   compose associatively. A Semigroupoid is a Category without the
-   requirement of identity arrows for every object in the category.
+Abstract algebra and Category theory have similar concepts but should not be
+confused with each other. Category theory is more general and has generalized
+concepts corresponding to algebra concepts. Most interesting structures are the
+ones with associative operation.
 
--  A category additionally has an identity arrow (morphism) for each
-   object. A Category is any Semigroupoid for which the Yoneda lemma
-   holds.
+Algebraic Structures
+~~~~~~~~~~~~~~~~~~~~
 
--  A groupoid adds the divisibility or invertibility property as well.
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
+| Structure                                                | Definition                                               | Example           |
++==========================================================+==========================================================+===================+
+| `Set <https://en.wikipedia.org/wiki/Set_(mathematics)>`_ | A collection of distinct objects.                        | {1, 2, 3, 4, ...} |
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
+| `Magma <https://en.wikipedia.org/wiki/Magma_(algebra)>`_ | A set with a single binary operation (closed, M × M → M) | Addition          |
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
+| `Semigroup <https://en.wikipedia.org/wiki/Semigroup>`_   | A magma where the binary operation is associative        | Addition          |
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
+| `Monoid <https://en.wikipedia.org/wiki/Monoid>`_         | A semigroup with an identity element.                    | {0, 1, 2, 3, ...} |
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
+| `Group                                                   |                                                          |                   |
+| <https://en.wikipedia.org/wiki/Group_(mathematics)>`_    | A monoid with inverse elements.                          |                   |
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
 
---------------
+Category Theory
+---------------
 
--  Note that a category could be an object in a larger category
--  Within the larger category we can have morphisms from one subcategory
-   to another. Such a morphism is called a Functor. For example 'List'
-   or '[]' type is a morphism from Int to list of Int or Char to list of
-   Char etc.
--  A Functor in Haskell maps objects and morphism (i.e. functions) in a
-   subcategory of Hask to objects and morphisms of another category.
+A category C consists of objects (denoted as a, b etc.) and morphisms (aka
+arrows, denoted as f, g etc.) and a binary operation called composition of
+morphisms (denoted as f . g and read as f after g).
 
---------------
+* small category: objects and morhphims are sets and not proper classes
+* large category: objects and morphisms are proper classes
 
--  Functor - maps (or transforms) one category to another
--  Natural Transformation - maps one Functor to another Functor
+A category is not closed under the binary operation unlike algebraic
+structures.
+
++-----------------------------+----------------------------+---------------------+
+| Category Structure          | Definition                 | Corresponding       |
+|                             |                            | algebraic structure |
++=============================+============================+=====================+
+| Semicategory (Semigroupoid) | Composition is associative | Semigroup           |
++-----------------------------+----------------------------+---------------------+
+| (Small) category            | Composition has identity   | Monoid              |
++-----------------------------+----------------------------+---------------------+
+| Groupoid                    | Composition has inverses   | Group               |
++-----------------------------+----------------------------+---------------------+
+
+Some intereseting categories:
+
++---------+--------------------------------+---------------+
+| Category| Objects                        | Morphisms     |
++=========+================================+===============+
+| Set     | sets                           | functions     |
++---------+--------------------------------+---------------+
+| Vect(K) | vector spaces over the field K | K-linear maps |
++---------+--------------------------------+---------------+
+| Cat     | small categories               | functors      |
++---------+--------------------------------+---------------+
+
+* Functor: A morphism from one (small) category to another
+* Natural Transformation: A morphism from a functor to another
 
 Morphisms
 ~~~~~~~~~
-
-f . g means f applied to g
 
 -  Monomorphism - Never combines with two different operations to
    produce the same result (f where f . g1 /= f . g2). generalization of
@@ -91,9 +121,6 @@ Terminology
 -  a **2-category** is a category with "morphisms between morphisms";
    that is, where each hom-set itself carries the structure of a
    category.
--  the category of small categories, denoted by **Cat**, is the category
-   whose objects are all small categories and whose morphisms are
-   functors between categories.
 -  **product category** - the product of two categories C and D, denoted
    C × D and called a product category, is a straightforward extension
    of the concept of the Cartesian product of two sets
@@ -104,46 +131,12 @@ Terminology
 -  **profunctors** are a generalization of relations and also of
    bimodules. They are related to the notion of correspondences.
 
-Algebraic Structures
---------------------
+Haskell
+~~~~~~~
 
-Set
-~~~
-
-Most general structure. A set is a collection of distinct objects,
-considered as an object in its own right.
-
-Magma [Closed]
-~~~~~~~~~~~~~~
-
--  A `Magma <https://en.wikipedia.org/wiki/Magma_(algebra)>`__ consists
-   of a set, M, equipped with a single binary operation, M × M → M. The
-   binary operation must be closed
--  The most interesting (for haskell) specific structures derived from a
-   magma are the ones with associative operations (i.e. semigroups) ->
-   monoids (with identity object) -> groups (with invertibility or
-   divisibility).
-
-Parallels between categories and algebraic structures
------------------------------------------------------
-
--  Associativity and Divisibility can be used exclusively or combined
-   together - at least one is required in any structure.
--  Identity is additional and optional.
-
--  This table shows structures which **require** associativity
-
-+-----------------+--------------------------------+---------------------------------------+
-| Property        | Category Structure             | Magma (Algebraic) Structure           |
-+=================+================================+=======================================+
-| Closure         | Open                           | Closed                                |
-+-----------------+--------------------------------+---------------------------------------+
-| Associativity   | Semicategory (Semigroupoid)    | Semigroup                             |
-+-----------------+--------------------------------+---------------------------------------+
-| +Identity       | Category (identity morphism)   | Monoid (Identity object) (foldable)   |
-+-----------------+--------------------------------+---------------------------------------+
-| +Divisibility   | Groupoid                       | Group                                 |
-+-----------------+--------------------------------+---------------------------------------+
+- Hask is a category with Haskell types as objects and functions as morphisms.
+- For example, 'List' or '[a]' is a functor type which maps morphisms on type a to
+  morphisms on type [a] via fmap.
 
 Morphisms and Galois Connections
 --------------------------------
