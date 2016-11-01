@@ -18,32 +18,72 @@ confused with each other. Category theory is more general and has generalized
 concepts corresponding to algebra concepts. Most interesting structures are the
 ones with associative operation.
 
-Algebraic Structures
-~~~~~~~~~~~~~~~~~~~~
+Sets
+----
 
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
 | Structure                                                | Definition                                               | Example           |
 +==========================================================+==========================================================+===================+
 | `Set <https://en.wikipedia.org/wiki/Set_(mathematics)>`_ | A collection of distinct objects.                        | {1, 2, 3, 4, ...} |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
+
+`Functions <https://en.wikipedia.org/wiki/Function_(mathematics)>`_
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+f(X) = Y where X and Y are sets, X is domain and Y is codomain
+
++------------+------------------------------------------+---------+-----------------+
+| Type       | Property                                 | Example | Counter Example |
++============+==========================================+=========+=================+
+| Valid      | f(X) maps to only one element in Y       |         |                 |
++------------+------------------------------------------+---------+-----------------+
+| Total      | f(X) is defined for all elements in X    |         |                 |
++------------+------------------------------------------+---------+-----------------+
+| Injective  | one-to-one i.e. f(x1) /= f(x2)           |         |                 |
++------------+------------------------------------------+---------+-----------------+
+| Surjective | onto i.e. each element in Y is mapped to |         |                 |
++------------+------------------------------------------+---------+-----------------+
+| bijective  | Injective & surjective i.e.              |         |                 |
+|            | one-to-one from whole X to whole Y       |         |                 |
++------------+------------------------------------------+---------+-----------------+
+
+-  **fixpoint** f(c) = c
+
+* injective => monomorphism
+* surjective => epimorphism
+* bijective => bimorphism
+
+Magma
+~~~~~
+
++----------------------------------------------------------+----------------------------------------------------------+-------------------+
+| Structure                                                | Definition                                               | Example           |
++==========================================================+==========================================================+===================+
 | `Magma <https://en.wikipedia.org/wiki/Magma_(algebra)>`_ | A set with a single binary operation (closed, M × M → M) | Addition          |
+|                                                          |                                                          |                   |
+|                                                          | x1 + x2 = x3                                             |                   |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
 | `Semigroup <https://en.wikipedia.org/wiki/Semigroup>`_   | A magma where the binary operation is associative        | Addition          |
+|                                                          |                                                          |                   |
+|                                                          | (x1 + x2) + x3 = x1 + (x2 + x3)                          |                   |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
 | `Monoid <https://en.wikipedia.org/wiki/Monoid>`_         | A semigroup with an identity element.                    | {0, 1, 2, 3, ...} |
+|                                                          |                                                          |                   |
+|                                                          | x + 0 = x                                                |                   |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
-| `Group                                                   |                                                          |                   |
-| <https://en.wikipedia.org/wiki/Group_(mathematics)>`_    | A monoid with inverse elements.                          |                   |
+| `Group                                                   | A monoid with inverse elements.                          |                   |
+| <https://en.wikipedia.org/wiki/Group_(mathematics)>`_    |                                                          |                   |
+|                                                          | x * y = id                                               |                   |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
 
 Category Theory
 ---------------
 
-A category C consists of objects (denoted as a, b etc.) and morphisms (aka
-arrows, denoted as f, g etc.) and a binary operation called composition of
-morphisms (denoted as f . g and read as f after g).
+A category C consists of objects (denoted as ``a``, ``b`` etc.) and morphisms
+(aka arrows, denoted as ``f``, ``g`` etc.) and a binary operation called
+``composition`` of morphisms (denoted as ``f . g`` and read as f after g).
 
-* small category: objects and morhphims are sets and not proper classes
+* small category: objects and morphisms are sets and not proper classes
 * large category: objects and morphisms are proper classes
 
 A category is not closed under the binary operation unlike algebraic
@@ -60,7 +100,7 @@ structures.
 | Groupoid                    | Composition has inverses   | Group               |
 +-----------------------------+----------------------------+---------------------+
 
-Some intereseting categories:
+Some interesting categories:
 
 +---------+--------------------------------+---------------+
 | Category| Objects                        | Morphisms     |
@@ -72,11 +112,13 @@ Some intereseting categories:
 | Cat     | small categories               | functors      |
 +---------+--------------------------------+---------------+
 
+Special morphisms:
+
 * Functor: A morphism from one (small) category to another
 * Natural Transformation: A morphism from a functor to another
 
-Morphisms
-~~~~~~~~~
+Functions & Morphisms
+~~~~~~~~~~~~~~~~~~~~~
 
 -  Monomorphism - Never combines with two different operations to
    produce the same result (f where f . g1 /= f . g2). generalization of
@@ -102,22 +144,6 @@ f . g = id
 Terminology
 -----------
 
--  **fixpoint** f(c) = c
--  an **injective** function or injection or one-to-one function is a
-   function that preserves distinctness: *it never maps distinct
-   elements of its domain to the same element of its codomain*. A
-   monomorphism is a generalization of an injective function in category
-   theory.
--  a function f from a set X to a set Y is **surjective** (or onto), or
-   a surjection, if every element y in Y has a corresponding element x
-   in X such that f(x) = y. The function f may map more than one element
-   of X to the same element of Y. *Surjective - every element is
-   mapped-to*. An epimorphism is a generalization of a surjective
-   function in category theory.
--  a **bijective** function f: X → Y is a one-to-one (injective) and
-   onto (surjective) mapping of a set X to a set Y. A bimorphism (and
-   sometimes isomorphism?) is a generalization of a bijective function
-   in category theory.
 -  a **2-category** is a category with "morphisms between morphisms";
    that is, where each hom-set itself carries the structure of a
    category.
