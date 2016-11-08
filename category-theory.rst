@@ -32,6 +32,12 @@ Sets
 
 f(X) = Y where X and Y are sets, X is domain and Y is codomain
 
++---------------------------+---------------------------+
+| image                     | another                   |
++===========================+===========================+
+| .. image:: diagr/diag.png | .. image:: diagr/diag.png |
++---------------------------+---------------------------+
+
 +------------+------------------------------------------+---------+-----------------+
 | Type       | Property                                 | Example | Counter Example |
 +============+==========================================+=========+=================+
@@ -56,25 +62,23 @@ f(X) = Y where X and Y are sets, X is domain and Y is codomain
 Magma
 ~~~~~
 
-+----------------------------------------------------------+----------------------------------------------------------+-------------------+
-| Structure                                                | Definition                                               | Example           |
-+==========================================================+==========================================================+===================+
-| `Magma <https://en.wikipedia.org/wiki/Magma_(algebra)>`_ | A set with a single binary operation (closed, M × M → M) | Addition          |
-|                                                          |                                                          |                   |
-|                                                          | x1 + x2 = x3                                             |                   |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------+
-| `Semigroup <https://en.wikipedia.org/wiki/Semigroup>`_   | A magma where the binary operation is associative        | Addition          |
-|                                                          |                                                          |                   |
-|                                                          | (x1 + x2) + x3 = x1 + (x2 + x3)                          |                   |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------+
-| `Monoid <https://en.wikipedia.org/wiki/Monoid>`_         | A semigroup with an identity element.                    | {0, 1, 2, 3, ...} |
-|                                                          |                                                          |                   |
-|                                                          | x + 0 = x                                                |                   |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------+
-| `Group                                                   | A monoid with inverse elements.                          |                   |
-| <https://en.wikipedia.org/wiki/Group_(mathematics)>`_    |                                                          |                   |
-|                                                          | x * y = id                                               |                   |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------+
++----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
+| Structure                                                | Definition                                               | Example                             |
++==========================================================+==========================================================+=====================================+
+| `Magma <https://en.wikipedia.org/wiki/Magma_(algebra)>`_ | A set with a single binary operation (closed, M × M → M) | {1, 2, 3, ...}                      |
+|                                                          |                                                          |                                     |
+|                                                          |                                                          | ``x1 + x2 = x3``                    |
++----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
+| `Semigroup <https://en.wikipedia.org/wiki/Semigroup>`_   | A magma having associative binary operation              | ``(x1 + x2) + x3 = x1 + (x2 + x3)`` |
++----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
+| `Monoid <https://en.wikipedia.org/wiki/Monoid>`_         | A semigroup with an identity element                     | {0, 1, 2, 3, ...}                   |
+|                                                          |                                                          |                                     |
+|                                                          |                                                          | ``x + 0 = x = 0 + x``               |
++----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
+| `Group                                                   | A monoid with an invertible operation                    |                                     |
+| <https://en.wikipedia.org/wiki/Group_(mathematics)>`_    |                                                          |                                     |
+|                                                          |                                                          | ``x * y = id = y * x``              |
++----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
 
 Category Theory
 ---------------
@@ -89,16 +93,23 @@ A category C consists of objects (denoted as ``a``, ``b`` etc.) and morphisms
 A category is not closed under the binary operation unlike algebraic
 structures.
 
-+-----------------------------+----------------------------+---------------------+
-| Category Structure          | Definition                 | Corresponding       |
-|                             |                            | algebraic structure |
-+=============================+============================+=====================+
-| Semicategory (Semigroupoid) | Composition is associative | Semigroup           |
-+-----------------------------+----------------------------+---------------------+
-| (Small) category            | Composition has identity   | Monoid              |
-+-----------------------------+----------------------------+---------------------+
-| Groupoid                    | Composition has inverses   | Group               |
-+-----------------------------+----------------------------+---------------------+
++-----------------------------+-------------------------------------------+---------------------+
+| Category Structure          | Definition                                | Corresponding       |
+|                             |                                           | algebraic structure |
++=============================+===========================================+=====================+
+| Semicategory (Semigroupoid) | Composition is associative                | Semigroup           |
+|                             |                                           |                     |
+|                             | ``f . (g . h) = (f . g) . h``             |                     |
++-----------------------------+-------------------------------------------+---------------------+
+| (Small) category            | Composition has identity                  | Monoid              |
+|                             |                                           |                     |
+|                             | ``f . id = f = id . f``                   |                     |
++-----------------------------+-------------------------------------------+---------------------+
+| Groupoid                    | Every morphism is invertible or the       |                     |
+|                             | category can be viewed as having an       | Group               |
+|                             | associated unary operation called         |                     |
+|                             | ``inverse``                               |                     |
++-----------------------------+-------------------------------------------+---------------------+
 
 Some interesting categories:
 
@@ -127,7 +138,7 @@ Functions & Morphisms
    never produce the same result (g where f1 . g /= f2 . g).
    generalization of surjective function.
 -  Bimorphism = Epi + Mono . generalization of bijective.
--  isomorphism - f: X → Y, g: Y → X such that f ∘ g = idY and g ∘ f =
+-  isomorphism - f: X -> Y, g: Y -> X such that f . g = idY and g . f =
    idX. f and g are isomorphisms and inverses.
 -  endomprhism - f: X → X is an endomorphism of X
 -  Automorphism = iso + endo
