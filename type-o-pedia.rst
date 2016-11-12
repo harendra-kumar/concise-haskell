@@ -1,3 +1,16 @@
+.. raw:: html
+
+  <style> .red {color:red} </style>
+  <style> .blk {color:black} </style>
+  <style> .center { text-align: center;} </style>
+  <style> .strike { text-decoration: line-through;} </style>
+
+.. role:: strike
+.. role:: center
+
+.. role:: red
+.. role:: blk
+
 Type-o-pedia
 ============
 
@@ -22,31 +35,38 @@ Basics
 Terminology
 ~~~~~~~~~~~
 
-+----------------------------+-----------------------------------------------------------+
-| Unboxed                    | Bare type, no wrapping                                    |
-+----------------------------+-----------------------------------------------------------+
-| Boxed                      | Trackable heap object, wrapped with control info          |
-+----------------------------+-----------------------------------------------------------+
-| Concrete                   | Has a physical representation (boxed or unboxed)          |
-+----------------------------+-----------------------------------------------------------+
-| Monomorphic                | Has only one possible representaton                       |
-+----------------------------+-----------------------------------------------------------+
-| Polymorphic                | Has multiple possible representaton (cannnot be concrete) |
-+----------------------------+-----------------------------------------------------------+
-| Bottom                     | (_|_) A value that implicitly inhabits all lifted types   |
-+----------------------------+-----------------------------------------------------------+
-| Unlifted                   | Does not have bottom                                      |
-+----------------------------+-----------------------------------------------------------+
-| Lifted                     | Has bottom                                                |
-+----------------------------+-----------------------------------------------------------+
-| Primitives                 | Types which cannot be expressed in Haskell                |
-+----------------------------+-----------------------------------------------------------+
-| Primops                    | Functions operating on primitive types                    |
-+----------------------------+-----------------------------------------------------------+
-| Universal Quantification   |                                                           |
-+----------------------------+-----------------------------------------------------------+
-| Existential Quantification |                                                           |
-+----------------------------+-----------------------------------------------------------+
++----------------------------+-----------------------------------------------------------------+
+| Concrete                   | Has a physical representation (boxed or unboxed)                |
++----------------------------+-----------------------------------------------------------------+
+| Monomorphic                | Has only one possible representaton                             |
++----------------------------+-----------------------------------------------------------------+
+| Polymorphic                | Has multiple possible representaton (cannnot be concrete)       |
++----------------------------+-----------------------------------------------------------------+
+| Unboxed                    | Bare type, no wrapping                                          |
++----------------------------+-----------------------------------------------------------------+
+| Boxed                      | Trackable heap object, wrapped with control info                |
++----------------------------+-----------------------------------------------------------------+
+| Bottom (_|_)               | Further evaluation of lazy value not possible, found the bottom |
++----------------------------+-----------------------------------------------------------------+
+| Unlifted                   | Not lazily evaluated; does not have a concept of bottom         |
++----------------------------+-----------------------------------------------------------------+
+| Lifted                     | Supports lazy evaluation; contains an implicit bottom value     |
++----------------------------+-----------------------------------------------------------------+
+| Primitives                 | Types which cannot be expressed in Haskell                      |
++----------------------------+-----------------------------------------------------------------+
+| Primops                    | Functions operating on primitive types                          |
++----------------------------+-----------------------------------------------------------------+
+| Universal Quantification   | forall `a`                                                      |
++----------------------------+-----------------------------------------------------------------+
+| Existential Quantification | exists `a`                                                      |
++----------------------------+-----------------------------------------------------------------+
+| Rigid type                 | Type is compeletely known to the compiler at the binding site   |
++----------------------------+-----------------------------------------------------------------+
+| Open                       | Open to extension, can be extended (e.g. open type families)    |
++----------------------------+-----------------------------------------------------------------+
+| Closed                     | Closed to extension, cannot be extended                         |
+|                            | (e.g. closed type families)                                     |
++----------------------------+-----------------------------------------------------------------+
 
 Values, Types & Kinds
 ~~~~~~~~~~~~~~~~~~~~~
@@ -59,28 +79,25 @@ Values, Types & Kinds
 | Run time     | Values |
 +--------------+--------+
 
-+-------------+-------------------------------+----------------------------------------------------------------------------+
-| Kinds                                       | ``*`` (Lifted)                                                             |
-|                                             +----------------------------------------------------------------------------+
-|                                             | TYPE 'IntRep' (Unlifted)                                                   |
-+-------------+--------+----------------------+----------------------------------------------------------------------------+
-| Types       | Rank1  | Polymorphic Type Fns | t :: k1 -> k2, where k1, k2 are kind variables representing types of rank0 |
-|             +--------+----------------------+----------------------------------------------------------------------------+
-|             | Rank0  | Type Functions       | t :: * -> * (polymorphic type)                                             |
-|             |        +----------------------+----------------------------------------------------------------------------+
-|             |        | Concrete Types       | t :: *                                                                     |
-+-------------+--------+----------------------+----------------------------------------------------------------------------+
-| Values      | Rank2  | Polymorphic Fns      | f :: a -> b where a, b are type variables represeting values up to rank1   |
-|             +--------+----------------------+----------------------------------------------------------------------------+
-|             | Rank1  | Polymorphic Fns      | f :: a -> b where a, b are type variables representing values of Rank0     |
-|             +--------+----------------------+----------------------------------------------------------------------------+
-|             | Rank0  | Monomorphic Functions| f :: Char -> Int, monomorphic concrete types                               |
-|             |        +----------------------+----------------------------------------------------------------------------+
-|             |        | Concrete Values      | f :: Int, monomorphic concrete type                                        |
-+-------------+--------+----------------------+----------------------------------------------------------------------------+
-
-Beginner note: Be careful to not confuse identifiers or variables in type space
-with those in value space.
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+| Kinds                | Lifted Types         | ``*``                                                                          |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Unlifted Types       | ``TYPE 'IntRep'``, ...                                                         |
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+| Types       | Rank1  | Polymorphic Type Fns | ``t :: k1 -> k2``, where k1, k2 are kind variables representing types of rank0 |
+|             +--------+----------------------+--------------------------------------------------------------------------------+
+|             | Rank0  | Type Functions       | ``t :: * -> *`` (polymorphic type)                                             |
+|             |        +----------------------+--------------------------------------------------------------------------------+
+|             |        | Concrete Types       | ``t :: *``                                                                     |
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+| Values      | Rank2  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables represeting values up to rank1   |
+|             +--------+----------------------+--------------------------------------------------------------------------------+
+|             | Rank1  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables representing values of Rank0     |
+|             +--------+----------------------+--------------------------------------------------------------------------------+
+|             | Rank0  | Monomorphic Functions| ``f :: Char -> Int``, monomorphic concrete types                               |
+|             |        +----------------------+--------------------------------------------------------------------------------+
+|             |        | Concrete Values      | ``f :: Int``, monomorphic concrete type                                        |
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
 
 Kinds (Type of Type)
 --------------------
@@ -188,15 +205,15 @@ Lifted Primitives
 Using Primitives
 ~~~~~~~~~~~~~~~~
 
-+---------------------+----------------------------+
-| Importing           | Restrictions               |
-+=====================+============================+
-| ``import GHC.Prim`` | Cannot use in:             |
-|                     | `newtype` definition       |
-|                     | , top-level binding        |
-|                     | , recursive binding        |
-|                     | , non-strict pattern match |
-+---------------------+----------------------------+
++---------------------+--------------------------------+
+| Importing           | Restrictions                   |
++=====================+================================+
+| ``import GHC.Prim`` | Cannot use unlifted types in:  |
+|                     | `newtype` definition           |
+|                     | , top-level binding            |
+|                     | , recursive binding            |
+|                     | , lazy pattern match           |
++---------------------+--------------------------------+
 
 Basic Haskell Types
 -------------------
@@ -207,128 +224,72 @@ Construction
 Basic Syntax
 ~~~~~~~~~~~~
 
-.. raw:: html
-
-  <style> .red {color:red} </style>
-  <style> .blk {color:black} </style>
-  <style> .center {text-align: center;} </style>
-
-
-.. role:: red
-.. role:: blk
-
-Bind type specification to value constructor functions (type & value space bridge):
-
-+------------------+---+--------------------+
-| Type Constructor | = | Value Constructors |
-+------------------+---+--------------------+
-
-+---------+---------------------+----------------+---+---------------------+-------+-------------------------------------+
-|         | Type Constructor    | Type Parameter |   | Value Constructor   |       | Value Constructor                   |
-+---------+---------------------+----------------+---+---------------------+-------+-------------------------------------+
-| data    | :red:`L`:blk:`ist`  | `a`            | = | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
-+---------+---------------------+----------------+---+---------------------+-------+-------------------------------------+
++--------------------------------------------------------------------------------------------------------------------------+
+| Bind a type instance to value constructor functions                                                                      |
++------------------------------------------------+-----+-------------------------------------------------------------------+
+| .. class:: center                              |     | .. class:: center                                                 |
+|                                                |     |                                                                   |
+| Type Space                                     |     | Value Space                                                       |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+|         | Type Constructor    |      Parameter |     | Value Constructor   |       | Value Constructor                   |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+| data    | :red:`L`:blk:`ist`  | `a`            |  =  | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+| where parameter `a` as well as all argument types of value constructors must be a type of kind \*                        |
++--------------------------------------------------------------------------------------------------------------------------+
 
 Type Constructor
 ................
 
-* A function that creates a unique type parameterized by the argument types
-
-+------------------+--------+------------+----------------------------------------------+
-| Type Entity      |        | Kind       | Description                                  |
-+==================+========+============+==============================================+
-| List             | ``::`` | ``* -> *`` | Polymorphic type or type constructor         |
-+------------------+--------+------------+----------------------------------------------+
-| List a           | ``::`` | ``*``      | Concrete type                                |
-+------------------+--------+------------+----------------------------------------------+
-| `a` must be of kind \*, ``List Maybe`` is invalid while ``List (Maybe Int)`` is valid |
-+------------------+--------+------------+----------------------------------------------+
++-------------------------------------------------------------------------------------------+
+| A (possibly parameterized) type function to instantiate a new type                        |
++----------------------+--------+------------+----------------------------------------------+
+| Type                 |        | Kind       | Description                                  |
++----------------------+--------+------------+----------------------------------------------+
+| List                 | ``::`` | ``* -> *`` | Polymorphic type or type constructor         |
++----------------------+--------+------------+----------------------------------------------+
+| .. class:: center                                                                         |
+|                                                                                           |
+| Instances                                                                                 |
++----------------------+--------+------------+----------------------------------------------+
+| List Int             | ``::`` | ``*``      | Concrete type (list of Ints)                 |
++----------------------+--------+------------+----------------------------------------------+
+| List (Maybe Int)     | ``::`` | ``*``      | Concrete type (list of Maybe Ints)           |
++----------------------+--------+------------+----------------------------------------------+
+| :strike:`List Maybe` | ``::`` |            | Invalid argument kind * -> *                 |
++----------------------+--------+------------+----------------------------------------------+
 
 Value Constructors
 ..................
 
-* Constructors compose values of argument types in a new type
-* The return value of all the constructors is treated as representing the same
-  type i.e. those values can be swapped in the same slot without a type error.
++--------------------------------------------------------------------------------------------------------+
+| Return a value of a certain type by `creating` it or by `composing` argument values into a new vaulue. |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Value Constructor |        | Type                          | Description                               |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Empty             | ``::`` | List a                        | Create a new value (empty list)           |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
++-------------------+--------+-------------------------------+-------------------------------------------+
 
-+-------------------+--------+-------------------------------+
-| Value Constructor |        | Type                          |
-+===================+========+===============================+
-| Empty             | ``::`` | List a                        |
-+-------------------+--------+-------------------------------+
-| Cons              | ``::`` | Cons :: a -> List a -> List a |
-+-------------------+--------+-------------------------------+
-| .. class:: center                                          |
-|                                                            |
-| All arguments must be of kind *                            |
-+-------------------+--------+-------------------------------+
+Heap Representation
+~~~~~~~~~~~~~~~~~~~
+TODO: Memory representation of the type (i.e. a closure)
+with pointers to the contained types. Diagrams for the List example.
 
-Sum & Product
-.............
+Terminology
+...........
 
-+---------+----------------------------+
-| Sum     | data Bool = False | True   |
-+---------+----------------------------+
-| Product | data Point = Point Int Int |
-+---------+----------------------------+
++-----------+---------------------------------------+-------------+
+| Sum       | data Bool = False | True              | Monomorphic |
++-----------+---------------------------------------+-------------+
+| Product   | data Point = Point Int Int            | Monomorphic |
++-----------+---------------------------------------+-------------+
+| Recursive | data List a = Empty | Cons a (List a) | Polymorphic |
++-----------+---------------------------------------+-------------+
 
-Recursive Types
-...............
-
-  data List a = Empty | Cons a (List a)
-
-Monomorphic & Polymorphic
-.........................
-
-+------------------+---------------------------------------------------------------------+
-| Monomorphic      | data Bool = False | True                                            |
-+------------------+---------------------------------------------------------------------+
-| Polymorphic      | data List a = Empty | Cons a (List a)                               |
-+------------------+---------------------------------------------------------------------+
-
-Ordinary vs Generalized
-~~~~~~~~~~~~~~~~~~~~~~~
-
-* Ordinary: return type of all the constructors is the same
-* Generalized: return type of constructors could be different
-
-In the following example, ``Term Int``, ``Term Bool``, ``Term a`` & ``Term
-(a,b)`` all represent the same type and any of them can be used wherever a
-``Term a`` type is required.
-
-::
-
-  data Term a where
-      Lit    :: Int -> Term Int
-      Succ   :: Term Int -> Term Int
-      IsZero :: Term Int -> Term Bool
-      If     :: Term Bool -> Term a -> Term a -> Term a
-      Pair   :: Term a -> Term b -> Term (a,b)
-
-Pattern matching causes type refinement. e.g. in (Lit i) a is refined to Int ::
-
-  eval :: Term a -> a
-  eval (Lit i)      = i
-  eval (Succ t)     = 1 + eval t
-  eval (IsZero t)   = eval t == 0
-  eval (If b e1 e2) = if eval b then eval e1 else eval e2
-  eval (Pair e1 e2) = (eval e1, eval e2)
-
-* The general principle is this: type refinement is only carried out based on
-  user-supplied type annotations. So if no type signature is supplied for eval,
-  no type refinement happens
-* You cannot use a deriving clause for a GADT
-* When pattern-matching against data constructors drawn from a GADT, for example in a case expression, the following rules apply:
-
-  * The type of the scrutinee must be rigid.
-  * The type of the entire case expression must be rigid.
-  * The type of any free variable mentioned in any of the case alternatives must be rigid.
-  * A type is “rigid” if it is completely known to the compiler at its binding
-    site. The easiest way to ensure that a variable a rigid type is to give it a
-    type signature.
-
-Polymorphic & Polymorphic Families
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Polymorphic Data Types & Data Families
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------+---------------------------------------------------------------------+---------------------------------------------------+
 | Polymorphic      | data List a = Empty | Cons a (List a)                               | Every instance uses the same constructor template |
@@ -337,38 +298,109 @@ Polymorphic & Polymorphic Families
 |                  |                                                                     |                                                   |
 |                  | List ()                                                             |                                                   |
 +------------------+---------------------------------------------------------------------+---------------------------------------------------+
-| Polymorphic      | data family List a                                                  | Every instance defines its own constructors       |
+| Polymorphic      | data family List a                                                  | Every instance defines its own constructors.      |
+|                  |                                                                     | This is similar to function definition using      |
+|                  | data instance List Char = Empty | Cons Char (List Char) | List Char | pattern match.                                    |
 |                  |                                                                     |                                                   |
-|                  | data instance List Char = Empty | Cons Char (List Char) | List Char |                                                   |
-|                  |                                                                     |                                                   |
-| (Family)         | data instance List ()   = Count Int                                 |                                                   |
+| (Data Family)    | data instance List ()   = Count Int                                 |                                                   |
 +------------------+---------------------------------------------------------------------+---------------------------------------------------+
 
-Data instance definitions can be likened to function definitions with pattern
-matching except these are type functions.
+GADT Syntax
+~~~~~~~~~~~
+
++-------------------------------------------------------+
+| Haskell98 Syntax                                      |
++-------------------------------------------------------+
+| ::                                                    |
+|                                                       |
+|  data List a = Empty | Cons a (List a)                |
++-------------------------------------------------------+
+| GADT Syntax                                           |
++-------------------------------------------------------+
+| ::                                                    |
+|                                                       |
+|  data List a where                                    |
+|    Empty :: List a                                    |
+|    Cons  :: a -> List a -> List a                     |
++-------------------------------------------------------+
+| GADT type variables are universally quantified        |
++-------------------------------------------------------+
+| ::                                                    |
+|                                                       |
+|  data T a where      -- 'a' has no scope              |
+|   T1,T2 :: b -> T b  -- forall b. b -> T b            |
+|   T3 :: T a          -- forall a. T a                 |
++-------------------------------------------------------+
+| GADT Type parameters have no scope                    |
+| (You can even omit them and just use the kind)        |
++-------------------------------------------------------+
+| ::                                                    |
+|                                                       |
+|  data Bar a b where ...                               |
+|  data Bar :: * -> * -> * where ...                    |
+|  data Bar a :: (* -> \*) where ...                    |
+|  data Bar a (b :: * -> \*) where ...                  |
++-------------------------------------------------------+
+
+Ordinary vs Generalized Types (GADT)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-------------------------------------------------+----------------------------------------------------+
+| Ordinary type                                   | Generalized type (GADT)                            |
++-------------------------------------------------+----------------------------------------------------+
+| One type represented by only one term           | One type represented by multiple terms             |
++-------------------------------------------------+----------------------------------------------------+
+| List Int                                        | Term Int                                           |
+|                                                 +----------------------------------------------------+
+|                                                 | Term Bool                                          |
+|                                                 +----------------------------------------------------+
+|                                                 | Term a                                             |
+|                                                 +----------------------------------------------------+
+|                                                 | Term (a,b)                                         |
++-------------------------------------------------+----------------------------------------------------+
+| Return type of all the constructors same        | Each constructor can have a different return type  |
++-------------------------------------------------+----------------------------------------------------+
+
++-------------------------------------------------------+
+| GADT Example                                          |
++-------------------------------------------------------+
+| ::                                                    |
+|                                                       |
+|   data Term a where                                   |
+|     Lit    :: Int -> Term Int                         |
+|     Succ   :: Term Int -> Term Int                    |
+|     IsZero :: Term Int -> Term Bool                   |
+|     If     :: Term Bool -> Term a -> Term a -> Term a |
+|     Pair   :: Term a -> Term b -> Term (a,b)          |
++-------------------------------------------------------+
+| `deriving` clause cannot be used                      |
++-------------------------------------------------------+
+
++---------------------------------------------------------------+
+| Pattern matching causes type refinement `based on signature`. |
+| e.g. in `(Lit i)` `a` is refined to Int                       |
++---------------------------------------------------------------+
+| ::                                                            |
+|                                                               |
+|  eval :: Term a -> a                                          |
+|  eval (Lit i)      = i                                        |
+|  eval (Succ t)     = 1 + eval t                               |
+|  eval (IsZero t)   = eval t == 0                              |
+|  eval (If b e1 e2) = if eval b then eval e1 else eval e2      |
+|  eval (Pair e1 e2) = (eval e1, eval e2)                       |
++---------------------------------------------------------------+
+| The following types must be rigid in a pattern match:         |
+|                                                               |
+| * scrutinee                                                   |
+| * entire case expression                                      |
+| * free variable mentioned in any of the case alternatives     |
++---------------------------------------------------------------+
 
 Detailed Syntax
 ~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------+-------------------------------------------------------+
 | Haskell98 Syntax                                           | GADT Syntax                                           |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class :: center                                                                                                 |
-|                                                                                                                    |
-| GADT Universal Quantification                                                                                      |
-+------------------------------------------------------------+-------------------------------------------------------+
-|                                                            | | data T a where      -- 'a' has no scope             |
-|                                                            | |  T1,T2 :: b -> T b  -- forall b. b -> T b           |
-|                                                            | |  T3 :: T a          -- forall a. T a                |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class :: center                                                                                                 |
-|                                                                                                                    |
-| GADT Type parameters have no scope (only the kind is required)                                                     |
-+------------------------------------------------------------+-------------------------------------------------------+
-|                                                            | | data Bar a b where ...                              |
-|                                                            | | data Bar :: * -> * -> * where ...                   |
-|                                                            | | data Bar a :: (* -> \*) where ...                   |
-|                                                            | | data Bar a (b :: * -> \*) where ...                 |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class :: center                                                                                                 |
 |                                                                                                                    |
@@ -462,11 +494,6 @@ Dictionary Reification
 | ``MkNumInst`` reifies ``Num`` dictionary: plus :: NumInst a -> a -> a -> a; plus MkNumInst p q = p + q             |
 +------------------------------------------------------------+-------------------------------------------------------+
 
-Heap Representation
-~~~~~~~~~~~~~~~~~~~
-TODO: Memory representation of the type (i.e. a closure)
-with pointers to the contained types.
-
 Deconstruction (Pattern Matching)
 ---------------------------------
 
@@ -477,6 +504,8 @@ Deconstruction (Pattern Matching)
 * case
 * function
 * where
+
+Lazy vs strict pattern match.
 
 Existential Quantification:
 
@@ -503,6 +532,101 @@ Type Synonyms
 +------------------------------------------------------------+--------------------------------------------------+
 | foo :: Generic Id []                                       | -XLiberalTypeSynonyms (partial application)      |
 +------------------------------------------------------------+--------------------------------------------------+
+
+Type Synonym Families
+~~~~~~~~~~~~~~~~~~~~~
+
+* open families
+
+type family Elem c :: *
+type family F a b :: * -> *   -- F's arity is 2,
+                              -- although its overall kind is * -> * -> * -> *
+
+* all applications of a type family must be fully saturated with respect to to that arity
+
+F Char [Int]       -- OK!  Kind: * -> *
+F Char [Int] Bool  -- OK!  Kind: *
+F IO Bool          -- WRONG: kind mismatch in the first argument
+F Bool             -- WRONG: unsaturated application
+
+type instance Elem [e] = e
+
+equations of open type families are restricted to be compatible.
+The definition for “compatible” uses a notion of “apart”. two types are
+considered to be apart when the two types cannot be unified, even by a
+potentially infinite unifier.
+
+the patterns of two distinct type family instances cannot overlap. For example, the following is disallowed:
+
+type instance F Int = Bool
+type instance F Int = Char
+
+two overlapping type family instances are allowed if the right-hand sides coincide in the region of overlap. Some examples help here:
+
+type instance F (a, Int) = [a]
+type instance F (Int, b) = [b]   -- overlap permitted
+
+type instance G (a, Int)  = [a]
+type instance G (Char, a) = [a]  -- ILLEGAL overlap, as [Char] /= [Int]
+
+Allowing the unifier to be infinite disallows the
+following pair of instances:
+
+type instance H x   x = Int
+type instance H [x] x = Bool
+The type patterns in this pair equal if x is replaced by an infinite nesting of lists.
+
+* Poly-kinded
+type family F a :: k
+* the kind parameter k is actually an implicit parameter of the type family
+
+For a polykinded type family, the kinds are checked for apartness just like types. For example, the following is accepted:
+
+type family J a :: k
+type instance J Int = Bool
+type instance J Int = Maybe
+These instances are compatible because they differ in their implicit kind parameter; the first uses * while the second uses * -> \*.
+
+* closed families
+
+type family F a where
+  F Int  = Double
+  F Bool = Char
+  F a    = String
+
+* A closed type family’s equations are tried in order, from top to bottom
+
+type family F a :: *
+type instance F [Int]   = Int   -- OK!
+type instance F String  = Char  -- OK!
+type instance F (F a)   = a     -- WRONG: type parameter mentions a type family
+type instance
+  F (forall a. (a, b))  = b     -- WRONG: a forall type appears in a type parameter
+type instance
+  F Float = forall a.a          -- WRONG: right-hand side may not be a forall type
+type family H a where          -- OK!
+  H Int  = Int
+  H Bool = Bool
+  H a    = String
+type instance H Char = Char    -- WRONG: cannot have instances of closed family
+type family K a where          -- OK!
+
+type family G a b :: * -> *
+type instance G Int            = (,)     -- WRONG: must be two type parameters
+type instance G Int Char Float = Double  -- WRONG: must be two type parameters
+
+F a does not simplify. F Double simplifies to Char:
+type family F a where
+  F Int = Bool
+  F a   = Char
+
+Two equations are fully compatible and the first one can be ignored, G a
+simplifies to a:
+type family G a where
+  G Int = Int
+  G a   = a
+
+-XUndeciableInstances: allow undecidable type synonym instances.
 
 newtype
 -------
@@ -537,6 +661,8 @@ However since ''newtype'' allows only single constructor and field the type can 
 Associated Types
 ----------------
 
+Data types
+
 ::
 
     class GMapKey k where
@@ -559,3 +685,5 @@ Associated Types
       empty                    = GMapUnit Nothing
       lookup () (GMapUnit v)   = v
       insert () v (GMapUnit _) = GMapUnit $ Just v
+
+Type synonyms
