@@ -303,26 +303,26 @@ Data Families
 |                                                                      |
 |  data List a = Empty | Cons a (List a)                               |
 +----------------------------------------------------------------------+
-| Every type instance uses the same constructor template               |
+| Every type instance uses the same constructor definition template    |
 +----------------------------------------------------------------------+
 | ::                                                                   |
 |                                                                      |
-|  List Char                                                           |
-|  List ()                                                             |
+|  List Char  -- Empty | Cons Char (List Char)                         |
+|  List ()    -- Empty | Cons () (List ())                             |
 +----------------------------------------------------------------------+
-| Data Family                                                          |
-+----------------------------------------------------------------------+
-| ::                                                                   |
-|                                                                      |
-|  data family List a                                                  |
-+----------------------------------------------------------------------+
-| Every instance defines its own constructors.                         |
-| This is similar to function definition using                         |
-| pattern match.                                                       |
+| Data Family Prototype                                                |
+| (declares the kind signature of the type function)                   |
 +----------------------------------------------------------------------+
 | ::                                                                   |
 |                                                                      |
-|  data instance List Char = Empty | Cons Char (List Char) | List Char |
+|  data family List a -- List :: * -> *                                |
++----------------------------------------------------------------------+
+| Data Family Instances                                                |
+| (define the type constructor function for each argument type)        |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data instance List Char = Empty | Cons Char (List Char)             |
 |  data instance List ()   = Count Int                                 |
 +----------------------------------------------------------------------+
 
@@ -463,7 +463,8 @@ Detailed Data Construction Syntax
 |      , funny    :: a                                       |       , funny    :: a                                 |
 |    }                                                       |       } -> Person                                     |
 +------------------------------------------------------------+-------------------------------------------------------+
-| Selector functions are automatically generated for each record field::                                             |
+| Selector functions to extract a field from a record data structure are automatically generated for each record     |
+| field::                                                                                                            |
 |                                                                                                                    |
 |  name    :: Person -> String                                                                                       |
 |  funny   :: Person -> a                                                                                            |
@@ -487,7 +488,9 @@ Detailed Data Construction Syntax
 |     , tag      :: a                                        |     , tag      :: a                                   |
 |     }                                                      |     } -> Counter a                                    |
 +------------------------------------------------------------+-------------------------------------------------------+
-| * Fields using existentials are `private` and will not get a selector function and cannot be updated               |
+| * Fields using existentials are `private`. They will not get a selector function and cannot be updated             |
+| * Pattern matches to extract existentials are allowed only in `case` or `function definition` and not in `let` or  |
+|   `where` bindings                                                                                                 |
 | * As expected constraint is available on pattern match: ``f NewCounter {_this, _inc} = show (_inc _this)``         |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
@@ -533,29 +536,47 @@ Dictionary Reification
 |                                                            | |  MkNumInst :: Num a => NumInst a                    |
 +------------------------------------------------------------+-------------------------------------------------------+
 | ``MkNumInst`` reifies ``Num`` dictionary: plus :: NumInst a -> a -> a -> a; plus MkNumInst p q = p + q             |
-+------------------------------------------------------------+-------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------------------+
 
 Deconstruction (Pattern Matching)
 ---------------------------------
 
-* Pattern matching is the only way to look inside a constructed data
-* Just swap the LHS and RHS of constructor application
+* TBD define scrutinee
 
-* let
-* case
-* function
-* where
++-----------------------------------------------------------------------------+
+| Pattern matching is the only way to break down constructed data             |
++-----------------------------------------------------------------------------+
+| A concrete data structure is represented by one of multiple alternative     |
+| constructors as we saw in data type definitons. Pattern matching is reverse |
+| of the data type construction process i.e. an existing data structure's     |
+| constructor is broken down into its components. We write a constructor      |
+| pattern on the LHS of an equation and the composed data structure on the    |
+| RHS. If the pattern matches with the data structure then the variables in   |
+| the pattern are assigned the individual pieces of the data structure.       |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  let Cons x xs = list                                                       |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  where Cons x xs = list                                                     |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  case list of                                                               |
+|    Cons x xs -> ...                                                         |
+|    Empty     -> ...                                                         |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   f (Cons x xs) = ...                                                       |
+|   f (Empty)     = ...                                                       |
+|                                                                             |
+|   f list -- apply the function to a list                                    |
++-----------------------------------------------------------------------------+
 
 Lazy vs strict pattern match.
-
-Existential Quantification:
-
-* Remember each instance is independent isolated type space, type cannot escape
-  via pattern match
-* In general, you can only pattern-match on an existentially-quantified
-  constructor in a case expression or in the patterns of a function definition.
-  You can’t pattern-match on an existentially quantified constructor in a let
-  or where group of bindings.
 
 Type Synonyms
 -------------
@@ -577,45 +598,35 @@ Type Synonyms
 Type Synonym Families
 ~~~~~~~~~~~~~~~~~~~~~
 
-* open families
++-----------------------------------------------------------------------------+
+| Open families                                                               |
++-----------------------------------------------------------------------------+
+| type family Elem c :: *     | Arity 1, Kind * -> *                          |
++-----------------------------------------------------------------------------+
+type instance Elem [e] = e    |
++-----------------------------------------------------------------------------+
 
-type family Elem c :: *
-type family F a b :: * -> *   -- F's arity is 2,
-                              -- although its overall kind is * -> * -> * -> *
++-----------------------------------------------------------------------------+
+| Instances: cannot have conflicting LHS and RHS in instance equations        |
++-----------------------------------------------------------------------------+
+type instance F (a, Int) = [a] | Compatible overlap, allowed.
+type instance F (Int, b) = [b] |
++-----------------------------------------------------------------------------+
+type instance G (a, Int)  = [a] | Conflicting overlap, as [Char] /= [Int].
+type instance G (Char, a) = [a] | Not allowed.
++-----------------------------------------------------------------------------+
+type instance H x   x = Int   | Conflicting overlap when x is infinite nesting
+type instance H [x] x = Bool  | of lists. Not allowed.
++-----------------------------------------------------------------------------+
 
 * all applications of a type family must be fully saturated with respect to to that arity
++-----------------------------------------------------------------------------+
+| type family F a b :: * -> * | Arity 2, Kind * -> * -> * -> *                |
 
 F Char [Int]       -- OK!  Kind: * -> *
 F Char [Int] Bool  -- OK!  Kind: *
 F IO Bool          -- WRONG: kind mismatch in the first argument
 F Bool             -- WRONG: unsaturated application
-
-type instance Elem [e] = e
-
-equations of open type families are restricted to be compatible.
-The definition for “compatible” uses a notion of “apart”. two types are
-considered to be apart when the two types cannot be unified, even by a
-potentially infinite unifier.
-
-the patterns of two distinct type family instances cannot overlap. For example, the following is disallowed:
-
-type instance F Int = Bool
-type instance F Int = Char
-
-two overlapping type family instances are allowed if the right-hand sides coincide in the region of overlap. Some examples help here:
-
-type instance F (a, Int) = [a]
-type instance F (Int, b) = [b]   -- overlap permitted
-
-type instance G (a, Int)  = [a]
-type instance G (Char, a) = [a]  -- ILLEGAL overlap, as [Char] /= [Int]
-
-Allowing the unifier to be infinite disallows the
-following pair of instances:
-
-type instance H x   x = Int
-type instance H [x] x = Bool
-The type patterns in this pair equal if x is replaced by an infinite nesting of lists.
 
 * Poly-kinded
 type family F a :: k
