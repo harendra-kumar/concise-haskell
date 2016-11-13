@@ -36,11 +36,18 @@ Terminology
 ~~~~~~~~~~~
 
 +----------------------------+-----------------------------------------------------------------+
+| Type                       | Distinguishes a class of values (e.g. Integer or String)        |
++----------------------------+-----------------------------------------------------------------+
+| Kind                       | Distinguishes a class of types (e.g. Lifted or unlifted)        |
++----------------------------+-----------------------------------------------------------------+
+| Rigid type                 | Type is fixed by annotation (signature) and not determined by   |
+|                            | inference.                                                      |
++----------------------------+-----------------------------------------------------------------+
 | Concrete                   | Has a physical representation (boxed or unboxed)                |
 +----------------------------+-----------------------------------------------------------------+
-| Monomorphic                | Has only one possible representaton                             |
+| Monomorphic                | Has only one possible representation                            |
 +----------------------------+-----------------------------------------------------------------+
-| Polymorphic                | Has multiple possible representaton (cannnot be concrete)       |
+| Polymorphic                | Has multiple possible representation (cannnot be concrete)      |
 +----------------------------+-----------------------------------------------------------------+
 | Unboxed                    | Bare type, no wrapping                                          |
 +----------------------------+-----------------------------------------------------------------+
@@ -59,8 +66,6 @@ Terminology
 | Universal Quantification   | forall `a`                                                      |
 +----------------------------+-----------------------------------------------------------------+
 | Existential Quantification | exists `a`                                                      |
-+----------------------------+-----------------------------------------------------------------+
-| Rigid type                 | Type is compeletely known to the compiler at the binding site   |
 +----------------------------+-----------------------------------------------------------------+
 | Open                       | Open to extension, can be extended (e.g. open type families)    |
 +----------------------------+-----------------------------------------------------------------+
@@ -90,7 +95,7 @@ Values, Types & Kinds
 |             |        +----------------------+--------------------------------------------------------------------------------+
 |             |        | Concrete Types       | ``t :: *``                                                                     |
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
-| Values      | Rank2  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables represeting values up to rank1   |
+| Values      | Rank2  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables representing values up to rank1  |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
 |             | Rank1  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables representing values of Rank0     |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
@@ -113,7 +118,7 @@ Kinds of Concrete Types
 | .. class:: center                                                          |
 |                                                                            |
 | Unlifted Types                                                             |
-| (TYPE is GHC internal representaion)                                       |
+| (TYPE is GHC internal representation)                                      |
 +-----------+------+-------------------+-------------+-----------------------+
 | Int#      | `::` | TYPE 'IntRep'     | Unboxed     | Direct Reg or Mem     |
 +-----------+------+-------------------+-------------+-----------------------+
@@ -263,7 +268,7 @@ Value Constructors
 ..................
 
 +--------------------------------------------------------------------------------------------------------+
-| Return a value of a certain type by `creating` it or by `composing` argument values into a new vaulue. |
+| Return a value of a certain type by `creating` it or by `composing` argument values into a new value.  |
 +-------------------+--------+-------------------------------+-------------------------------------------+
 | Value Constructor |        | Type                          | Description                               |
 +-------------------+--------+-------------------------------+-------------------------------------------+
@@ -288,67 +293,86 @@ Terminology
 | Recursive | data List a = Empty | Cons a (List a) | Polymorphic |
 +-----------+---------------------------------------+-------------+
 
-Polymorphic Data Types & Data Families
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Data Families
+~~~~~~~~~~~~~
 
-+------------------+---------------------------------------------------------------------+---------------------------------------------------+
-| Polymorphic      | data List a = Empty | Cons a (List a)                               | Every instance uses the same constructor template |
-|                  |                                                                     |                                                   |
-|                  | List Char                                                           |                                                   |
-|                  |                                                                     |                                                   |
-|                  | List ()                                                             |                                                   |
-+------------------+---------------------------------------------------------------------+---------------------------------------------------+
-| Polymorphic      | data family List a                                                  | Every instance defines its own constructors.      |
-|                  |                                                                     | This is similar to function definition using      |
-|                  | data instance List Char = Empty | Cons Char (List Char) | List Char | pattern match.                                    |
-|                  |                                                                     |                                                   |
-| (Data Family)    | data instance List ()   = Count Int                                 |                                                   |
-+------------------+---------------------------------------------------------------------+---------------------------------------------------+
++----------------------------------------------------------------------+
+| Polymorphic Types                                                    |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data List a = Empty | Cons a (List a)                               |
++----------------------------------------------------------------------+
+| Every type instance uses the same constructor template               |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  List Char                                                           |
+|  List ()                                                             |
++----------------------------------------------------------------------+
+| Data Family                                                          |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data family List a                                                  |
++----------------------------------------------------------------------+
+| Every instance defines its own constructors.                         |
+| This is similar to function definition using                         |
+| pattern match.                                                       |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data instance List Char = Empty | Cons Char (List Char) | List Char |
+|  data instance List ()   = Count Int                                 |
++----------------------------------------------------------------------+
 
 GADT Syntax
 ~~~~~~~~~~~
 
-+-------------------------------------------------------+
-| Haskell98 Syntax                                      |
-+-------------------------------------------------------+
-| ::                                                    |
-|                                                       |
-|  data List a = Empty | Cons a (List a)                |
-+-------------------------------------------------------+
-| GADT Syntax                                           |
-+-------------------------------------------------------+
-| ::                                                    |
-|                                                       |
-|  data List a where                                    |
-|    Empty :: List a                                    |
-|    Cons  :: a -> List a -> List a                     |
-+-------------------------------------------------------+
-| GADT type variables are universally quantified        |
-+-------------------------------------------------------+
-| ::                                                    |
-|                                                       |
-|  data T a where      -- 'a' has no scope              |
-|   T1,T2 :: b -> T b  -- forall b. b -> T b            |
-|   T3 :: T a          -- forall a. T a                 |
-+-------------------------------------------------------+
-| GADT Type parameters have no scope                    |
-| (You can even omit them and just use the kind)        |
-+-------------------------------------------------------+
-| ::                                                    |
-|                                                       |
-|  data Bar a b where ...                               |
-|  data Bar :: * -> * -> * where ...                    |
-|  data Bar a :: (* -> \*) where ...                    |
-|  data Bar a (b :: * -> \*) where ...                  |
-+-------------------------------------------------------+
++------------------------------------------------------------------+
+| Haskell98 Syntax (Constructor return type is implicit and fixed) |
++------------------------------------------------------------------+
+| ::                                                               |
+|                                                                  |
+|  data List a = Empty | Cons a (List a)                           |
++------------------------------------------------------------------+
+| GADT Syntax (Constructor return type is explicit and can vary)   |
++------------------------------------------------------------------+
+| ::                                                               |
+|                                                                  |
+|  data List a where                                               |
+|    Empty :: List a                                               |
+|    Cons  :: a -> List a -> List a                                |
++------------------------------------------------------------------+
+| GADT constructor type variables are universally quantified       |
+| (Same as in function signatures)                                 |
++------------------------------------------------------------------+
+| ::                                                               |
+|                                                                  |
+|  data T a where      -- 'a' has no scope                         |
+|   T1,T2 :: b -> T b  -- forall b. b -> T b                       |
+|   T3 :: T a          -- forall a. T a                            |
++------------------------------------------------------------------+
+| GADT Type parameters have no scope                               |
+| (You can even omit them and just use the kind)                   |
++------------------------------------------------------------------+
+| ::                                                               |
+|                                                                  |
+|  data Bar a b where ...                                          |
+|  data Bar :: * -> * -> * where ...                               |
+|  data Bar a :: (* -> \*) where ...                               |
+|  data Bar a (b :: * -> \*) where ...                             |
++------------------------------------------------------------------+
 
-Ordinary vs Generalized Types (GADT)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+GADT Semantics
+~~~~~~~~~~~~~~
 
++-------------------------------------------------+----------------------------------------------------+
+| -XGADTs                                                                                              |
 +-------------------------------------------------+----------------------------------------------------+
 | Ordinary type                                   | Generalized type (GADT)                            |
 +-------------------------------------------------+----------------------------------------------------+
-| One type represented by only one term           | One type represented by multiple terms             |
+| One type represented by only one type level term| One type represented by multiple type level terms  |
 +-------------------------------------------------+----------------------------------------------------+
 | List Int                                        | Term Int                                           |
 |                                                 +----------------------------------------------------+
@@ -389,15 +413,16 @@ Ordinary vs Generalized Types (GADT)
 |  eval (If b e1 e2) = if eval b then eval e1 else eval e2      |
 |  eval (Pair e1 e2) = (eval e1, eval e2)                       |
 +---------------------------------------------------------------+
-| The following types must be rigid in a pattern match:         |
+| The following types must be rigid                             |
+| (i.e. annotated by programmer) in a pattern match:            |
 |                                                               |
 | * scrutinee                                                   |
 | * entire case expression                                      |
 | * free variable mentioned in any of the case alternatives     |
 +---------------------------------------------------------------+
 
-Detailed Syntax
-~~~~~~~~~~~~~~~
+Detailed Data Construction Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------+-------------------------------------------------------+
 | Haskell98 Syntax                                           | GADT Syntax                                           |
@@ -406,17 +431,21 @@ Detailed Syntax
 |                                                                                                                    |
 | Typeclass Derivation                                                                                               |
 +------------------------------------------------------------+-------------------------------------------------------+
-| data Maybe a = Nothing | Just a                            | | data Maybe a where {                                |
-|     deriving( Eq, Ord )                                    | |     Nothing :: Maybe a                              |
-|                                                            | |     Just    :: a -> Maybe a                         |
-|                                                            | |   } deriving( Eq, Ord )                             |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Maybe a = Nothing | Just a                           |    data Maybe a where                                 |
+|      deriving (Eq, Ord)                                    |        Nothing :: Maybe a                             |
+|                                                            |        Just    :: a -> Maybe a                        |
+|                                                            |        deriving (Eq, Ord)                             |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class :: center                                                                                                 |
 |                                                                                                                    |
 | Typeclass Constraint                                                                                               |
 +------------------------------------------------------------+-------------------------------------------------------+
-| data Set a = Eq a => MkSet [a]                             |  | data Set a where                                   |
-|                                                            |  |   MkSet :: Eq a => [a] -> Set a                    |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Set a = Eq a => MkSet [a]                            |   data Set a where                                    |
+|                                                            |     MkSet :: Eq a => [a] -> Set a                     |
 +------------------------------------------------------------+-------------------------------------------------------+
 | * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
 | * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
@@ -426,61 +455,73 @@ Detailed Syntax
 |                                                                                                                    |
 | Records                                                                                                            |
 +------------------------------------------------------------+-------------------------------------------------------+
-|                                                            | | data P where                                        |
-|                                                            | |   Adlt :: {nm :: String, children :: [P]} -> P      |
-|                                                            | |   Chld :: Show a => {nm :: !String, fny :: a} -> P  |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Person =                                             |   data Person where                                   |
+|    Show a => Adult {                                       |     Adult :: Show a => {                              |
+|        name     :: String                                  |         name     :: String                            |
+|      , funny    :: a                                       |       , funny    :: a                                 |
+|    }                                                       |       } -> Person                                     |
++------------------------------------------------------------+-------------------------------------------------------+
+| Selector functions are automatically generated for each record field::                                             |
+|                                                                                                                    |
+|  name    :: Person -> String                                                                                       |
+|  funny   :: Person -> a                                                                                            |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | -XExistentialQuantification                                                                                        |
 +------------------------------------------------------------+-------------------------------------------------------+
-| Quantified type variables that do not appear in the result type of a constructor are existentials.                 |
-| They are confined within the data type and can only be used within this binding group.                             |
+| Quantified type variables that appear in arguments but not in the result type for any constructor are existentials.|
+| The type of any such variable cannot be checked against any type outside the bindings within this data type.       |
+| So data Foo = forall a. Foo a (a -> a) is equivalent to Foo :: (exists a . (a, a -> a)) -> Foo.                    |
+| It allows us to pack opaque data and operations on it together in a data type. An example using records:           |
 +------------------------------------------------------------+-------------------------------------------------------+
-| data Foo = forall a. Foo a (a -> a)                        | data Foo where { Foo :: a -> (a -> a) -> Foo }        |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Counter a = forall self.                            |   data Counter a where                                |
+|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
+|     { _this    :: self                                     |     { _this    :: self                                |
+|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
+|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
+|     , tag      :: a                                        |     , tag      :: a                                   |
+|     }                                                      |     } -> Counter a                                    |
 +------------------------------------------------------------+-------------------------------------------------------+
-| Packs opaque data and function together. Equivalent to: Foo :: (exists a . (a, a -> a)) -> Foo                     |
-+------------------------------------------------------------+-------------------------------------------------------+
-| data Foo = forall a. Show a => Foo a (a -> a)              | data Foo where {Foo :: Show a => a -> (a -> a) -> Foo}|
-+------------------------------------------------------------+-------------------------------------------------------+
-| Constraint is available on pattern match: f (Foo v fn) = show (fn v)                                               |
-+------------------------------------------------------------+-------------------------------------------------------+
-| | data Counter a = forall self. NewCounter                 | | data Counter a where                                |
-| |   { _this    :: self                                     | |     NewCounter :: { _this    :: self                |
-| |   , _inc     :: self -> self                             | |                   , _inc     :: self -> self        |
-| |   , _display :: self -> IO ()                            | |                   , _display :: self -> IO ()       |
-| |   , tag      :: a                                        | |                   , tag      :: a                   |
-| |   }                                                      | |                   } -> Counter a                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| Record constructors:                                                                                               |
-|                                                                                                                    |
-| * Only ``tag`` will get a selector function and can be updated                                                     |
-| * All other fields can be used in construction and pattern matching only.                                          |
+| * Fields using existentials are `private` and will not get a selector function and cannot be updated               |
+| * As expected constraint is available on pattern match: ``f NewCounter {_this, _inc} = show (_inc _this)``         |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | Strictness Annotations                                                                                             |
 +------------------------------------------------------------+-------------------------------------------------------+
-|                                                            | | data Term a where                                   |
-|                                                            | |   Lit :: !Int -> Term Int                           |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| -XEmptyDataDecls                                                                                                   |
-+------------------------------------------------------------+-------------------------------------------------------+
-| data T a    -- T :: * -> *                                 |                                                       |
+|                                                            | ::                                                    |
+|                                                            |                                                       |
+|                                                            |   data Term a where                                   |
+|                                                            |     Lit :: !Int -> Term Int                           |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | Infix type constructor                                                                                             |
 +------------------------------------------------------------+-------------------------------------------------------+
-| data a :\*: b = Foo a b                                    |                                                       |
+| ::                                                         |                                                       |
+|                                                            |                                                       |
+|  ``data a :*: b = Foo a b``                                |                                                       |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | -XTypeOperators                                                                                                    |
 +------------------------------------------------------------+-------------------------------------------------------+
-| data a + b = Plus a b                                      |                                                       |
+| ::                                                         |                                                       |
+|                                                            |                                                       |
+|  data a + b = Plus a b                                     |                                                       |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| -XEmptyDataDecls                                                                                                   |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                                                                                 |
+|                                                                                                                    |
+|  data T a    -- T :: * -> *                                                                                        |
 +------------------------------------------------------------+-------------------------------------------------------+
 
 
