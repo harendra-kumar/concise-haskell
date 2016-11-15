@@ -62,9 +62,9 @@ Terminology
 +----------------------------+-----------------------------------------------------------------+
 | Primops                    | Functions operating on primitive types                          |
 +----------------------------+-----------------------------------------------------------------+
-| Universal Quantification   | forall `a`                                                      |
+| Universal Quantification   | forall `a`: the proposition is true for all values of a         |
 +----------------------------+-----------------------------------------------------------------+
-| Existential Quantification | exists `a`                                                      |
+| Existential Quantification | exists `a`: the proposition is true for some values of a        |
 +----------------------------+-----------------------------------------------------------------+
 | Open                       | Open to extension, can be extended (e.g. open type families)    |
 +----------------------------+-----------------------------------------------------------------+
@@ -83,16 +83,29 @@ Values, Types & Kinds
 | Run time     | Values |
 +--------------+--------+
 
-+-------------+--------+----------------------+--------------------------------------------------------------------------------+
+Kinds
+~~~~~
+
++----------------------+----------------------+--------------------------------------------------------------------------------+
 | Kinds                | Lifted Types         | ``*``                                                                          |
 |                      +----------------------+--------------------------------------------------------------------------------+
-|                      | Unlifted Types       | ``TYPE 'IntRep'``, ...                                                         |
+|                      | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
++----------------------+----------------------+--------------------------------------------------------------------------------+
+
+Types & Type Functions
+~~~~~~~~~~~~~~~~~~~~~~
+
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
 | Types       | Rank1  | Polymorphic Type Fns | ``t :: k1 -> k2``, where k1, k2 are kind variables representing types of rank0 |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
 |             | Rank0  | Type Functions       | ``t :: * -> *`` (polymorphic type)                                             |
 |             |        +----------------------+--------------------------------------------------------------------------------+
 |             |        | Concrete Types       | ``t :: *``                                                                     |
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+
+Values & Value Functions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
 | Values      | Rank2  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables representing values up to rank1  |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
@@ -221,6 +234,20 @@ Using Primitives
 
 Basic Haskell Types
 -------------------
+
++---------+
+| Int     |
++---------+
+| Integer |
++---------+
+| Float   |
++---------+
+| Double  |
++---------+
+| Bool    |
++---------+
+| Char    |
++---------+
 
 Construction
 ------------
@@ -498,10 +525,15 @@ Dictionary Reification
 ~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------+-------------------------------------------------------+
-| data NumInst a = Num a => MkNumInst                        | | data NumInst a where                                |
-|                                                            | |  MkNumInst :: Num a => NumInst a                    |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data NumInst a = Num a => MkNumInst                       |   data NumInst a where                                |
+|                                                            |    MkNumInst :: Num a => NumInst a                    |
 +------------------------------------------------------------+-------------------------------------------------------+
-| ``MkNumInst`` reifies ``Num`` dictionary: plus :: NumInst a -> a -> a -> a; plus MkNumInst p q = p + q             |
+| We can pattern match on ``MkNumInst`` instead of using a ``Num`` constraint on ``a``::                             |
+|                                                                                                                    |
+|  plus :: NumInst a -> a -> a -> a                                                                                  |
+|  plus MkNumInst p q = p + q                                                                                        |
 +--------------------------------------------------------------------------------------------------------------------+
 
 Deconstruction (Pattern Matching)
@@ -515,10 +547,13 @@ Deconstruction (Pattern Matching)
 | A concrete data structure is represented by one of multiple alternative     |
 | constructors as we saw in data type definitons. Pattern matching is reverse |
 | of the data type construction process i.e. an existing data structure's     |
-| constructor is broken down into its components. We write a constructor      |
-| pattern on the LHS of an equation and the composed data structure on the    |
-| RHS. If the pattern matches with the data structure then the variables in   |
-| the pattern are assigned the individual pieces of the data structure.       |
+| constructor is broken down into its components.                             |
+|                                                                             |
+| We write a constructor pattern on the LHS of an equation and the data       |
+| structure to be decomposed on the RHS. A pattern looks like a constructor   |
+| call except that the arguments are unbound variables. If the pattern        |
+| matches with the data structure then the variables in the pattern are       |
+| bound to the corresponding values of the data structure.                    |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -544,6 +579,55 @@ Deconstruction (Pattern Matching)
 
 Lazy vs strict pattern match.
 
++-----------------------------------------------------------------------------+
+| -XPatternGuards: write guards as pattern matches                            |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- boolean guards can be freely mixed with pattern guards                  |
+|  f x | [(y,z)] <- x                                                         |
+|      , y > 3                                                                |
+|      , Just i <- z                                                          |
+|      = i                                                                    |
++-----------------------------------------------------------------------------+
+| Inside a guard expression, pattern guard ``<pat> <- <exp>`` evaluates       |
+| ``<exp>`` and then matches it against the pattern ``<pat>``:                |
+|                                                                             |
+| * If the match fails then the whole guard fails                             |
+| * If it succeeds, then the next condition in the guard is evaluated         |
+| * The variables bound by the pattern guard scope over all the remaining     |
+|   guard conditions, and over the RHS of the guard equation.                 |
++-----------------------------------------------------------------------------+
+| -XViewPatterns: Pattern match on the result of an expression within a       |
+| pattern match                                                               |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  example :: Maybe ((String -> Integer,Integer), String) -> Bool             |
+|  example Just ((f,_), f -> 4) = True -- left match can be used on right     |
+|                                                                             |
+|  example :: (String -> Integer) -> String -> Bool                           |
+|  example f (f -> 4) = True           -- left args can be used on right      |
++-----------------------------------------------------------------------------+
+| Inside any pattern match, a view pattern ``<exp> -> <pat>`` applies         |
+| ``<exp>`` to whatever we’re trying to match against, and then match the     |
+| result of that application against ``<pat>``:                               |
+|                                                                             |
+| * In a single pattern, variables bound by patterns to the left of a view    |
+|   pattern expression are in scope.                                          |
+| * In function definitions, variables bound by matching earlier curried      |
+|   arguments may be used in view pattern expressions in later arguments      |
+| * In mutually recursive bindings, such as let, where, or the top level,     |
+|   view patterns in one declaration may not mention variables bound by other |
+|   declarations.                                                             |
+| * If ⟨exp⟩ has type ⟨T1⟩ -> ⟨T2⟩ and ⟨pat⟩ matches a ⟨T2⟩, then the whole   |
+|   view pattern matches a ⟨T1⟩.                                              |
++-----------------------------------------------------------------------------+
+| -XNPlusKPatterns                                                            |
++-----------------------------------------------------------------------------+
+|                                                                             |
++-----------------------------------------------------------------------------+
+
 Type Synonyms
 -------------
 
@@ -553,7 +637,7 @@ Type Synonyms
 | ::                                                                          |
 |                                                                             |
 |  type ThisOrThat a b = Either a b                                           |
-|  type ThisOrThat a   = Either a Int                                         |
+|  type ThisOrInt  a   = Either a Int                                         |
 +-----------------------------------------------------------------------------+
 | The synonym can be used anywhere the original type can be used.             |
 +-----------------------------------------------------------------------------+
