@@ -87,7 +87,7 @@ Kinds
 ~~~~~
 
 +----------------------+----------------------+--------------------------------------------------------------------------------+
-| Kinds                | Lifted Types         | ``*``                                                                          |
+| Kinds                | Lifted Types         | ``*`` or ``Type`` (GHC 8.0)                                                    |
 |                      +----------------------+--------------------------------------------------------------------------------+
 |                      | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
 +----------------------+----------------------+--------------------------------------------------------------------------------+
@@ -235,6 +235,8 @@ Using Primitives
 Basic Haskell Types
 -------------------
 
++---------+
+| ()      |
 +---------+
 | Int     |
 +---------+
@@ -414,6 +416,33 @@ GADT Semantics
 | * free variable mentioned in any of the case alternatives     |
 +---------------------------------------------------------------+
 
+Records
+~~~~~~~
+
++--------------------------------------------------------------------------------------------------------------------+
+| .. class :: center                                                                                                 |
+|                                                                                                                    |
+| Records                                                                                                            |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Person =                                             |   data Person where                                   |
+|    Show a => Adult {                                       |     Adult :: Show a => {                              |
+|        name     :: String                                  |         name     :: String                            |
+|      , funny    :: a                                       |       , funny    :: a                                 |
+|    } deriving (Show)                                       |       } -> Person                                     |
+|                                                            |     deriving (Show)                                   |
++------------------------------------------------------------+-------------------------------------------------------+
+| Selector functions to extract a field from a record data structure are automatically generated for each record     |
+| field::                                                                                                            |
+|                                                                                                                    |
+|  name    :: Person -> String                                                                                       |
+|  funny   :: Person -> a                                                                                            |
++--------------------------------------------------------------------------------------------------------------------+
+| :red:`Note: Record brackets have a higher precedence than function application.` Therefore:                        |
+| ``f R {x = "a", y = 5}`` is equivalent to ``f (R {x = "a", y = 5})``                                               |
++--------------------------------------------------------------------------------------------------------------------+
+
 Detailed Data Construction Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -443,24 +472,6 @@ Detailed Data Construction Syntax
 | * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
 | * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
 | * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class :: center                                                                                                 |
-|                                                                                                                    |
-| Records                                                                                                            |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data Person =                                             |   data Person where                                   |
-|    Show a => Adult {                                       |     Adult :: Show a => {                              |
-|        name     :: String                                  |         name     :: String                            |
-|      , funny    :: a                                       |       , funny    :: a                                 |
-|    }                                                       |       } -> Person                                     |
-+------------------------------------------------------------+-------------------------------------------------------+
-| Selector functions to extract a field from a record data structure are automatically generated for each record     |
-| field::                                                                                                            |
-|                                                                                                                    |
-|  name    :: Person -> String                                                                                       |
-|  funny   :: Person -> a                                                                                            |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
