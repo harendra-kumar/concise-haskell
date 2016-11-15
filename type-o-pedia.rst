@@ -547,6 +547,19 @@ Lazy vs strict pattern match.
 Type Synonyms
 -------------
 
++-----------------------------------------------------------------------------+
+| Create a type synonym for an existing type                                  |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type ThisOrThat a b = Either a b                                           |
+|  type ThisOrThat a   = Either a Int                                         |
++-----------------------------------------------------------------------------+
+| The synonym can be used anywhere the original type can be used.             |
++-----------------------------------------------------------------------------+
+
++---------------------------------------------------------------------------------------------------------------+
+| Extended syntax                                                                                               |
 +------------------------------------------------------------+--------------------------------------------------+
 | type a :+: b = Either a b                                  | Infix type constructor                           |
 +------------------------------------------------------------+--------------------------------------------------+
@@ -560,6 +573,40 @@ Type Synonyms
 +------------------------------------------------------------+--------------------------------------------------+
 | foo :: Generic Id []                                       | -XLiberalTypeSynonyms (partial application)      |
 +------------------------------------------------------------+--------------------------------------------------+
+
+newtype
+-------
+
++-----------------------------------------------------------------------------+
+| Wrap an existing type into a new type                                       |
++-----------------------------------------------------------------------------+
+| newtype N = W (original type) deriving ...                                  |
++-----------------------------------------------------------------------------+
+| `W is not a data constructor`, it does not construct data, it is just a type|
+| level wrapper to wrap the original type into a new type N. Since W is not a |
+| data constructor:                                                           |
+|                                                                             |
+| * you cannot provide multiple arguments to W. It only `wraps` a type, it    |
+|   does not combine multiple types.                                          |
+| * it does not lift the wrapped type, however it wraps only lifted types.    |
+| * you can’t use existential quantification for newtype declarations.        |
+| * it is just a type level artifiact and has no runtime overhead.            |
++-----------------------------------------------------------------------------+
+| However just like data constructors, you can:                               |
+|                                                                             |
+| * pattern match on wrapper W to extract the original type                   |
+| * use a deriving clause                                                     |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  newtype WrapInt = WrapInt Int                                              |
+|  newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)  |
++-----------------------------------------------------------------------------+
+| `type` creates a `synonym` which means it can be freely used in place of the|
+| original type and vice versa.  Both the types are swappable. However, the   |
+| type created by `newtype` is an entirely new type and cannot be used in     |
+| place of any other type.                                                    |
++-----------------------------------------------------------------------------+
 
 Data Families
 ~~~~~~~~~~~~~
@@ -628,7 +675,7 @@ Type Synonym Families
 +-----------------------------------------------------------------------------+
 | Open families (open to extension by adding instances)                       |
 +-----------------------------------------------------------------------------+
-| Declare the kind signature                                                  |
+| Declare the kind signature:                                                 |
 +-----------------------------------------------------------------------------+
 | The number of parameters in a type family declaration, is the family’s      |
 | arity. The kind of a type family is not sufficient to determine a family’s  |
@@ -642,7 +689,7 @@ Type Synonym Families
 |  type family F a b :: * -> * -- Family Arity 2, F :: * -> * -> * -> *       |
 |  type family F a :: k        -- Poly kinded, k is an implicit parameter     |
 +-----------------------------------------------------------------------------+
-| Define instances                                                            |
+| Define instances:                                                           |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -716,13 +763,3 @@ Type Synonym Families
 +-----------------------------------------------------------------------------+
 
 -XUndeciableInstances: allow undecidable type synonym instances.
-
-newtype
--------
-
-* ''newtype'' takes exactly one value constructor with exactly one field no less no more. It can take multiple type parameters though. Its basic purpose is to wrap multiple existing types into a new type. More about newtype vs data at :
-
-  * http://stackoverflow.com/questions/21327740/strict-single-constructor-single-field-data-declaration-vs-newtype/21331284#21331284.
-  * http://stackoverflow.com/questions/2649305/why-is-there-data-and-newtype-in-haskell
-
-* You can’t use existential quantification for newtype declarations.
