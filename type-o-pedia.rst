@@ -87,7 +87,7 @@ Kinds
 ~~~~~
 
 +----------------------+----------------------+--------------------------------------------------------------------------------+
-| Kinds                | Lifted Types         | ``*`` or ``Type`` (GHC 8.0)                                                    |
+| Kinds                | Lifted Types         | ``Type`` or ``*`` (Pre GHC 8.0)                                                |
 |                      +----------------------+--------------------------------------------------------------------------------+
 |                      | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
 +----------------------+----------------------+--------------------------------------------------------------------------------+
@@ -98,9 +98,9 @@ Types & Type Functions
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
 | Types       | Rank1  | Polymorphic Type Fns | ``t :: k1 -> k2``, where k1, k2 are kind variables representing types of rank0 |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
-|             | Rank0  | Type Functions       | ``t :: * -> *`` (polymorphic type)                                             |
+|             | Rank0  | Type Functions       | ``t :: Type -> Type`` (polymorphic type)                                       |
 |             |        +----------------------+--------------------------------------------------------------------------------+
-|             |        | Concrete Types       | ``t :: *``                                                                     |
+|             |        | Concrete Types       | ``t :: Type``                                                                  |
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
 
 Values & Value Functions
@@ -140,25 +140,25 @@ Kinds of Concrete Types
 +-----------+------+-------------------+-------------+-----------------------+
 | .. class:: center                                                          |
 |                                                                            |
-| Lifted Types (type * = `TYPE 'PtrRepLifted'`_)                             |
+| Lifted Types (type Type = `TYPE 'PtrRepLifted'`_)                          |
 +-----------+------+-------------------+-------------+-----------------------+
-| RealWorld | `::` | \*                | NA          | Compile time only     |
+| RealWorld | `::` | Type              | NA          | Compile time only     |
 +-----------+------+-------------------+-------------+-----------------------+
-| Int       | `::` | \*                | Boxed       |                       |
+| Int       | `::` | Type              | Boxed       |                       |
 +-----------+------+-------------------+-------------+-----------------------+
-| Maybe Int | `::` | \*                | Boxed       |                       |
+| Maybe Int | `::` | Type              | Boxed       |                       |
 +-----------+------+-------------------+-------------+-----------------------+
 
 Kinds of Polymorphic Types (Type functions)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+-----------+------+-------------------+
-| Type      |      | Kind              |
-+===========+======+===================+
-| Maybe     | `::` | \* -> *           |
-+-----------+------+-------------------+
-| Either    | `::` | \* -> * -> *      |
-+-----------+------+-------------------+
++-----------+------+----------------------+
+| Type      |      | Kind                 |
++===========+======+======================+
+| Maybe     | `::` | Type -> Type         |
++-----------+------+----------------------+
+| Either    | `::` | Type -> Type -> Type |
++-----------+------+----------------------+
 
 Kind Polymorphism
 ~~~~~~~~~~~~~~~~~
@@ -173,12 +173,12 @@ types.
 Kind check
 ~~~~~~~~~~
 
-+-----------------+-------------+--------------------------------------+
-| Function        | Application | Failure Reason                       |
-+-----------------+-------------+--------------------------------------+
-| Maybe :: * -> * | Maybe Int#  | Wrong kind ``TYPE 'IntRep'``         |
-|                 |             | expected ``*``                       |
-+-----------------+-------------+--------------------------------------+
++-----------------------+-------------+--------------------------------------+
+| Function              | Application | Failure Reason                       |
++-----------------------+-------------+--------------------------------------+
+| Maybe :: Type -> Type | Maybe Int#  | Wrong kind ``TYPE 'IntRep'``         |
+|                       |             | expected ``Type``                    |
++-----------------------+-------------+--------------------------------------+
 
 .. _Primitive Types: https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-prim-0.5.0.0/GHC-Prim.html>
 
@@ -268,29 +268,29 @@ Basic Syntax
 +---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
 | data    | :red:`L`:blk:`ist`  | `a`            |  =  | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
 +---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
-| where parameter `a` as well as all argument types of value constructors must be a type of kind \*                        |
+| where parameter `a` as well as all argument types of value constructors must be a type of kind ``Type``                  |
 +--------------------------------------------------------------------------------------------------------------------------+
 
 Type Constructor
 ................
 
-+-------------------------------------------------------------------------------------------+
-| A (possibly parameterized) type function to instantiate a new type                        |
-+----------------------+--------+------------+----------------------------------------------+
-| Type                 |        | Kind       | Description                                  |
-+----------------------+--------+------------+----------------------------------------------+
-| List                 | ``::`` | ``* -> *`` | Polymorphic type or type constructor         |
-+----------------------+--------+------------+----------------------------------------------+
-| .. class:: center                                                                         |
-|                                                                                           |
-| Instances                                                                                 |
-+----------------------+--------+------------+----------------------------------------------+
-| List Int             | ``::`` | ``*``      | Concrete type (list of Ints)                 |
-+----------------------+--------+------------+----------------------------------------------+
-| List (Maybe Int)     | ``::`` | ``*``      | Concrete type (list of Maybe Ints)           |
-+----------------------+--------+------------+----------------------------------------------+
-| :strike:`List Maybe` | ``::`` |            | Invalid argument kind * -> *                 |
-+----------------------+--------+------------+----------------------------------------------+
++-----------------------------------------------------------------------------------------+
+| A (possibly parameterized) type function to instantiate a new type                      |
++----------------------+--------+------------------+--------------------------------------+
+| Type                 |        | Kind             | Description                          |
++----------------------+--------+------------------+--------------------------------------+
+| List                 | ``::`` | ``Type -> Type`` | Polymorphic type or type constructor |
++----------------------+--------+------------------+--------------------------------------+
+| .. class:: center                                                                       |
+|                                                                                         |
+| Instances                                                                               |
++----------------------+--------+------------------+--------------------------------------+
+| List Int             | ``::`` | ``Type``         | Concrete type (list of Ints)         |
++----------------------+--------+------------------+--------------------------------------+
+| List (Maybe Int)     | ``::`` | ``Type``         | Concrete type (list of Maybe Ints)   |
++----------------------+--------+------------------+--------------------------------------+
+| :strike:`List Maybe` |        |                  | Kind mismatch                        |
++----------------------+--------+------------------+--------------------------------------+
 
 Value Constructors
 ..................
@@ -354,9 +354,9 @@ GADT Syntax
 | ::                                                               |
 |                                                                  |
 |  data Bar a b where ...                                          |
-|  data Bar :: * -> * -> * where ...                               |
-|  data Bar a :: ( * -> * ) where ...                              |
-|  data Bar a ( b :: * -> * ) where ...                            |
+|  data Bar :: Type -> Type -> Type where ...                      |
+|  data Bar a :: (Type -> Type) where ...                          |
+|  data Bar a (b :: Type -> Type) where ...                        |
 +------------------------------------------------------------------+
 
 GADT Semantics
@@ -528,7 +528,7 @@ Detailed Data Construction Syntax
 +------------------------------------------------------------+-------------------------------------------------------+
 | ::                                                                                                                 |
 |                                                                                                                    |
-|  data T a    -- T :: * -> *                                                                                        |
+|  data T a    -- T :: Type -> Type                                                                                  |
 +------------------------------------------------------------+-------------------------------------------------------+
 
 
@@ -728,8 +728,8 @@ Data Families
 | ::                                                                   |
 |                                                                      |
 |  data family List a                                                  |
-|  data family List a :: *                                             |
-|  data family List :: * -> *                                          |
+|  data family List a :: Type                                          |
+|  data family List   :: Type -> Type                                  |
 +----------------------------------------------------------------------+
 | Data Family Instances                                                |
 | (define the type constructor function for each argument type)        |
@@ -767,28 +767,30 @@ Data Families
 Type Synonym Families
 ~~~~~~~~~~~~~~~~~~~~~
 
-+-----------------------------------------------------------------------------+
-| Open families (open to extension by adding instances)                       |
-+-----------------------------------------------------------------------------+
-| Declare the kind signature:                                                 |
-+-----------------------------------------------------------------------------+
-| The number of parameters in a type family declaration, is the family’s      |
-| arity. The kind of a type family is not sufficient to determine a family’s  |
-| arity. So we cannot use just the kind signature in declaration like we can  |
-| in data families.                                                           |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  type family Elem c          -- Family Arity 1, Elem :: * -> *              |
-|  type family Elem c :: *     -- Family Arity 1, Elem :: * -> *              |
-|  type family F a b :: * -> * -- Family Arity 2, F :: * -> * -> * -> *       |
-|  type family F a :: k        -- Poly kinded, k is an implicit parameter     |
++-------------------------------------------------------------------------------------+
+| Open families (open to extension by adding instances)                               |
++-------------------------------------------------------------------------------------+
+| Declare the kind signature:                                                         |
++-------------------------------------------------------------------------------------+
+| The number of parameters in a type family declaration, is the family’s              |
+| arity. The kind of a type family is not sufficient to determine a family’s          |
+| arity. So we cannot use just the kind signature in declaration like we can          |
+| in data families.                                                                   |
++-------------------------------------------------------------------------------------+
+| ::                                                                                  |
+|                                                                                     |
+|  type family F1 c                    -- Arity 1, F  :: Type -> Type                 |
+|  type family F1 c    :: Type         -- Arity 1, F  :: Type -> Type                 |
+|  type family F2 a b  :: Type -> Type -- Arity 2, F2 :: Type -> Type -> Type -> Type |
+|  type family F3 a    :: k            -- Poly kinded, k is an implicit parameter     |
++-------------------------------------------------------------------------------------+
+
 +-----------------------------------------------------------------------------+
 | Define instances:                                                           |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  type instance Elem [e] = e                                                 |
+|  type instance F1 [e] = e                                                   |
 +-----------------------------------------------------------------------------+
 | Instances may overlap but cannot have conflicting LHS and RHS across        |
 | instance equations                                                          |
@@ -816,24 +818,22 @@ Type Synonym Families
 |  type instance J Int = Bool      |                                          |
 |  type instance J Int = Maybe     |                                          |
 +----------------------------------+------------------------------------------+
-| Applications: must be fully saturated with respect to the family arity      |
-+----------------------------------+------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  type family F a b :: * -> *  -- Family Arity 2, F :: * -> * -> * -> *      |
-|  F Char [Int]                 -- OK!  Kind: * -> *                          |
-|  F Char [Int] Bool            -- OK!  Kind: *                               |
-|  F IO Bool                    -- WRONG: kind mismatch in the first argument |
-|  F Bool                       -- WRONG: unsaturated application             |
+|  type family F a :: Type                                                    |
+|  type instance F (F a)   = a            -- WRONG: family in parameter       |
+|  type instance F (forall a. (a, b)) = b -- WRONG: forall in parameter       |
+|  type instance F Float = forall a.a     -- WRONG: forall in RHS             |
++-----------------------------------------------------------------------------+
+| Applications: must be fully saturated with respect to the family arity      |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  type family F a :: *                                                       |
-|  type instance F (F a)   = a -- WRONG: type parameter mentions a type family|
-|  type instance                                                              |
-|    F (forall a. (a, b))  = b -- WRONG: a forall appears in a type parameter |
-|  type instance                                                              |
-|    F Float = forall a.a      -- WRONG: right-hand side may not be a forall  |
+|  type family F a b :: Type -> Type                                          |
+|  F Char [Int]                 -- OK!  Kind: Type -> Type                    |
+|  F Char [Int] Bool            -- OK!  Kind: Type                            |
+|  F IO Bool                    -- WRONG: kind mismatch for IO                |
+|  F Bool                       -- WRONG: unsaturated application             |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
