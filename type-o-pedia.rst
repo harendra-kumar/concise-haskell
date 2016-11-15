@@ -27,7 +27,6 @@ Type-o-pedia
 * Pattern Matching
 * Type synonyms
 * newtype
-* associated types
 
 Basics
 ------
@@ -47,7 +46,7 @@ Terminology
 +----------------------------+-----------------------------------------------------------------+
 | Monomorphic                | Has only one possible representation                            |
 +----------------------------+-----------------------------------------------------------------+
-| Polymorphic                | Has multiple possible representation (cannnot be concrete)      |
+| Polymorphic                | Has multiple possible representations (cannnot be concrete)     |
 +----------------------------+-----------------------------------------------------------------+
 | Unboxed                    | Bare type, no wrapping                                          |
 +----------------------------+-----------------------------------------------------------------+
@@ -293,39 +292,6 @@ Terminology
 | Recursive | data List a = Empty | Cons a (List a) | Polymorphic |
 +-----------+---------------------------------------+-------------+
 
-Data Families
-~~~~~~~~~~~~~
-
-+----------------------------------------------------------------------+
-| Polymorphic Types                                                    |
-+----------------------------------------------------------------------+
-| ::                                                                   |
-|                                                                      |
-|  data List a = Empty | Cons a (List a)                               |
-+----------------------------------------------------------------------+
-| Every type instance uses the same constructor definition template    |
-+----------------------------------------------------------------------+
-| ::                                                                   |
-|                                                                      |
-|  List Char  -- Empty | Cons Char (List Char)                         |
-|  List ()    -- Empty | Cons () (List ())                             |
-+----------------------------------------------------------------------+
-| Data Family Prototype                                                |
-| (declares the kind signature of the type function)                   |
-+----------------------------------------------------------------------+
-| ::                                                                   |
-|                                                                      |
-|  data family List a -- List :: * -> *                                |
-+----------------------------------------------------------------------+
-| Data Family Instances                                                |
-| (define the type constructor function for each argument type)        |
-+----------------------------------------------------------------------+
-| ::                                                                   |
-|                                                                      |
-|  data instance List Char = Empty | Cons Char (List Char)             |
-|  data instance List ()   = Count Int                                 |
-+----------------------------------------------------------------------+
-
 GADT Syntax
 ~~~~~~~~~~~
 
@@ -360,8 +326,8 @@ GADT Syntax
 |                                                                  |
 |  data Bar a b where ...                                          |
 |  data Bar :: * -> * -> * where ...                               |
-|  data Bar a :: (* -> \*) where ...                               |
-|  data Bar a (b :: * -> \*) where ...                             |
+|  data Bar a :: ( * -> * ) where ...                              |
+|  data Bar a ( b :: * -> * ) where ...                            |
 +------------------------------------------------------------------+
 
 GADT Semantics
@@ -595,88 +561,159 @@ Type Synonyms
 | foo :: Generic Id []                                       | -XLiberalTypeSynonyms (partial application)      |
 +------------------------------------------------------------+--------------------------------------------------+
 
+Data Families
+~~~~~~~~~~~~~
+
++----------------------------------------------------------------------+
+| Polymorphic Types                                                    |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data List a = Empty | Cons a (List a)                               |
++----------------------------------------------------------------------+
+| Every type instance uses the same constructor definition template    |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  List Char  -- Empty | Cons Char (List Char)                         |
+|  List ()    -- Empty | Cons () (List ())                             |
++----------------------------------------------------------------------+
+
++----------------------------------------------------------------------+
+| Data Family Prototype                                                |
+| (declares the kind signature of the type function)                   |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data family List a                                                  |
+|  data family List a :: *                                             |
+|  data family List :: * -> *                                          |
++----------------------------------------------------------------------+
+| Data Family Instances                                                |
+| (define the type constructor function for each argument type)        |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data instance List Char = Empty | Cons Char (List Char)             |
+|  data instance List ()   = Count Int                                 |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  newtype instance List ()   = Count Int                              |
++----------------------------------------------------------------------+
+| ::                                                                   |
+|                                                                      |
+|  data family G a b                                                   |
+|  data instance G [a] b where        -- GADT                          |
+|     G1 :: c -> G [Int] b                                             |
+|     G2 :: G [a] Bool                                                 |
++----------------------------------------------------------------------+
+| * The number of parameters of an instance declaration must match     |
+|   the arity determined by the kind of the family.                    |
+| * Overlap of instance declarations is not allowed                    |
+| * You can use a deriving clause on a data instance or newtype        |
+|   instance declaration                                               |
+|                                                                      |
+| Type parameters may not contain:                                     |
+|                                                                      |
+| * forall types                                                       |
+| * type synonym families                                              |
+| * partially applied type synonyms                                    |
+| * fully applied type synonyms expanding to inadmissible types        |
++----------------------------------------------------------------------+
+
 Type Synonym Families
 ~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| Open families                                                               |
+| Open families (open to extension by adding instances)                       |
 +-----------------------------------------------------------------------------+
-| type family Elem c :: *     | Arity 1, Kind * -> *                          |
+| Declare the kind signature                                                  |
 +-----------------------------------------------------------------------------+
-type instance Elem [e] = e    |
+| The number of parameters in a type family declaration, is the family’s      |
+| arity. The kind of a type family is not sufficient to determine a family’s  |
+| arity. So we cannot use just the kind signature in declaration like we can  |
+| in data families.                                                           |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type family Elem c          -- Family Arity 1, Elem :: * -> *              |
+|  type family Elem c :: *     -- Family Arity 1, Elem :: * -> *              |
+|  type family F a b :: * -> * -- Family Arity 2, F :: * -> * -> * -> *       |
+|  type family F a :: k        -- Poly kinded, k is an implicit parameter     |
++-----------------------------------------------------------------------------+
+| Define instances                                                            |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type instance Elem [e] = e                                                 |
++-----------------------------------------------------------------------------+
+| Instances may overlap but cannot have conflicting LHS and RHS across        |
+| instance equations                                                          |
++----------------------------------+------------------------------------------+
+| ::                               |                                          |
+|                                  |                                          |
+|  type instance F (a, Int) = [a]  | Compatible overlap, allowed.             |
+|  type instance F (Int, b) = [b]  |                                          |
++----------------------------------+------------------------------------------+
+| ::                               | Conflicting overlap, not allowed:        |
+|                                  |                                          |
+|  type instance G (a, Int)  = [a] | * (Char, Int) = [Char]                   |
+|  type instance G (Char, a) = [a] | * (Char, Int) = [Int]                    |
++----------------------------------+------------------------------------------+
+| ::                               |                                          |
+|                                  |                                          |
+|  type instance H x   x = Int     | Conflicting overlap when x is infinite   |
+|  type instance H [x] x = Bool    | nesting of lists. Not allowed.           |
++----------------------------------+------------------------------------------+
+| For a poly kinded family the kind variable is an implicit parameter.        |
++----------------------------------+------------------------------------------+
+| ::                               | Ok, because they differ in the implicit  |
+|                                  | kind parameter.                          |
+|  type family J a :: k            |                                          |
+|  type instance J Int = Bool      |                                          |
+|  type instance J Int = Maybe     |                                          |
++----------------------------------+------------------------------------------+
+| Applications: must be fully saturated with respect to the family arity      |
++----------------------------------+------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type family F a b :: * -> *  -- Family Arity 2, F :: * -> * -> * -> *      |
+|  F Char [Int]                 -- OK!  Kind: * -> *                          |
+|  F Char [Int] Bool            -- OK!  Kind: *                               |
+|  F IO Bool                    -- WRONG: kind mismatch in the first argument |
+|  F Bool                       -- WRONG: unsaturated application             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type family F a :: *                                                       |
+|  type instance F (F a)   = a -- WRONG: type parameter mentions a type family|
+|  type instance                                                              |
+|    F (forall a. (a, b))  = b -- WRONG: a forall appears in a type parameter |
+|  type instance                                                              |
+|    F Float = forall a.a      -- WRONG: right-hand side may not be a forall  |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Instances: cannot have conflicting LHS and RHS in instance equations        |
+| Closed families (Closed to any further extension)                           |
 +-----------------------------------------------------------------------------+
-type instance F (a, Int) = [a] | Compatible overlap, allowed.
-type instance F (Int, b) = [b] |
+| Declared with a where clause, equations are tried in order,                 |
+| from top to bottom                                                          |
++----------------------------------+------------------------------------------+
+| ::                               |                                          |
+|                                  |                                          |
+|  type family F a where           | Incompatible equations                   |
+|    F Int = Bool                  | F a does not simplify                    |
+|    F a   = Char                  | F Double simplifies to Char              |
++----------------------------------+------------------------------------------+
+| ::                               |                                          |
+|                                  |                                          |
+|  type family G a where           | Fully compatible equations               |
+|    G Int = Int                   | G a simplifies to a                      |
+|    G a   = a                     |                                          |
++----------------------------------+------------------------------------------+
+| Creating an instance of a closed family will result in an error             |
 +-----------------------------------------------------------------------------+
-type instance G (a, Int)  = [a] | Conflicting overlap, as [Char] /= [Int].
-type instance G (Char, a) = [a] | Not allowed.
-+-----------------------------------------------------------------------------+
-type instance H x   x = Int   | Conflicting overlap when x is infinite nesting
-type instance H [x] x = Bool  | of lists. Not allowed.
-+-----------------------------------------------------------------------------+
-
-* all applications of a type family must be fully saturated with respect to to that arity
-+-----------------------------------------------------------------------------+
-| type family F a b :: * -> * | Arity 2, Kind * -> * -> * -> *                |
-
-F Char [Int]       -- OK!  Kind: * -> *
-F Char [Int] Bool  -- OK!  Kind: *
-F IO Bool          -- WRONG: kind mismatch in the first argument
-F Bool             -- WRONG: unsaturated application
-
-* Poly-kinded
-type family F a :: k
-* the kind parameter k is actually an implicit parameter of the type family
-
-For a polykinded type family, the kinds are checked for apartness just like types. For example, the following is accepted:
-
-type family J a :: k
-type instance J Int = Bool
-type instance J Int = Maybe
-These instances are compatible because they differ in their implicit kind parameter; the first uses * while the second uses * -> \*.
-
-* closed families
-
-type family F a where
-  F Int  = Double
-  F Bool = Char
-  F a    = String
-
-* A closed type family’s equations are tried in order, from top to bottom
-
-type family F a :: *
-type instance F [Int]   = Int   -- OK!
-type instance F String  = Char  -- OK!
-type instance F (F a)   = a     -- WRONG: type parameter mentions a type family
-type instance
-  F (forall a. (a, b))  = b     -- WRONG: a forall type appears in a type parameter
-type instance
-  F Float = forall a.a          -- WRONG: right-hand side may not be a forall type
-type family H a where          -- OK!
-  H Int  = Int
-  H Bool = Bool
-  H a    = String
-type instance H Char = Char    -- WRONG: cannot have instances of closed family
-type family K a where          -- OK!
-
-type family G a b :: * -> *
-type instance G Int            = (,)     -- WRONG: must be two type parameters
-type instance G Int Char Float = Double  -- WRONG: must be two type parameters
-
-F a does not simplify. F Double simplifies to Char:
-type family F a where
-  F Int = Bool
-  F a   = Char
-
-Two equations are fully compatible and the first one can be ignored, G a
-simplifies to a:
-type family G a where
-  G Int = Int
-  G a   = a
 
 -XUndeciableInstances: allow undecidable type synonym instances.
 
@@ -687,55 +724,5 @@ newtype
 
   * http://stackoverflow.com/questions/21327740/strict-single-constructor-single-field-data-declaration-vs-newtype/21331284#21331284.
   * http://stackoverflow.com/questions/2649305/why-is-there-data-and-newtype-in-haskell
-* With ''data'' keyword you cannot infer the complete type by looking at just one value constructor e.g.:
-
-::
-
-  Prelude Control.Exception> data MyData a b = A a | B b deriving Show
-  Prelude Control.Exception> :t A
-  A :: a -> MyData a b
-  Prelude Control.Exception> :t A "X"
-  A "X" :: MyData [Char] b
-  Prelude Control.Exception> :t B "Y"
-  B "Y" :: MyData a [Char]
-
-However since ''newtype'' allows only single constructor and field the type can be inferred easily by looking at a single value:
-
-::
-
-  Prelude Control.Exception> newtype MyData a b = A (a, b) deriving Show
-  Prelude Control.Exception> :t A (4, "A")
-  A (4, "A") :: Num a => MyData a [Char]
-  Prelude Control.Exception>
 
 * You can’t use existential quantification for newtype declarations.
-
-Associated Types
-----------------
-
-Data types
-
-::
-
-    class GMapKey k where
-      data GMap k :: * -> *
-
-      empty       :: GMap k v
-      lookup      :: k -> GMap k v -> Maybe v
-      insert      :: k -> v -> GMap k v -> GMap k v
-
-    instance GMapKey Int where
-      data GMap Int v        = GMapInt (Data.IntMap.IntMap v)
-
-      empty                  = GMapInt Data.IntMap.empty
-      lookup k   (GMapInt m) = Data.IntMap.lookup k m
-      insert k v (GMapInt m) = GMapInt (Data.IntMap.insert k v m)
-
-    instance GMapKey () where
-      data GMap () v           = GMapUnit (Maybe v)
-
-      empty                    = GMapUnit Nothing
-      lookup () (GMapUnit v)   = v
-      insert () v (GMapUnit _) = GMapUnit $ Just v
-
-Type synonyms
