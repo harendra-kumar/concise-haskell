@@ -35,9 +35,10 @@ Terminology
 ~~~~~~~~~~~
 
 +----------------------------+-----------------------------------------------------------------+
-| Type                       | Distinguishes a class of values (e.g. Integer or String)        |
+| Type                       | Denotes rules that a value should conform to                    |
+|                            | (e.g. Int or String)                                            |
 +----------------------------+-----------------------------------------------------------------+
-| Kind                       | Distinguishes a class of types (e.g. Lifted or unlifted)        |
+| Kind                       | Type of types (e.g. Lifted or unlifted)                         |
 +----------------------------+-----------------------------------------------------------------+
 | Rigid type                 | Type is fixed by annotation (signature) and not determined by   |
 |                            | inference.                                                      |
@@ -48,11 +49,11 @@ Terminology
 +----------------------------+-----------------------------------------------------------------+
 | Polymorphic                | Has multiple possible representations (cannnot be concrete)     |
 +----------------------------+-----------------------------------------------------------------+
-| Unboxed                    | Bare type, no wrapping                                          |
+| Unboxed                    | Bare type, no wrapping or indirection layer                     |
 +----------------------------+-----------------------------------------------------------------+
 | Boxed                      | Trackable heap object, wrapped with control info                |
 +----------------------------+-----------------------------------------------------------------+
-| Bottom (_|_)               | Further evaluation of lazy value not possible, found the bottom |
+| Bottom (_|_)               | A non existing value                                            |
 +----------------------------+-----------------------------------------------------------------+
 | Unlifted                   | Not lazily evaluated; does not have a concept of bottom         |
 +----------------------------+-----------------------------------------------------------------+
@@ -61,10 +62,6 @@ Terminology
 | Primitives                 | Types which cannot be expressed in Haskell                      |
 +----------------------------+-----------------------------------------------------------------+
 | Primops                    | Functions operating on primitive types                          |
-+----------------------------+-----------------------------------------------------------------+
-| Universal Quantification   | forall `a`: the proposition is true for all values of a         |
-+----------------------------+-----------------------------------------------------------------+
-| Existential Quantification | exists `a`: the proposition is true for some values of a        |
 +----------------------------+-----------------------------------------------------------------+
 | Open                       | Open to extension, can be extended (e.g. open type families)    |
 +----------------------------+-----------------------------------------------------------------+
@@ -118,11 +115,11 @@ Values & Value Functions
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
-| Values      | Rank2  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables representing values up to rank1  |
+| Values      | Rank2  | Polymorphic Functions| ``f :: a -> b`` where a, b are type variables representing values up to rank1  |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
-|             | Rank1  | Polymorphic Fns      | ``f :: a -> b`` where a, b are type variables representing values of Rank0     |
+|             | Rank1  | Polymorphic Functions| ``f :: a -> b`` where a, b are type variables representing values of Rank0     |
 |             +--------+----------------------+--------------------------------------------------------------------------------+
-|             | Rank0  | Monomorphic Functions| ``f :: Char -> Int``, monomorphic concrete types                               |
+|             | Rank0  | Monomorphic Functions| ``f :: Char -> Int``, monomorphic concrete type arguments                      |
 |             |        +----------------------+--------------------------------------------------------------------------------+
 |             |        | Concrete Values      | ``f :: Int``, monomorphic concrete type                                        |
 +-------------+--------+----------------------+--------------------------------------------------------------------------------+
@@ -240,16 +237,46 @@ Using Primitives
 |                     | , lazy pattern match           |
 +---------------------+--------------------------------+
 
-Bottom Functions
-----------------
+Bottom Value
+------------
+
+Denotational Semantics
+~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| `Bottom` (_|_), technically a non-existing value, is used to denote the     |
+| following practical conditions.                                             |
++--------------------------------------------+--------------------------------+
+| non-termination                            | let x = x in x                 |
++--------------------------------------------+--------------------------------+
+| partial functions                          | head []                        |
++--------------------------------------------+--------------------------------+
+| unevaluated values                         | [1..]                          |
+| e.g. in infinite data structures           |                                |
++--------------------------------------------+--------------------------------+
+| Since a bottom value can arise anywhere, it implicitly inhabits all (lifted)|
+| types or expressions.                                                       |
+|                                                                             |
+| * All lifted type include bottom, they can be constructed lazily.           |
+| * By extension, all expressions built with lifted types include bottom.     |
+| * Bottom has a free type i.e. it can match any type.                        |
++-----------------------------------------------------------------------------+
+| This is an inconsistency from type theory perspective to accomodate these   |
+| situations.                                                                 |
++-----------------------------------------------------------------------------+
+
+Operational Semantics
+~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------------------------------+
-| They represent all types of all kinds                                              |
+| Partial functions can use these to generate a bottom explicitly                    |
 +-----------+------+-----------------------------------------------------------------+
 | error     | `::` | forall (r :: RuntimeRep). forall (a :: TYPE r).  => [Char] -> a |
 +-----------+------+-----------------------------------------------------------------+
 | undefined | `::` | forall (r :: RuntimeRep). forall (a :: TYPE r).  => a           |
 +-----------+------+-----------------------------------------------------------------+
+| Unevaluated bottoms are implemented by lazy evaluation.                            |
++------------------------------------------------------------------------------------+
 
 Basic Haskell Types
 -------------------
@@ -337,6 +364,12 @@ Value Constructors
 +-------------------+--------+-------------------------------+-------------------------------------------+
 | Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
 +-------------------+--------+-------------------------------+-------------------------------------------+
+
+Evaluation Semantics
+~~~~~~~~~~~~~~~~~~~~
+
+* All data constructors are lazy by default.
+* Strictness annotations.
 
 Heap Representation
 ~~~~~~~~~~~~~~~~~~~
@@ -564,21 +597,6 @@ Detailed Data Construction Syntax
 |  data T a    -- T :: Type -> Type                                                                                  |
 +------------------------------------------------------------+-------------------------------------------------------+
 
-
-Dictionary Reification
-~~~~~~~~~~~~~~~~~~~~~~
-
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data NumInst a = Num a => MkNumInst                       |   data NumInst a where                                |
-|                                                            |    MkNumInst :: Num a => NumInst a                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| We can pattern match on ``MkNumInst`` instead of using a ``Num`` constraint on ``a``::                             |
-|                                                                                                                    |
-|  plus :: NumInst a -> a -> a -> a                                                                                  |
-|  plus MkNumInst p q = p + q                                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+
 
 Deconstruction (Pattern Matching)
 ---------------------------------
@@ -891,3 +909,49 @@ Type Synonym Families
 +-----------------------------------------------------------------------------+
 
 -XUndeciableInstances: allow undecidable type synonym instances.
+
+Fun With Types
+--------------
+
+Smart Constructors
+~~~~~~~~~~~~~~~~~~
+
+* Type system is limited in expressing restrictions on types
+* For example how do your represent a positive number less than 10?
+* To overcome the limitation we wrap the type constructors in "smart
+  constructors" which are nothing but functions with additional checks on the
+  constructed value. The original type constructors are not exported so the
+  only way to construct is via smart constructors which check additional rules.
+
+* For example:
+    data LessThanTen = LTT Int
+    mkLTT n = if n < 0 || n >= 10
+      then error "Invalid value"
+      else LTT n
+
+Phantom Types
+~~~~~~~~~~~~~
+
+data T = TI Int | TS String
+plus :: T -> T -> T
+concat :: T -> T -> T
+
+data T a = TI Int | TS String
+plus :: T Int -> T Int -> T Int
+concat :: T String -> T String -> T String
+
+Dictionary Reification
+~~~~~~~~~~~~~~~~~~~~~~
+
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data NumInst a = Num a => MkNumInst                       |   data NumInst a where                                |
+|                                                            |    MkNumInst :: Num a => NumInst a                    |
++------------------------------------------------------------+-------------------------------------------------------+
+| We can pattern match on ``MkNumInst`` instead of using a ``Num`` constraint on ``a``::                             |
+|                                                                                                                    |
+|  plus :: NumInst a -> a -> a -> a                                                                                  |
+|  plus MkNumInst p q = p + q                                                                                        |
++--------------------------------------------------------------------------------------------------------------------+
+
