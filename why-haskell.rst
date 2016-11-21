@@ -1,48 +1,5 @@
-Haskell in Computing
---------------------
-
-+------------+--------------------------------------------+-------------+
-| data input | slice, dice, transform, combine            | data output |
-+------------+--------------------------------------------+-------------+
-|            | Haskell                                    |             |
-|            | (Concise, Composable, Correct & Efficient) |             |
-+------------+--------------------------------------------+-------------+
-
-Haskell - Executive Summary
----------------------------
-
-Higher level qualities build upon lower level features. The key is providing a
-feature without compromising on other features. For example C could be efficient,
-parallel and distributed but can it be expressive, composable and ensure correctness at
-the same time?
-
-+---------------------------------------------------------------------------------------------------------+
-| Money                                                                                                   |
-+------------+------------+------------------+-----------------+-----------------+------------------------+
-| Building cost           | Opportunity cost | Sustenance cost | Deployment cost | Suitability            |
-+------------+------------+------------------+-----------------+-----------------+------------------------+
-| Total Time & Resources  | Clock time       | Quality         |                 | Scalability            |
-+------------+------------+------------------+-----------------+-----------------+------------------------+
-| Build, Understand & Change                 | Test            | Performance     |                        |
-+------------+-------------------------------+-----------------+-----------------+------------------------+
-| Expressive | Composable                    | Correct         | Efficient       | Parallel & Distributed |
-+------------+-------------------------------+-----------------+-----------------+------------------------+
-
-Express this table as rings with haskell (logo) at core.
-
-Expressive -> BUC
-Composable -> BUC, test, scale
-Correct -> test
-Efficient -> Performance
-Parallel -> performance
-Parallel -> Scale
-Distributed -> Scale
-
-BUC -> time, resources, clock time
-test -> clock time
-test -> quality
-Performance -> deployment cost
-Scale -> suitability
+Why Haskell?
+------------
 
 TBD: function diagram with arrows between related concepts
 
@@ -59,6 +16,13 @@ TBD: function diagram with arrows between related concepts
 +-----------------------+-----------------------------------------------------+
 | Parallel & Concurrent | Pure                                                |
 +-----------------------+-----------------------------------------------------+
+
+Expressive => High level, Haskell can be pretty low level with unlifted types
+and it could as high as possible with DSLs.
+
+Building cost => 100 people vs 10 people. The effect is compounded by reduced
+communication overhead. A team of 10 will require a much less communications
+overhead and thereofore much more productive.
 
 Denotations are compositional, i.e. the meaning of a program like 1+9 only
 depends on the meaning of its constituents:
@@ -89,19 +53,24 @@ minimum = head . sort
 zip [0..] xs
 prefix xs ys = and (zipWith (==) xs ys)
 
-Product life cycle
-------------------
+There is an interplay (trade-off) between modularity and efficiency in Haskell
+too.
 
-+------------+----------------+
-| Short term | Long term      |
-+------------+----------------+
-| Survival   | Growth         |
-+------------+----------------+
-| Protoype   | Mature Product |
-+------------+----------------+
-| Quick & dirty | Complex, Scalable, Performant, Sustainable |
-+------------+----------------+
-| Haskell all the way   |
-+------------+----------------+
+Comparisons
+-----------
+
 
 References: expressive, correctness, composable, efficiency
+
+Why not Haskell?
+----------------
+
+* Learning Functional
+* Learning Abstractions
+* Being always rigorously right could be taxing in rapidly changing environments
+
+Learning Goals
+--------------
+
+* Zero to Functional & Haskell in 2 months
+* Zero to Haskell in 1 month
