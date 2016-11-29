@@ -1,5 +1,5 @@
-ECC Features
-------------
+Functionality Features
+----------------------
 
 Statically Typed
 ~~~~~~~~~~~~~~~~
@@ -7,7 +7,7 @@ Statically Typed
 +----------+----------------------+------------------------+------------------+
 | Language | Expressive           | Composable             | Correct          |
 +==========+======================+========================+==================+
-| Haskell  | Excellent (lazy)     | Excellent (lazy, pure) | Safe             |
+| Haskell  | Excellent (lazy)     | Excellent (lazy, pure) | Extra Safe       |
 +----------+----------------------+------------------------+------------------+
 | Rust     |                      | Medium?                | Safe             |
 +----------+----------------------+------------------------+------------------+
@@ -37,8 +37,8 @@ Dynamically Typed
 | Python   |                      | Poor                   | Safe             |
 +----------+----------------------+------------------------+------------------+
 
-ECPD Features
--------------
+Performance Features
+--------------------
 
 * Concurrency, parallelism and distributed computing features are a combination
   of language and library features.
@@ -75,6 +75,13 @@ ECPD Features
 |          |            | Futures    |                     |                  |
 |          |            | ForkJoin   |                     |                  |
 +----------+------------+------------+---------------------+------------------+
+
+Misc Notes
+----------
+
+* Portability
+
+  * Haskell - Native, JVM, interoperates with C/R/Java/Python/Rust
 
 * Swift: compile time ARC, unsafe (unmanaged memory) is possible.
 

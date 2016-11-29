@@ -6,6 +6,16 @@ interpreted. It says you cannot directly operate on me, you will have to
 use my way of doing things. It enforces manipulation rules. The rules
 followed by the type are specified by the typeclass.
 
+Composing Techniques
+--------------------
+
+* Functor, Applicative and Monads are ways to compose and reuse.
+* A functor allows you to reuse a function from one context to another
+* An applicative allows you to compose functor applications, monoidal functor
+* A monad allows you to compose by chaining or collecting and using the results
+  in a certain way. A do block in Monad allows you to chain conveniently. In
+  monad you first compose the actions and then run them using an input.
+
 Functor
 -------
 

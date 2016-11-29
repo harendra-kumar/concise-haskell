@@ -36,6 +36,17 @@ Terminology
 |                         | can be referred to as type families.              |
 +-------------------------+---------------------------------------------------+
 
+Polymorphism - Expressive Power
+-------------------------------
+
+* Typeclasses: attach functions to types, the function can be different for different types.
+* Polymorphic functions: Same function can work on many types
+* Higher order functions
+
+* Reuse -> conciseness -  expressive power - polymorphism is about reuse - you can abstract out the common parts in processing multiple related but slightly different types
+* Composition -> reuse
+* typeclass hierarchy
+
 Polymorphic Entities
 --------------------
 

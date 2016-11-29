@@ -10,20 +10,26 @@ Computing
 Product Building Phases
 -----------------------
 
-+---------------+--------------------------------------------+
-| Short term    | Long term                                  |
-+===============+============================================+
-| Survival      | Scalable Growth                            |
-+---------------+--------------------------------------------+
-| Protoype      | Mature Product                             |
-+---------------+--------------------------------------------+
-| Quick & dirty | Complex, Scalable, Performant, Sustainable |
-+---------------+--------------------------------------------+
-| Haskell all the way                                        |
-+------------------------------------------------------------+
++--------------------+--------------------------------------------+
+| Short term         | Long term                                  |
++====================+============================================+
+| Survival           | Scalable Growth                            |
++--------------------+--------------------------------------------+
+| Protoype           | Mature Product                             |
++--------------------+--------------------------------------------+
+| Quick & dirty      | Complex, Scalable, Performant, Sustainable |
++--------------------+--------------------------------------------+
+| Build with clay    | Build with blocks                          |
++--------------------+--------------------------------------------+
 
 Important Language Features
 ---------------------------
+
+Feature Stack
+~~~~~~~~~~~~~
+
+* ECC
+* Performance (efficiency, parallelism, distributed) (EPD)
 
 +---------------------------------------------------------------------------------------------------------+
 | Higher level qualities build upon lower level features.                                                 |
@@ -41,13 +47,15 @@ Important Language Features
 | Expressive | Composable                    | Correct         | Efficient       | Parallel & Distributed |
 +------------+-------------------------------+-----------------+-----------------+------------------------+
 
-Rings
------
+* Expressive power comes from reuse which comes from abstractions and polymorphism
+
+Feature Rings
+~~~~~~~~~~~~~
 
 Express this table as rings with money at the core.
 
-Flow Diagram
-------------
+Feature Flow Diagram
+~~~~~~~~~~~~~~~~~~~~
 
 Expressive -> BUC (build, understand, change)
 Composable -> BUC, test, scale

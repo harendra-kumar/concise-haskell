@@ -136,6 +136,24 @@ Role of Bottom
 | let x = x in x             |                                                |
 +----------------------------+------------------------------------------------+
 
+We say that ⊥ is the completely "undefined" value or function. Every basic data
+type like Integer or () contains one ⊥ besides their usual elements. So the
+possible values of type Integer are
+{\displaystyle \bot ,0,+1,-1,+2,-2,+3,-3,\dots } \bot
+,0,+1,-1,+2,-2,+3,-3,\dots
+
+Adding ⊥ to the set of values is also called lifting.
+
+As another example, the type () with only one element actually has two
+inhabitants:
+{\displaystyle \bot ,()} \bot ,()
+
+Now, {\displaystyle \bot } \bot  (bottom type) gives us the possibility to
+denote partial functions:
+{\displaystyle f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}} f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}
+
+Partial order picture with bottom at the bottom.
+
 Reasoning By Substitution
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -232,6 +250,39 @@ The value is represented by a thunk or closure, which is code which knows how
 to compute the value. When the value is needed this code is executed and the
 value is generated for the consumer.
 
+Lazy evaluation as fine grained data flow programming
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Functions are low level pipes.
+
+Infinite data structures are like the indefinite data producers. Lazy
+evaluation composes multiple functions together and a data element passes
+through those functions like data passes through pipes. The usual design model
+is to let the data pass through all stages quickly and then get garbage
+collected and not hold up the data. If you hold up it turns into a space leak.
+
+Each function is a pipe connected to another function, another pipe. Lazy
+evaluation drives the data through this big chain of pipes. The pipes get
+activated when we want to draw something from the remote end. This is literally
+data driven programming.
+
+We need a picture here with functions/closures connected to each other and how
+data flows through them. How the whole evaluation machinery is cranked to
+generate output from input.
+
+Haskell lazy evaluation is fundamentally data driven or flow based programming,
+or in other words stream based programming.
+
+Stream fusion basically fuses multiple stages of lazy evaluation into one
+big imperative like loop instead of chain invocation of each stage. Same way we
+represent loops by pipes.
+
+Within a high level pipe we can use strict evaluation rather than lazy
+evaluation and fuse that whole logic together to make it more efficient.
+
+Can we automatically make everything strict rather than lazy depending on
+feasibility?
+
 Controlling Strictness
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -240,3 +291,13 @@ impact the behavior of the program we can choose strict evaluation.
 
 * bang patterns
 * strict by default extension
+
+Understanding a Haskell Program
+-------------------------------
+
+An imperative mind runs a program in the head line by line. A lazy Haskell mind
+composes a program in the head. When reading Haskell do not try to run each
+statement then and there, just think that this is being composed and then it
+will be run in the required order when needed. It might get composed further or
+transformed and then composed to create a bigger composition. Just keep your
+mind lazy!  This is perhaps the hardest part for an imperatively trained mind.

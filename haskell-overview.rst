@@ -1,3 +1,9 @@
+.. raw:: html
+
+  <style> .blue {color:blue} </style>
+
+.. role:: blue
+
 Haskell: A pure functional language
 ===================================
 
@@ -6,149 +12,594 @@ A functional language with denotational semantics.
 Terminology
 -----------
 
-| Functional language | Functions are just like any other values, pass them as arguments or return them from functions, compose them together to create a composite function.
-| Denotational Semantics | constructing mathematical objects (called denotations) that describe the
-meanings of expressions from the programming language. An important tenet of denotational semantics is that
-semantics should be compositional: the denotation of a program phrase should be
-built out of the denotations of its subphrases.
-| Equational Reasoning |
-| Referential Transparency | any variable can be replaced with its actual value at any point of execution (because the variable can never change)
-| Immutability |
-| Side effect | A change in environment (global state, IO)  effected by a function
-| Pure function | A function which always returns the same value. A
-function without a side effect.
-| Pure functional | No mutation of a data structure is allowed
-| Lazy evaluation | Program execution is driven by IO, statements are not
-executed unless they are needed by a computation driven by IO. There is no
-sequential evaluation of all stattements in the control flow path.
-| Bind | assign (bind) a value to a variable
++------------------------+----------------------------------------------------+
+| Functional language    | Functions are just like any other values, pass them|
+|                        | as arguments or return them from functions, compose|
+|                        | them together to create a composite function.      |
++------------------------+----------------------------------------------------+
+| Value                  | In a given plane, refers to functions as well as   |
+|                        | plane specific concrete objects. For example in a  |
+|                        | data plane a value can refer to functions and data |
+|                        | while in a type plane it can refer to functions    |
+|                        | and types.                                         |
++------------------------+----------------------------------------------------+
+| Denotational Semantics | constructing mathematical objects                  |
+|                        | (called denotations) that describe the meanings of |
+|                        | expressions from the programming language. An      |
+|                        | important tenet of denotational semantics is that  |
+|                        | semantics should be compositional: the denotation  |
+|                        | of a program phrase should be built out of the     |
+|                        | denotations of its subphrases.                     |
++------------------------+----------------------------------------------------+
+| Equational Reasoning   |                                                    |
++------------------------+----------------------------------------------------+
+| Referential            |                                                    |
+| Transparency           | any variable can be replaced with its actual value |
+|                        | at any point of execution (because the variable can|
+|                        | never change)                                      |
++------------------------+----------------------------------------------------+
+| Immutability           |                                                    |
++------------------------+----------------------------------------------------+
+| Side effect            | A change in environment (global state, IO)         |
+|                        | effected by a function                             |
++------------------------+----------------------------------------------------+
+| Pure function          | A function which always returns the same value. A  |
+|                        | function without a side effect.                    |
++------------------------+----------------------------------------------------+
+| Pure functional        | No mutation of a data structure is allowed         |
++------------------------+----------------------------------------------------+
+| Lazy evaluation        | Program execution is driven by IO, statements are  |
+|                        | not executed unless they are needed by a           |
+|                        | computation driven by IO. There is no sequential   |
+|                        | evaluation of all statements in the control flow   |
+|                        | path.                                              |
++------------------------+----------------------------------------------------+
+| Bind                   | assign (bind) a value to a variable                |
++------------------------+----------------------------------------------------+
+| Type signature         |                                                    |
++------------------------+----------------------------------------------------+
+| Type annotations       |                                                    |
++------------------------+----------------------------------------------------+
 
-Process Data
-------------
+Functions As Building Blocks
+----------------------------
 
-TODO: replace with a picture
+Values & Functions
+~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| Case expressions: Map input values to output values                         |
-+=============================+=================+=============================+
-| Decompose and inspect input | Decision switch | Compose output              |
-+-----------------------------+-----------------+-----------------------------+
-| Pattern Match               | case            | Function Application        |
-+-----------------------------+-----------------+-----------------------------+
+| A `concrete value` is an expression which can be computed to a pure data    |
+| without requiring any input (or variables). It is specified as an equation. |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  v0 = 10                                                                    |
+|  v1 = 10 + 20                                                               |
++-----------------------------------------------------------------------------+
+
+::
+
+     +----------+
+     |          |
+  v0 |          |
+     |          |
+     |    10    |
+     +----------+
 
 +-----------------------------------------------------------------------------+
-| Haskell Program: Equational composition                                     |
+| Abstracting a concrete value creates a `polymorphic value` or               |
+| `parameterized value`.                                                      |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f0       = 10 + 10 + 10  -- normal value                                   |
+|  f1 a     = a  + 10 + 10  -- polymorphic value of arity 1                   |
+|  f2 a b   = a  + b  + 10  -- polymorphic value of arity 2                   |
+|  f3 a b c = a  + b  + c   -- polymorphic value of arity 3                   |
++-----------------------------------------------------------------------------+
+| As you can see abstraction allows `reuse` of the same value for multiple    |
+| purposes. Reuse compresses our program.                                     |
++-----------------------------------------------------------------------------+
+
+
++-----------------------------------------------------------------------------+
+| A `function` is a polymorphic value, an abstraction.                        |
+| A function is defined by an equation like this:                             |
++------+------------+---+-----------------------------------------------------+
+| Name | Parameters | = | Body                                                |
++------+------------+---+-----------------------------------------------------+
+| f    | a b c      | = | <expression> -- function defining equation          |
++------+------------+---+-----------------------------------------------------+
+| Parameters `a`, `b` and `c` are bound to the input arguments when the       |
+| function is applied.                                                        |
++-----------------------------------------------------------------------------+
+| `Arity` is the number of parameters of a function.                          |
++-----------------------------------------------------------------------------+
+| A function can be thought of as an `incomplete value` which becomes         |
+| complete or concrete when the real values of abstracted variables are       |
+| applied to it.                                                              |
++-----------------------------------------------------------------------------+
+| In mathematical terms a function maps the input `values` (or arguments)     |
+| to an output `value`.                                                       |
++-----------------------------------------------------------------------------+
+| The name of a function necessarily starts with a lower case letter.         |
++-----------------------------------------------------------------------------+
+
+::
+
+     +-  -  -  -+
+     | \/ \/ \/ |
+  f  | a  b  c  |
+     |          |
+     | Value    |
+     +----------+
+       Arity 3
+
++-----------------------------------------------------------------------------+
+| A function application is opposite of abstraction i.e. it concretizes the   |
+| value by removing abstraction.                                              |
++-----------------------------------------------------------------------------+
+| A `function application` combines a function value with its input(s) or     |
+| arguments to generate an output value.                                      |
++--------+---+------+---------------------------------------------------------+
+| Output | = | Name | arguments                                               |
++--------+---+------+---------------------------------------------------------+
+| v4     | = | f    | v1 v2 v3  -- function application equation              |
++--------+---+------+---------------------------------------------------------+
+| Note: Function definition and application are complementary concepts. The   |
+| LHS of a definition becomes application on RHS, the parameters are replaced |
+| by input argument values.                                                   |
++-----------------------------------------------------------------------------+
+| Function arguments can be applied one at a time, called `currying`.         |
++-----------------------------------------------------------------------------+
+| Each argument application reduces the arity of the function by one or in    |
+| other words it produces another function as output whose arity is one less  |
+| than the original arity. In other words the function value gets refined     |
+| to a less abstract value.                                                   |
++-----------------------------------------------------------------------------+
+| When a function is fully applied with all its arguments it turns into a     |
+| fully concrete value.                                                       |
++-----------------------------------------------------------------------------+
+
+::
+
+    10                  10                  10
+    \/                  \/                  \/
+  +-  -  -  -+     +----  -  -+     +-------  -+     +----------+
+  | \/ \/ \/ |     |    \/ \/ |     |       \/ |     |          |
+  | a  b  c  |     |    b  c  |     |       c  |     |          |
+  |          |     |          |     |          |     |          |
+  | Value    |     | Value    |     | Value    |     | Value    |
+  +----------+     +----------+     +----------+     +----------+
+   Arity 3           Arity 2          Arity 1          Concrete
+
++-----------------------------------------------------------------------------+
+| Functions are values, abstractions of concrete values, polymorphic values.  |
++-----------------------------------------------------------------------------+
+| A function application concretizes the abstraction by composing the         |
+| function other values.                                                      |
++-----------------------------------------------------------------------------+
+
+Data Level Program
+------------------
+
+The basic purpose of a Haskell program is to take input data and produce
+output data. The fundamental tool used to acheive that is `functions` and
+`function application`. Here we will discuss how to implement a function by
+representing pure data (input and output) and mapping input data to output
+data.
+
+In a data level program (the direct and main aspect of a Haskell program)
+functions operate on values which could be either functions or data.
+
+Data Construction and de-construction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A `data constructor` is a function                                          |
+| which maps its argument data items to a new output data item.               |
+| The definition of the function is automatically generated by the compiler   |
+| according to the user specified data declarations. The function essentially |
+| creates a reference to an object which points to the contained objects      |
++-----------------------------------------------------------------------------+
+| Triple a b c = <compiler defined>                                           |
++-----------------------------------------------------------------------------+
+| When a data type represents one of multiple options,                        |
+| each option is represented by a separate constructor function.              |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  Red = <compiler defined>                                                   |
+|  Green = <compiler defined>                                                 |
+|  Blue = <compiler defined>                                                  |
++-----------------------------------------------------------------------------+
+| The name of a data constructor necessarily starts with an upper case letter.|
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| `Data construction:` A data value is always created by applying a           |
+| constructor function on some existing values (function or concrete data).   |
++-----------------------------------------------------------------------------+
+| v = Triple 1 2 3                                                            |
++-----------------------------------------------------------------------------+
+| c = Red                                                                     |
++-----------------------------------------------------------------------------+
+| `built-in data` literals (e.g. 3, "name") are just a syntactic sugar        |
+| ultimately implemented with data constructor applications.                  |
++-----------------------------------------------------------------------------+
+
+::
+
+  Possible "Color" values:
+
+      +----------+            +----------+            +----------+
+      |          |            |          |            |          |
+      |          |            |          |            |          |
+  Red |          |      Green |          |       Blue |          |
+      |          |            |          |            |          |
+      +----------+            +----------+            +----------+
+
+::
+
+  Possible "Triple" values:
+
+         +----------+              +----------+
+         |          |              |          |
+         |          |              |          |
+  Triple | 1 2 3    |       Triple | 10 20 30 |
+         |          |              |          |
+         +----------+              +----------+
+
++-----------------------------------------------------------------------------+
+| `pattern match` is exact opposite of data construction, it de-constructs a  |
+| data value into its components. It is a constructor application on the      |
+| LHS of an equation with variables as arguments. The variables get bound to  |
+| the respective components of the data on RHS.                               |
++-----------------------------------------------------------------------------+
+| Triple a b c = v -- a, b and c get bound to the individual components of    |
+| the pair                                                                    |
++-----------------------------------------------------------------------------+
+| Blue = c -- will fail if the value c was constructed using Red for example  |
++-----------------------------------------------------------------------------+
+| When there are multiple constructors.                                       |
+| If the pattern specified does not match with the data value, the pattern    |
+| match fails.                                                                |
++-----------------------------------------------------------------------------+
+
+Mapping Input Values to Output Values
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| We said a function maps input values to output values, how exactly does it  |
+| do it?  The fundamental primitive to achieve that is a `case pattern        |
+| match`.  A case statement can enumerate all patterns for an input value and |
+| maps them to specified output values. Case is essentially a value to value  |
+| map.                                                                        |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  case color of                                                              |
+|    Red   -> putStrLn "red"                                                  |
+|    Green -> putStrLn "green"                                                |
+|    Blue  -> putStrLn "blue"                                                 |
++-----------------------------------------------------------------------------+
+| When the value `color` is `Red` this expression will evaluate to            |
+| `putStrLn "red"`                                                            |
++-----------------------------------------------------------------------------+
+| A case statement is the fundamental tool to define a function from a value  |
+| of one type to a value of another type. A case implements the mathematical  |
+| definition of a function. A case expression takes one type and outputs      |
+| another.                                                                    |
++-----------------------------------------------------------------------------+
+
+Case statements and function applications can be combined together to form a
+chain of transformations to arrive at the final output value of a function.
+Thus `data constructors`, `case pattern match` and `function application` are
+really the basic building blocks of a Haskell program. `All functions can be
+expressed in terms of these primitives`.
+
+Function and Data Values
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+* A function is an abstract value, a map from values to values while data is a
+  container of values, concrete or abstract. It does not make sense to pattern
+  match on an abstract value.
+* Data is a concrete structure to hold any type of values (abstract or
+  concrete) and give them back by pattern match.
+* A concrete value at data level is always pure data.
+
+Types: Ensuring Correctness of Data Level Program
+-------------------------------------------------
+
+In our (data level) program, how do we make sure that we do not supply
+`oranges` as input to a function parameter which only works correctly with
+`apples`?
+
+`Every value` (function or data) in the `data level` has a `type` label
+associated with it.  Type is a label which identifies a whole class of values
+conforming to certain rules or you can say it defines the shape of the data.
+
+The type labels are either explicitly specified by the programmer or determined
+automatically by way of inference. At compile time the type level program
+annotations are interpreted by the typechecker. The typechecker makes sure that
+when we apply a function to an input value the type label of that value matches
+the type label of the function input. Therefore if a value is labeled `apple`
+the typechecker will refuse to pass the data level program if we feed this
+value to a function input which is labeled `orange`.
+
+Value or Function Signatures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Let's take an example of a concrete data value `v`::
+
+     Value              Type
+  +----------+         +----------+
+  |          |         |          |
+  |          |   v     |          |
+  |          |         |          |
+  |   33     |         |   Int    |
+  +----------+         +----------+
+
+
++-----------------------------------------------------------------------------+
+| Types are associated to a value by a `type signature`.                      |
++---------------------------------+-------------------------------------------+
+| v :: Int                        | Type Level Program                        |
++---------------------------------+-------------------------------------------+
+| v = 33                          | Data Level Program                        |
++---------------------------------+-------------------------------------------+
+| Identifier `v` binds the value and type signature together.                 |
+| `Data level program` uses an `=` to bind an identifier to a value while the |
+| `type level program` uses a `::` to bind an identifier to a type.           |
++-----------------------------------------------------------------------------+
+
+Now, let's take an example of a function::
+
+        Value                    Type
+
+     +-  -  -  -+       +--  ---  ----  ---+
+     | \/ \/ \/ |       |  \/   \/    \/   |
+  f  | a  b  c  |       | Char  Int  Int   |
+     |          |       |                  |
+     | Value    |       |       Char       |
+     +----------+       +------------------+
+       Arity 3
+
++---------------------------------+-------------------------------------------+
+| f :: Char -> Int -> Int -> Char | Type Level Program                        |
++---------------------------------+-------------------------------------------+
+| f a b c = ...                   | Data Level Program                        |
++---------------------------------+-------------------------------------------+
+| Every input and the output parameter of a function has a type associated    |
+| with it.                                                                    |
++-----------------------------------------------------------------------------+
+
+Data Constructor Signatures
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Data constructor signatures are not specified directly but through a data
+declaration. A data declaration specifies a data type on the LHS and
+constructor templates on the RHS.
+
++---------------------------------------------------------+-----------------------------------------------+
+| data Color = :blue:`Red` | :blue:`Green` | :blue:`Blue` | :blue:`Red` :: Color                          |
+|                                                         +-----------------------------------------------+
+|                                                         | :blue:`Green` :: Color                        |
+|                                                         +-----------------------------------------------+
+|                                                         | :blue:`Blue` :: Color                         |
++---------------------------------------------------------+-----------------------------------------------+
+| data Triple = :blue:`Triple` Int Int Int                | :blue:`Triple` :: Int -> Int -> Int -> Triple |
++---------------------------------------------------------+-----------------------------------------------+
+| Blue color identifiers are data level identifiers while the rest is type level.                         |
++---------------------------------------------------------+-----------------------------------------------+
+
+GADT syntax is a way of specifying the constructor signatures directly.
+
+Plugs and Sockets
+~~~~~~~~~~~~~~~~~
+
+If value is a plug and the function input is a socket, the type checker makes
+sure that the plug correctly fits into the socket. The Haskell program is a
+zigsaw puzzle of different types of plugs and sockets.
+
+`Inference`: If two plugs fit into the same socket then they must be of the
+same type. If two sockets accept the same plug then they must be of the same
+type.
+
+Insert graphic plug and socket.
+Insert "input >=> output" Haskell program zigsaw puzzle.
+
+Type Checking
+~~~~~~~~~~~~~
+
+The onus of assigning unique types to different data items is on the programmer
+so that they do not get confused by mistake.  The type annotations for values
+in data level program can collectively be thought of as a `type level program`.
+
+The type level program is interpreted at compile time by the `typechecker`.  It
+essentially checks if the types used in the data level program are consistent
+with the type level program. Some fundamental checks:
+
+* `functions`: The only way to compose values is a function. The type of the
+  function input must match the type of the value being fed to the function.
+
+* `case`: The only way a function maps one type to another is via case
+  expression. All the values mapped from must have one type and all the values
+  mapped to must have one type.
+
+* `Equations`: When two values can be substitued in place of each other then
+  they must have the same type.
+
+Type Level Programming
+~~~~~~~~~~~~~~~~~~~~~~
+
+The purpose of type level programming is to generate concrete types.
+Just like at data level we have `data functions` representing `asbtract` or
+`polymorphic data`, the same way at the type level we `type functions`
+representing abstract or `polymorphic types`.  Type functions can be used to
+compose types together to create more complex types from simple concrete types.
+
+Note that the type assigned to any data level value is always `concrete`.  The
+type of a data value can never be a type function. Type functions only exist at
+the type level. See the kinds section for details.
+
+Generating function types
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+What is the type of a function? A function with one argument is different from
+a function with two arguments. A function accepting an `Int` argument is
+different from a function accepting `Char` argument. Similarly for return
+value. The combinations are huge, so how do we create so many types?
+
++-----------------------------------------------------------------------------+
+| We generate the function types using a type level function denoted by       |
+| ``->``. This is a GHC built-in.                                             |
++------------------+----------------------------------------------------------+
+| (->) a b         | Returns a concrete type representing a data function     |
++------------------+ which takes a data value of type `a` as argument and     |
+| a -> b           | returns a data value of type `b`.                        |
++------------------+----------------------------------------------------------+
+| (->) a ((->) b c)| Returns a concrete type representing a data function     |
++------------------+ which takes a data value of type `a` as argument and     |
+| a -> b -> c      | returns a function of type ``(b -> c)``.                 |
++------------------+                                                          |
+| a -> (b -> c)    |                                                          |
++------------------+----------------------------------------------------------+
+
+Kinds: Ensuring correctness of Types
+------------------------------------
+
+Values at the type level could be of different `kinds`. For example a type
+could be lifted or unlifted. A type could be a concrete type or it could a type
+function of one parameter or it could be a type function of two parameters etc.
+
+kinds can protect us from passing a type of wrong kind to a type function by
+using a kind signature.
+
+For example the kind of ``->`` is::
+
+  (->) :: Type -> Type -> Type
+
+Which means a function always takes a concrete type, you cannot use a type
+function or a type of kind (Type -> Type).
+
+Summary of Programming Levels
+-----------------------------
+
++--------------+---------------------------+-------------+----------------------------------------------------+
+| When         | What                      | Objects     | Haskell Program Features                           |
++==============+===========================+=============+====================================================+
+| Compile time | `Kind` level programming  | Kinds       | Kind Signatures                                    |
+|              +---------------------------+-------------+----------------------------------------------------+
+|              | `Type` level programming  | Types       | Function Type Signatures                           |
+|              |                           |             +----------------------------------------------------+
+|              |                           |             | Data Constructor Signatures                        |
+|              |                           |             +----------------------------------------------------+
+|              |                           |             | Typeclasses (Function & Data signatures)           |
++--------------+---------------------------+-------------+----------------------------------------------------+
+| Run time     | `Value` level programming | Data        | Concrete data values, Functions, Data Constructors |
++--------------+---------------------------+-------------+----------------------------------------------------+
+
+Values & Value Functions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+| Values      | Rank2  | Polymorphic Functions| ``f :: a -> b`` where type variable `a` represents values of rank1             |
+|             +--------+----------------------+--------------------------------------------------------------------------------+
+|             | Rank1  | Polymorphic Functions| ``f :: a -> b`` where type variable `a` represents values of Rank0             |
+|             +--------+----------------------+--------------------------------------------------------------------------------+
+|             | Rank0  | Monomorphic Functions| ``f :: Char -> Int``, monomorphic concrete type arguments                      |
+|             |        +----------------------+--------------------------------------------------------------------------------+
+|             |        | Concrete Values      | ``f :: Int``, monomorphic concrete type                                        |
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+
+Types & Type Functions
+~~~~~~~~~~~~~~~~~~~~~~
+
+`Type` is the only kind visible outside GHC.
+
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+| Types       | Rank1  | Polymorphic Type Fns | ``t :: k1 -> k2``, where k1 is a kind variable representing types of rank0     |
+|             +--------+----------------------+--------------------------------------------------------------------------------+
+|             | Rank0  | Type Functions       | ``t :: Type -> Type`` (polymorphic type)                                       |
+|             |        +----------------------+--------------------------------------------------------------------------------+
+|             |        | Concrete Types       | ``t :: Type``                                                                  |
++-------------+--------+----------------------+--------------------------------------------------------------------------------+
+
+Kinds
+-----
+
+.. _RuntimeRep: https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#runtime-representation-polymorphism
+
++------------------------------------------------------------------------------------------------------------------------------+
+| A type's kind encodes the runtime representation.                                                                            |
+| GHC represents a kind as ``TYPE`` parameterised by `RuntimeRep`_.                                                            |
++----------------------+----------------------+--------------------------------------------------------------------------------+
+| Kinds                | Lifted Types         | ``Type (type Type = TYPE 'PtrRepLifted')`` or ``*`` (Pre GHC 8.0)              |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Constraints          | ``Constraint``                                                                 |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Type level naturals  | ``Nat``                                                                        |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Type level symbols   | ``Symbol``                                                                     |
++----------------------+----------------------+--------------------------------------------------------------------------------+
+
+General Model of a Haskell Program
+----------------------------------
+
+A Haskell program is essentially a function called `main` which `maps` input
+`values` of the program to output `values` potentially via intermediate
+functions.
+
+If you flatten a Haskell program it can be thought of just as a big map, each
+input decomposed and mapped to intermediate outputs which are again decomposed
+and mapped to the next outputs and so on until we get to the final
+output.
+
++-----------------------------------------------------------------------------+
+| Haskell Program: Essentially a set of equations defining functions or data  |
 +============+================================================================+
-| Equations  | f a b c = expr                                                 |
-| (Functions)+----------------------------------------------------------------+
-|            | let f a b c = expr                                             |
-|            +----------------------------------------------------------------+
-|            | where f a b c = expr                                           |
+| The program is specified as the equation for the ``main`` function. Parts   |
+| of the main equation can be specified using more equations.                 |
 +------------+----------------------------------------------------------------+
+| Main       | main = putStrLn "hello world!"                                 |
+| Equation   |                                                                |
++------------+--------------+-------------------------------------------------+
+| Function   | Top level    | f = ``expression``     -- no arguments          |
+| Equations  |              +-------------------------------------------------+
+|            |              | f a b = ``expression`` -- two arguments         |
+|            +--------------+-------------------------------------------------+
+|            | let clause   | let f a b c = ``expression``                    |
+|            +--------------+-------------------------------------------------+
+|            | where clause | where f a b c = ``expression``                  |
++------------+--------------+-------------------------------------------------+
+| Data constructors are specified by a data equation                          |
++------------+--------------+-------------------------------------------------+
+| Data       | Top level    | data Color = Red | Green | Blue                 |
+| Equations  |              |                                                 |
++------------+--------------+-------------------------------------------------+
 
-Ensure Correctness
-------------------
+Mathematical substitution of terms in the equations.
 
-+--------------------------------------------------+
-| Type Signatures: Assign types to values          |
-+========================+=========================+
-| Type level programming | Value level programming |
-+------------------------+-------------------------+
-| Specify Types          | Specify Functions       |
-+------------------------+-------------------------+
-| Functions              | Functions               |
-+------------------------+-------------------------+
+Tips: Understanding a Haskell Program
+-------------------------------------
 
-Types - Correctness
--------------------
+The names or identifiers in one level (data, type or kind) should not be
+confused or conflated with the names in other level. An identifier of the same
+name can be used in different levels without any problem.
 
-Every chunk of data has an assigned form - a type.
-Functions work only on a specific form
-The form of the data (plug) and the function (socket) must match at compile time.
-Picture of a plug and socket. There are millions of these plugs and sockets. Or a zigsaw puzzle which only fits correctly in one way.
-Picture of a zigsaw puzzle with Haskell written on it.
-Look ma it just works!
+Names of data constructor functions and types could be the same, which can be
+confusing for beginners. Similarly type variables in type level and type
+parameters in data level could be same or different, they should not be
+confused with each other.
 
-Function
---------
+Summary
+-------
 
-The essence of Haskell is the arrow (->) which represents a transform. We have
-things and we have transforms between things (ding ding category theory).
-
-thing
-thing -> thing
-thing -> thing -> thing
-thing -> (thing -> thing)
-
-The thing could be kinds, types or values or a function.
-
-Haskell is about functions, the rest is details.
-
-* Graphic to show the reflection of the word "Haskell" showing as the word "Function"
-* A function is the swiss army knife of Haskell. Graphic?
-* Functions are central to everything including kinds, types and values
-* The only primitive in haskell is a function.
-* The slide with the whole square frame around it built with the word Function or lambda.
-
-Types of Functions
-------------------
-
-There are different types of functions:
-
-* Transform - turn one thing into another
-* Compose - put two things together - constructor (for data), composition (for functions)
-* any thing (function or data) can be composed
-* Decompose - pick a combined thing apart into its components - pattern match
-
-Data and Operations
--------------------
-
-* Data is represented by functions - constructors - compose pieces into a single type
-* Operations are represented by functions - transform
-
-* Types: Specification of data, functions reify the specification into real physical data
-* Compose multiple pieces of data via constructors and decompose them via pattern matching
-* Functions: take one or more data types and turn it into another output data type
-* Composition - Transform and compose data via functions, compose functions
-
-* Show the visual representation of a simple program
-
-Polymorphism - Expressive Power
--------------------------------
-
-* Typeclasses: attach functions to types, the function can be different for different types.
-* Polymorphic functions: Same function can work on many types
-* Higher order functions
-
-* Reuse -> conciseness -  expressive power - polymorphism is about reuse - you can abstract out the common parts in processing multiple related but slightly different types
-* Composition -> reuse
-* typeclass hierarchy
-
-Topics
-------
-
-* Functions
-
-  * Recursion
-* Types
-* TypeClasses
-* Polymorphism
-* Specific Type Classes - Abstractions
-
-  * Functor, Applicative, Monad
-  * Monoid, semigroup, ...
-* Higher level design patterns
-
-  * Zippers
-  * Free Monads, cofree etc.
-* Data Structures (containers)
-* IO
-* Category Theory
-* Domain specific packages
-
-  * Web
-  * Parsing
-
-Conclusion
-----------
-
+* A function is really the only building block of Haskell
+* A Haskell program is a specification of equations for functions
+* There are three independent functional programming spaces viz. value, type
+  and kind
+* The bridge between any two spaces is a function name

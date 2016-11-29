@@ -15,10 +15,12 @@ Terminology
 | Higher order function      | A function that takes a function or functions  |
 |                            | as an argument                                 |
 +----------------------------+------------------------------------------------+
-| Currying                   | the generating of intermediate functions on the way toward a final result|
+| Currying                   | the generating of intermediate functions on the|
+|                            | way toward a final result                      |
+|                            | One at a time consumption of arguments         |
 +----------------------------+------------------------------------------------+
-| Partial function           |  A function that is not defined for some values
-|                            | of its arguments |
+| Partial function           |  A function that is not defined for some values|
+|                            | of its arguments                               |
 +----------------------------+------------------------------------------------+
 |                            |                                                |
 +----------------------------+------------------------------------------------+
@@ -28,9 +30,6 @@ Terminology
 Function
 --------
 
-signature
-f :: a -> b -> c -> d
-
 graphical rep:
 
 a  b  c  d
@@ -38,6 +37,9 @@ a  b  c  d
 +-------+
 | Stuff |
 +-------+
+
+signature
+f :: a -> b -> c -> d
 
 Function type variables are implicitly universally quantified.
 
@@ -84,50 +86,27 @@ simple value with no mouth.
 Rank 1 Polymorphism
 RankNPolymorphism
 
-Type Space
-----------
+The Function Application Type
+-----------------------------
 
-Type functions are first class objects in type space like value functions are
-first class objects in value space. Which means type functions can be passed
-around like normal types.
+(->) represents a function application. A function application maps values from
+one type to values of another type.  Thus (->) is a type level function which
+takes two types as arguments and returns a type as output.
 
-Value Space
------------
-Representing Values and their types
-===================================
+Kind signature:
+(->) :: Type -> Type -> Type
 
-A value is represented by a triangle. The type of the value is represented by a
-sequence and color of dots on the sides of the traingle.
++-----------------------------------------------------------------------------+
+| (->) is just like any other type functions except that it is usually used   |
+| as infix. These two are equivalent.                                         |
++----------------------+------------------------------------------------------+
+| square :: Int -> Int | square :: (->) Int Int                               |
++----------------------+------------------------------------------------------+
+| Int -> Int -> Int    | (->) Int ((->) Int Int)                              |
++----------------------+------------------------------------------------------+
 
-A function is represented by a triangle with as many triangular slots in the
-base as the number of inputs it takes. The slot is lined with a sequence of
-dots representing the type of the input. The dots on the triangle of a value
-must match with the dots in the triangular slot. The dots can also be small
-triangles themselves.
-
-::
-
- |\
- | \
- |  \
- |  /
- | /
- |/
-
-Each dot could be a pit or a rise and it can have 3 colors (RGB). So it can
-represent 6 states. If we have 3 (side) + 3 (side) + 1 (tip) dots on each
-triangle we can represent 6^7 = 279936 types.
-
-As soon as the slots in the triangle are filled it becomes a concrete value
-i.e. perfect triangle in shape. Or if it returns a function then it becomes a
-slotted triangle again.
-
-If it returns a function then it will have more slots at the lower side which
-can be filled after the other input slots are filled. In fact it is actually a
-function with more inputs. e.g.
-
-f :: a -> b -> (c -> d) = f :: a -> b -> c -> d
-
+(->) associates from right to left and not vice-versa.
+thing -> (thing -> thing)
 
 Syntax
 ------
