@@ -1,6 +1,8 @@
 Haskell in a nutshell
 =====================
 
+THIS IS A WORK IN PROGRESS.
+
 A concise Haskell reference.
 
 * Why haskell

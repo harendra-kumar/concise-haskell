@@ -435,7 +435,7 @@ Type Level Programming
 
 The purpose of type level programming is to generate concrete types.
 Just like at data level we have `data functions` representing `asbtract` or
-`polymorphic data`, the same way at the type level we `type functions`
+`polymorphic data`, the same way at the type level we have `type functions`
 representing abstract or `polymorphic types`.  Type functions can be used to
 compose types together to create more complex types from simple concrete types.
 
@@ -466,6 +466,52 @@ value. The combinations are huge, so how do we create so many types?
 | a -> (b -> c)    |                                                          |
 +------------------+----------------------------------------------------------+
 
+Polymorphic Functions
+---------------------
+
+Functions whose argument types can vary. They work for many types.
+
+::
+
+  id :: a -> a
+  id x = x
+
+`Function instances`: When we apply the identity function to a value of a
+concrete type, then we `instantiate` the type variable `a` to that concrete
+type:
+
+::
+
+  id (3 :: Integer)
+
+Quantification of Type Variables
+--------------------------------
+
+Quantification decides the `visibility scope of a type variable` to the
+typechecker. The type variable cannot be instantiated and cannot exist
+outside that scope. There are two types of quantifications available viz.
+`univseral` and `existential` quantification.
+
+When a type variable is universally quantified it means that the type variable
+is valid over the scope of the whole program. The type variable is visible for
+typechecking anywhere in the program without any restrictions. Universal
+quantification is implicit or default. All type variables of a function are
+unviersally quantified by default. Though we can use an explicit `forall`:
+
+::
+
+  id :: forall a. a -> a
+  id x = x
+
+Whereas `existential quantification implies that the availability or the scope
+of the quantified variable is limited`. The variable cannot exist or typecheck
+outside the specified scope. It is represented by a scoped `forall`. For
+example:
+
+When we say a type variable is `not quantified`, it means that it is
+universally quantified. Whereas just saying `quantified` is equivalent to
+saying `existentially quantified`.
+
 Kinds: Ensuring correctness of Types
 ------------------------------------
 
@@ -480,8 +526,10 @@ For example the kind of ``->`` is::
 
   (->) :: Type -> Type -> Type
 
-Which means a function always takes a concrete type, you cannot use a type
-function or a type of kind (Type -> Type).
+Which means a function always takes a concrete type as an argument, you cannot
+use a type function (a type of kind ``(Type -> Type)``) as an argument to a
+function. Similarly since unlifted types (e.g. Int#) do not have a kind
+``Type``, you cannot use them as arguments to functions.
 
 Summary of Programming Levels
 -----------------------------
@@ -497,34 +545,8 @@ Summary of Programming Levels
 |              |                           |             +----------------------------------------------------+
 |              |                           |             | Typeclasses (Function & Data signatures)           |
 +--------------+---------------------------+-------------+----------------------------------------------------+
-| Run time     | `Value` level programming | Data        | Concrete data values, Functions, Data Constructors |
+| Run time     | `Data` level programming  | Data        | Concrete data values, Functions, Data Constructors |
 +--------------+---------------------------+-------------+----------------------------------------------------+
-
-Values & Value Functions
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-+-------------+--------+----------------------+--------------------------------------------------------------------------------+
-| Values      | Rank2  | Polymorphic Functions| ``f :: a -> b`` where type variable `a` represents values of rank1             |
-|             +--------+----------------------+--------------------------------------------------------------------------------+
-|             | Rank1  | Polymorphic Functions| ``f :: a -> b`` where type variable `a` represents values of Rank0             |
-|             +--------+----------------------+--------------------------------------------------------------------------------+
-|             | Rank0  | Monomorphic Functions| ``f :: Char -> Int``, monomorphic concrete type arguments                      |
-|             |        +----------------------+--------------------------------------------------------------------------------+
-|             |        | Concrete Values      | ``f :: Int``, monomorphic concrete type                                        |
-+-------------+--------+----------------------+--------------------------------------------------------------------------------+
-
-Types & Type Functions
-~~~~~~~~~~~~~~~~~~~~~~
-
-`Type` is the only kind visible outside GHC.
-
-+-------------+--------+----------------------+--------------------------------------------------------------------------------+
-| Types       | Rank1  | Polymorphic Type Fns | ``t :: k1 -> k2``, where k1 is a kind variable representing types of rank0     |
-|             +--------+----------------------+--------------------------------------------------------------------------------+
-|             | Rank0  | Type Functions       | ``t :: Type -> Type`` (polymorphic type)                                       |
-|             |        +----------------------+--------------------------------------------------------------------------------+
-|             |        | Concrete Types       | ``t :: Type``                                                                  |
-+-------------+--------+----------------------+--------------------------------------------------------------------------------+
 
 Kinds
 -----
@@ -533,11 +555,10 @@ Kinds
 
 +------------------------------------------------------------------------------------------------------------------------------+
 | A type's kind encodes the runtime representation.                                                                            |
-| GHC represents a kind as ``TYPE`` parameterised by `RuntimeRep`_.                                                            |
 +----------------------+----------------------+--------------------------------------------------------------------------------+
-| Kinds                | Lifted Types         | ``Type (type Type = TYPE 'PtrRepLifted')`` or ``*`` (Pre GHC 8.0)              |
+| Kinds                | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
 |                      +----------------------+--------------------------------------------------------------------------------+
-|                      | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
+|                      | Lifted Types         | ``Type`` or ``*``                                                              |
 |                      +----------------------+--------------------------------------------------------------------------------+
 |                      | Constraints          | ``Constraint``                                                                 |
 |                      +----------------------+--------------------------------------------------------------------------------+
@@ -545,6 +566,51 @@ Kinds
 |                      +----------------------+--------------------------------------------------------------------------------+
 |                      | Type level symbols   | ``Symbol``                                                                     |
 +----------------------+----------------------+--------------------------------------------------------------------------------+
+| GHC internally represents a kind as ``TYPE`` parameterised by `RuntimeRep`_.                                                 |
++------------------------------------------------------------------------------------------------------------------------------+
+| ``Type`` (Post GHC 8.0 only) or ``*`` is the only kind visible outside GHC, and defined as:                                  |
+| ``type Type = TYPE 'PtrRepLifted'``                                                                                          |
++------------------------------------------------------------------------------------------------------------------------------+
+
+Type Level Values & Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++----------------------+--------------------------------------------------------------------------------+------------------+
+| Polymorphic Type Fns | ``t :: k1 -> k2``, where k1 is a kind variable representing types of rank0     |                  |
++----------------------+--------------------------------------------------------------------------------+------------------+
+| Type Functions       | ``t :: Type -> Type``                                                          | Polymorphic type |
++----------------------+--------------------------------------------------------------------------------+------------------+
+| Concrete Types       | ``t :: Type``                                                                  | Monomorhic type  |
++----------------------+--------------------------------------------------------------------------------+------------------+
+
+Data Level Values & Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
+| Polymorphic Functions| Rank3  | ``f :: (Rank2 polymorphic function type) -> b``                                | Abstract functions      |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | f :: ((forall a. a -> a) -> Integer) -> Integer                                |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | Rank can be decided by counting the nesting depth of the type variable         |                         |
+|                      +--------+--------------------------------------------------------------------------------+                         |
+|                      | Rank2  | ``f :: (Rank1 polymorphic function type) -> b``                                |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | This function itself may be monomorphic but it accepts a polymorphic function  |                         |
+|                      |        | as an argument                                                                 |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | The key point is that the instantiation of the polymorphic function passed as  |                         |
+|                      |        | argument is decided by this function.                                          |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | f :: (forall a. a -> a) -> Integer                                             |                         |
+|                      +--------+--------------------------------------------------------------------------------+                         |
+|                      | Rank1  | ``f :: a -> b`` where type variable `a` represents values of Rank0             |                         |
++----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
+| Monomorphic Functions         | ``f :: Char -> Int``                                                           | Concrete function       |
+|                               |                                                                                | Abstract value          |
+|                               |                                                                                | Polymorphic value       |
++-------------------------------+--------------------------------------------------------------------------------+-------------------------+
+| Concrete Data Values          | ``f :: Int``                                                                   | Monomorphic value       |
++-------------------------------+--------------------------------------------------------------------------------+-------------------------+
 
 General Model of a Haskell Program
 ----------------------------------
