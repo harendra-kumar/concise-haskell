@@ -38,20 +38,21 @@ Terminology
 | Type                       | Denotes rules that a value should conform to                    |
 |                            | (e.g. Int or String)                                            |
 +----------------------------+-----------------------------------------------------------------+
-| Kind                       | Type of types (e.g. Lifted or unlifted)                         |
+| Kind                       | Type of types (e.g. a type could be lifted or unlifted)         |
 +----------------------------+-----------------------------------------------------------------+
 | Rigid type                 | Type is fixed by annotation (signature) and not determined by   |
 |                            | inference.                                                      |
 +----------------------------+-----------------------------------------------------------------+
-| Concrete                   | Has a physical representation (boxed or unboxed)                |
+| Concrete                   | Represents a real physical value (not abstract)                 |
 +----------------------------+-----------------------------------------------------------------+
-| Monomorphic                | Has only one possible representation                            |
+| Monomorphic                | Has only one possible concrete representation                   |
 +----------------------------+-----------------------------------------------------------------+
-| Polymorphic                | Has multiple possible representations (cannnot be concrete)     |
+| Polymorphic                | Has multiple concrete representations (abstract, not concrete)  |
 +----------------------------+-----------------------------------------------------------------+
-| Unboxed                    | Bare type, no wrapping or indirection layer                     |
+| Unboxed                    | Bare physical representation, no wrapping or indirection layer  |
 +----------------------------+-----------------------------------------------------------------+
-| Boxed                      | Trackable heap object, wrapped with control info                |
+| Boxed                      | Physical representation wrapped with control info               |
+|                            | (trackable heap object).                                        |
 +----------------------------+-----------------------------------------------------------------+
 | Bottom (_|_)               | An undefined or non existing value                              |
 +----------------------------+-----------------------------------------------------------------+
@@ -71,6 +72,54 @@ Terminology
 
 Kinds
 -----
+
+Lifting Types with Bottom
+-------------------------
+
+Types that are lifted include a bottom value. A bottom can represent undefined or
+unevaluated values.
+
++-----------------------------------------------------------------------------+
+| `Bottom` (_|_), technically a non-existing value, or an undefined           |
+| value, is used to accomodate the                                            |
+| following practical conditions.                                             |
++--------------------------------------------+--------------------------------+
+| non-termination                            | let x = x in x                 |
++--------------------------------------------+--------------------------------+
+| partial functions                          | head []                        |
++--------------------------------------------+--------------------------------+
+| unevaluated values                         | [1..]                          |
+| e.g. in infinite data structures           |                                |
++--------------------------------------------+--------------------------------+
+| Since a bottom value can arise anywhere, it implicitly inhabits all (lifted)|
+| types or expressions.                                                       |
+|                                                                             |
+| * All lifted types include bottom, they can be constructed lazily.          |
+| * By extension, all expressions built with lifted types include bottom.     |
+| * Bottom has a free type i.e. it can match any type.                        |
++-----------------------------------------------------------------------------+
+| This is an inconsistency from type theory perspective to accomodate these   |
+| situations.                                                                 |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Partial functions can use these to generate a bottom explicitly             |
++-----------+------+----------------------------------------------------------+
+| error     | `::` | forall a.  => [Char] -> a                                |
++-----------+------+----------------------------------------------------------+
+| undefined | `::` | forall a.  => a                                          |
++-----------+------+----------------------------------------------------------+
+| Unevaluated bottoms are implemented by lazy evaluation.                     |
++-----------------------------------------------------------------------------+
+
+Runtime Representation
+~~~~~~~~~~~~~~~~~~~~~~
+
+The runtime representation of lifted types is always boxed. Lifting is
+represented by a closure at runtime. A closure can represent an undefined value
+or bottom which can be refined by lazy evaluation.
+
+Unlifted types always have a direct unboxed runtime representation.
 
 Kinds of Concrete Types
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -174,45 +223,6 @@ Using Primitives
 |                     | , lazy pattern match           |
 +---------------------+--------------------------------+
 
-Lifting Types with Bottom
--------------------------
-
-Types that are lifted include a bottom value. A bottom can represent undefined or
-unevaluated values.
-
-+-----------------------------------------------------------------------------+
-| `Bottom` (_|_), technically a non-existing value, or an undefined           |
-| value, is used to accomodate the                                            |
-| following practical conditions.                                             |
-+--------------------------------------------+--------------------------------+
-| non-termination                            | let x = x in x                 |
-+--------------------------------------------+--------------------------------+
-| partial functions                          | head []                        |
-+--------------------------------------------+--------------------------------+
-| unevaluated values                         | [1..]                          |
-| e.g. in infinite data structures           |                                |
-+--------------------------------------------+--------------------------------+
-| Since a bottom value can arise anywhere, it implicitly inhabits all (lifted)|
-| types or expressions.                                                       |
-|                                                                             |
-| * All lifted types include bottom, they can be constructed lazily.          |
-| * By extension, all expressions built with lifted types include bottom.     |
-| * Bottom has a free type i.e. it can match any type.                        |
-+-----------------------------------------------------------------------------+
-| This is an inconsistency from type theory perspective to accomodate these   |
-| situations.                                                                 |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Partial functions can use these to generate a bottom explicitly             |
-+-----------+------+----------------------------------------------------------+
-| error     | `::` | forall a.  => [Char] -> a                                |
-+-----------+------+----------------------------------------------------------+
-| undefined | `::` | forall a.  => a                                          |
-+-----------+------+----------------------------------------------------------+
-| Unevaluated bottoms are implemented by lazy evaluation.                     |
-+-----------------------------------------------------------------------------+
-
 Basic Haskell Types
 -------------------
 
@@ -268,6 +278,9 @@ Basic Syntax
 
 Type Constructor
 ................
+
+TODO: Have separate example for concrete type. Differentiate type constructor
+from a concrete type. type constructor is a function.
 
 +-----------------------------------------------------------------------------------------+
 | A concrete type or type function to instantiate a new type                              |
@@ -334,42 +347,65 @@ GADT Syntax
 ~~~~~~~~~~~
 
 +------------------------------------------------------------------+
-| Haskell98 Syntax (Constructor return type is implicit and fixed) |
-| Type parameters have scope.                                      |
+| Haskell98 Syntax                                                 |
+|                                                                  |
+| * Each constructor has the same return type which is implicit    |
+|   and the same as the data type.                                 |
+| * The data type parameter scopes over the constructors and is    |
+|   used as a type parameter in the constructors.                  |
 +------------------------------------------------------------------+
 | ::                                                               |
 |                                                                  |
 |  data List a = Empty | Cons a (List a)                           |
 +------------------------------------------------------------------+
-| GADT Syntax (Constructor return type is explicit and can vary)   |
+| GADT Syntax                                                      |
+|                                                                  |
+| * GADT syntax essentially specifies the arity of the type        |
+|   constructor and signatures of all data constructors explicitly.|
+| * It allows the return type of each data constructor to be       |
+|   different.                                                     |
+| * The data type parameter is only a placeholder and has no scope.|
+|   It indicates only the arity of the type function.              |
+| * Type variables across different constructors are not related.  |
+| * Type variables featuring in the return type of a constructor   |
+|   are implicitly universally quantified.                         |
+| * Type variables not featuring in the return type of a           |
+|   constructor are implicitly existentially quantified            |
 +------------------------------------------------------------------+
 | ::                                                               |
 |                                                                  |
-|  data List a where                                               |
-|    Empty :: List a                                               |
-|    Cons  :: a -> List a -> List a                                |
+|  data List a where     -- 'a' has no scope, only a placeholder   |
+|    Empty :: List b                                               |
+|    Cons  :: c -> List c -> List c                                |
 +------------------------------------------------------------------+
-| GADT constructor type variables are universally quantified       |
-| (Same as in function signatures)                                 |
-+------------------------------------------------------------------+
-| ::                                                               |
-|                                                                  |
-|  data T x where      -- 'x' has no scope                         |
-|   T1,T2 :: b -> T b  -- forall b. b -> T b                       |
-|   T3 :: T a          -- forall a. T a                            |
-+------------------------------------------------------------------+
-| GADT Type parameters have no scope                               |
-| (You can even omit them and just use the kind)                   |
+| The data type actually specified determines the return type of a |
+| constructor which in turn determines the actual signature of the |
+| constructor. For example, in the context of ``List Int`` data    |
+| type the constructors will read as:                              |
 +------------------------------------------------------------------+
 | ::                                                               |
 |                                                                  |
-|  data Bar a b where ...                                          |
+|    Empty :: List Int                     -- b ~ Int              |
+|    Cons  :: Int -> List Int -> List Int  -- c ~ Int              |
++------------------------------------------------------------------+
+| Just like in function signatures, multiple constructors with the |
+| same signature can be grouped together.                          |
++------------------------------------------------------------------+
+| ::                                                               |
 |                                                                  |
-|  data Bar :: Type -> Type -> Type where ...                      |
+|  data T x where                                                  |
+|   T1,T2 :: b -> T b                                              |
+|   T3 :: T a                                                      |
++------------------------------------------------------------------+
+| Since type parameters only determine the arity we can            |
+| omit them and use the kind instead. ``Bar a b`` in               |
+| ``data Bar a b where ...`` can also be written as:               |
++------------------------------------------------------------------+
+| ::                                                               |
 |                                                                  |
-|  data Bar a :: (Type -> Type) where ...                          |
-|                                                                  |
-|  data Bar a (b :: Type -> Type) where ...                        |
+|  1) Bar :: Type -> Type -> Type                                  |
+|  2) Bar a :: (Type -> Type)                                      |
+|  3) Bar a (b :: Type -> Type)                                    |
 +------------------------------------------------------------------+
 
 GADT Semantics
@@ -380,38 +416,41 @@ GADT Semantics
 +-------------------------------------------------+----------------------------------------------------+
 | Ordinary type                                   | Generalized type (GADT)                            |
 +-------------------------------------------------+----------------------------------------------------+
-| One type represented by only one type level term| One type represented by multiple type level terms  |
-+-------------------------------------------------+----------------------------------------------------+
-| List Int                                        | Term Int                                           |
-|                                                 +----------------------------------------------------+
-|                                                 | Term Bool                                          |
-|                                                 +----------------------------------------------------+
-|                                                 | Term a                                             |
-|                                                 +----------------------------------------------------+
-|                                                 | Term (a,b)                                         |
-+-------------------------------------------------+----------------------------------------------------+
-| Return type of all the constructors same        | Each constructor return can instantiate the        |
-|                                                 | type parameter differently                         |
-+-------------------------------------------------+----------------------------------------------------+
+| All constructors return the same type.          | Different constructors can return different        |
+|                                                 | `specialized` or `refined` types which together    |
+|                                                 | constitute of the generalized type.                |
++-------------------------------------------------+---------------------------+------------------------+
+|                                                 | Generalized type          | Constituent types      |
++-------------------------------------------------+---------------------------+------------------------+
+| List Int                                        | Term a                    | Term Int               |
+|                                                 |                           +------------------------+
+|                                                 |                           | Term Bool              |
+|                                                 |                           +------------------------+
+|                                                 |                           | Term (a,b)             |
++-------------------------------------------------+---------------------------+------------------------+
 
-+-------------------------------------------------------+
-| GADT Example                                          |
-+-------------------------------------------------------+
-| ::                                                    |
-|                                                       |
-|   data Term a where                                   |
-|     Lit    :: Int -> Term Int                         |
-|     Succ   :: Term Int -> Term Int                    |
-|     IsZero :: Term Int -> Term Bool                   |
-|     If     :: Term Bool -> Term a -> Term a -> Term a |
-|     Pair   :: Term a -> Term b -> Term (a,b)          |
-+-------------------------------------------------------+
-| `deriving` clause cannot be used                      |
-+-------------------------------------------------------+
++-----------------------------------------------------------------------------+
+| Note GADTs only make a difference to how the `sum` types are constructed.   |
+| Only sum types have multiple constructors.                                  |
++-----------------------------------------------------------------------------+
+| GADT Example                                                                |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   data Term a where                                                         |
+|     Lit    :: Int -> Term Int                                               |
+|     Succ   :: Term Int -> Term Int                                          |
+|     IsZero :: Term Int -> Term Bool                                         |
+|     If     :: Term Bool -> Term a -> Term a -> Term a                       |
+|     Pair   :: Term a -> Term b -> Term (a,b)                                |
++-----------------------------------------------------------------------------+
+| `deriving` clause cannot be used                                            |
++-----------------------------------------------------------------------------+
 
 +---------------------------------------------------------------+
+| Here `Term a` represents all constructors of the type.        |
 | Pattern matching causes type refinement `based on signature`. |
-| e.g. in `(Lit i)` `a` is refined to Int                       |
+| e.g. in `(Lit i)` `a` is refined to `Int`.                    |
 +---------------------------------------------------------------+
 | ::                                                            |
 |                                                               |
@@ -421,6 +460,13 @@ GADT Semantics
 |  eval (IsZero t)   = eval t == 0                              |
 |  eval (If b e1 e2) = if eval b then eval e1 else eval e2      |
 |  eval (Pair e1 e2) = (eval e1, eval e2)                       |
++---------------------------------------------------------------+
+| ::                                                            |
+|                                                               |
+|    eval (Lit 10)                                              |
+|    eval (Succ (Lit 10))                                       |
+|    eval (If (IsZero (Lit 10)) (Lit 0) (Lit 1))                |
+|    eval (Pair (Lit 10) (Lit 20))                              |
 +---------------------------------------------------------------+
 | The following types must be rigid                             |
 | (i.e. annotated by programmer) in a pattern match:            |
@@ -486,16 +532,21 @@ Detailed Data Construction Syntax
 | * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
 | * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
 | * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
-+------------------------------------------------------------+-------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | -XExistentialQuantification                                                                                        |
++--------------------------------------------------------------------------------------------------------------------+
+| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
+| `existentials` confined to the local scope.                                                                        |
+| The existence, visibility or scope of these type variables is localized to this closed group of constructors. The  |
+| typechecker will refuse to typecheck them with types outside this scope.                                           |
 +------------------------------------------------------------+-------------------------------------------------------+
-| Quantified type variables that appear in arguments but not in the result type for any constructor are existentials.|
-| The type of any such variable cannot be checked against any type outside the bindings within this data type.       |
-| So data Foo = forall a. Foo a (a -> a) is equivalent to Foo :: (exists a . (a, a -> a)) -> Foo.                    |
-| It allows us to pack opaque data and operations on it together in a data type. An example using records:           |
-+------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Foo = forall a.                                     |   data Foo where                                      |
+|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
+|                                                            |                                                       |
 | ::                                                         | ::                                                    |
 |                                                            |                                                       |
 |   data Counter a = forall self.                            |   data Counter a where                                |
@@ -506,11 +557,19 @@ Detailed Data Construction Syntax
 |     , tag      :: a                                        |     , tag      :: a                                   |
 |     }                                                      |     } -> Counter a                                    |
 +------------------------------------------------------------+-------------------------------------------------------+
-| * Fields using existentials are `private`. They will not get a selector function and cannot be updated             |
-| * Pattern matches to extract existentials are allowed only in `case` or `function definition` and not in `let` or  |
-|   `where` bindings                                                                                                 |
-| * As expected constraint is available on pattern match: ``f NewCounter {_this, _inc} = show (_inc _this)``         |
-+------------------------------------------------------------+-------------------------------------------------------+
+| The type of an existential variable is free wrt to the data type and is instantiated only during construction      |
+| based on the type used in the constructor call.                                                                    |
++--------------------------------------------------------------------------------------------------------------------+
+| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
+| `where` bindings.                                                                                                  |
++--------------------------------------------------------------------------------------------------------------------+
+| The extracted value can be consumed by any functions using that type in the scope of the existential.              |
+| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
+| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
++--------------------------------------------------------------------------------------------------------------------+
+| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
+| example, all fields prefixed with ``_`` in the above example are private.                                          |
++--------------------------------------------------------------------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | Strictness Annotations                                                                                             |

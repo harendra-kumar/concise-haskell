@@ -61,11 +61,39 @@ Terminology
 | Type annotations       |                                                    |
 +------------------------+----------------------------------------------------+
 
+Abstraction & Polymorphism
+--------------------------
+
+Polymorphism is a central concept in Haskell which is essentially a way to
+reuse code. When you have  multiple `concrete` objects which are slightly
+different from each other or have a common structure but differ only in some
+parts then you can `abstract` all of them into one abstract form. You keep the
+common parts as it is and replace the varying part with a variable parameter.
+This abstract form is called a `polymorphic` form or an `abstraction` since
+it is a representation of many different concrete forms. This phenomenon is
+called `abstraction` or `polymorphism`.
+
+In a polymorphic or abstract form we can replace the variable parameter with a
+desired value to arrive at a concrete form. By using different values of the
+parameter we can create all the different concrete forms. The process of
+supplying the values of parameters to create a concrete form is called
+`instantiation` of the polymorphic form or creating an `instance`.
+Instantiation process is the opposite of abstraction.
+
+Even an abstract form can be further abstracted creating higher level
+abstractions.
+
 Functions As Building Blocks
 ----------------------------
 
 Values & Functions
 ~~~~~~~~~~~~~~~~~~
+
+Summarizing picture::
+
+  Value    -------> abstraction ------> abstract value
+  Concrete <------- application <------ function
+           <------- currying
 
 +-----------------------------------------------------------------------------+
 | A `concrete value` is an expression which can be computed to a pure data    |
@@ -87,8 +115,8 @@ Values & Functions
      +----------+
 
 +-----------------------------------------------------------------------------+
-| Abstracting a concrete value creates a `polymorphic value` or               |
-| `parameterized value`.                                                      |
+| Abstracting a concrete value creates an `abstract value`,                   |
+| `polymorphic value`, `parameterized value` or simply a `function`.          |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -97,8 +125,10 @@ Values & Functions
 |  f2 a b   = a  + b  + 10  -- polymorphic value of arity 2                   |
 |  f3 a b c = a  + b  + c   -- polymorphic value of arity 3                   |
 +-----------------------------------------------------------------------------+
-| As you can see abstraction allows `reuse` of the same value for multiple    |
-| purposes. Reuse compresses our program.                                     |
+| Abstraction allows `reuse` of the same value for multiple purposes.         |
++-----------------------------------------------------------------------------+
+| `a`, `b` and `c` are variable parameters. The abstract value can have       |
+| different concrete `instances` for different values of the parameters.      |
 +-----------------------------------------------------------------------------+
 
 
@@ -173,12 +203,30 @@ Values & Functions
   +----------+     +----------+     +----------+     +----------+
    Arity 3           Arity 2          Arity 1          Concrete
 
+Values
+~~~~~~
+
 +-----------------------------------------------------------------------------+
-| Functions are values, abstractions of concrete values, polymorphic values.  |
+| A function application concretizes or refines the abstract value            |
+| represented by the function by composing the function with the values of    |
+| of its parameters.                                                          |
 +-----------------------------------------------------------------------------+
-| A function application concretizes the abstraction by composing the         |
-| function other values.                                                      |
+| When we say `value` in general we mean anything that a function can accept  |
+| as its arguments.                                                           |
 +-----------------------------------------------------------------------------+
+| A value could be a `concrete value` or a `function`.                        |
++-----------------------------------------------------------------------------+
+
+Higher-order functions
+~~~~~~~~~~~~~~~~~~~~~~
+
++---------------+------------------------------------------------------+
+| first order   | arguments and return values are concrete             |
++---------------+------------------------------------------------------+
+| second order  | Arguments or return value is a function              |
++---------------+------------------------------------------------------+
+| third order   | Arguments or return value is a second order function |
++---------------+------------------------------------------------------+
 
 Data Level Program
 ------------------
@@ -192,8 +240,13 @@ data.
 In a data level program (the direct and main aspect of a Haskell program)
 functions operate on values which could be either functions or data.
 
-Data Construction and de-construction
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Constructing Data By Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The only way to construct a new or user defined data representation is to call
+a function using existing data representations as arguments.
+
+Explain sum, product and recursive algebraic data types.
 
 +-----------------------------------------------------------------------------+
 | A `data constructor` is a function                                          |
@@ -250,6 +303,9 @@ Data Construction and de-construction
          |          |              |          |
          +----------+              +----------+
 
+Examining Data By Pattern Matching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 +-----------------------------------------------------------------------------+
 | `pattern match` is exact opposite of data construction, it de-constructs a  |
 | data value into its components. It is a constructor application on the      |
@@ -266,8 +322,8 @@ Data Construction and de-construction
 | match fails.                                                                |
 +-----------------------------------------------------------------------------+
 
-Mapping Input Values to Output Values
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Implementing a Function using `case`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | We said a function maps input values to output values, how exactly does it  |
@@ -297,6 +353,12 @@ chain of transformations to arrive at the final output value of a function.
 Thus `data constructors`, `case pattern match` and `function application` are
 really the basic building blocks of a Haskell program. `All functions can be
 expressed in terms of these primitives`.
+
+Transforming Data By Composing
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can use the output of a function as input of another function to transform
+data.
 
 Function and Data Values
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -330,7 +392,7 @@ value to a function input which is labeled `orange`.
 Value or Function Signatures
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Let's take an example of a concrete data value `v`::
+Let's take an example of an identifier `v` representing a concrete data value::
 
      Value              Type
   +----------+         +----------+
@@ -344,11 +406,11 @@ Let's take an example of a concrete data value `v`::
 +-----------------------------------------------------------------------------+
 | Types are associated to a value by a `type signature`.                      |
 +---------------------------------+-------------------------------------------+
-| v :: Int                        | Type Level Program                        |
+| v :: Int                        | Type Level Program (type signature)       |
 +---------------------------------+-------------------------------------------+
-| v = 33                          | Data Level Program                        |
+| v = 33                          | Data Level Program (value equation)       |
 +---------------------------------+-------------------------------------------+
-| Identifier `v` binds the value and type signature together.                 |
+| Identifier `v` represents the value ``33`` of type ``Int``.                 |
 | `Data level program` uses an `=` to bind an identifier to a value while the |
 | `type level program` uses a `::` to bind an identifier to a type.           |
 +-----------------------------------------------------------------------------+
@@ -365,6 +427,8 @@ Now, let's take an example of a function::
      +----------+       +------------------+
        Arity 3
 
++-----------------------------------------------------------------------------+
+| Type signature of a function:                                               |
 +---------------------------------+-------------------------------------------+
 | f :: Char -> Int -> Int -> Char | Type Level Program                        |
 +---------------------------------+-------------------------------------------+
@@ -372,6 +436,12 @@ Now, let's take an example of a function::
 +---------------------------------+-------------------------------------------+
 | Every input and the output parameter of a function has a type associated    |
 | with it.                                                                    |
++-----------------------------------------------------------------------------+
+| ``->`` is an infix `type function` which generates the type for this        |
+| data function by using the types of its parameters as well as the return    |
+| type as arguments. The argument ``a`` has type ``Char``, ``b`` has type     |
+| ``Int``, ``c`` has type ``Int`` and the return type of the function is      |
+| ``Char``.                                                                   |
 +-----------------------------------------------------------------------------+
 
 Data Constructor Signatures
@@ -446,8 +516,8 @@ the type level. See the kinds section for details.
 Generating function types
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
-What is the type of a function? A function with one argument is different from
-a function with two arguments. A function accepting an `Int` argument is
+What is the type of a function value? A function with one argument is different
+from a function with two arguments. A function accepting an `Int` argument is
 different from a function accepting `Char` argument. Similarly for return
 value. The combinations are huge, so how do we create so many types?
 
@@ -466,6 +536,59 @@ value. The combinations are huge, so how do we create so many types?
 | a -> (b -> c)    |                                                          |
 +------------------+----------------------------------------------------------+
 
+Kinds: Ensuring correctness of Types
+------------------------------------
+
++-----------------------------------------------------------------------------+
+| Safety of type level programming is ensured by labeling types with different|
+| `kinds` and performing a `kind check` when a type function is applied.      |
+| Kinds are relatively few and classified as follows:                         |
++------------------------+----------------------------------------------------+
+| Concrete or abstract                                                        |
++------------------------+----------------------------------------------------+
+| Concrete types         | Type functions                                     |
++------------------------+----------------------------------------------------+
+| Runtime representation | Arity                                              |
++----------+-------------+------------------+---------------------------------+
+| Unlifted | Lifted      | 1                | ...                             |
++----------+-------------+------------------+---------------------------------+
+| ...      | ``Type``    | ``Type -> Type`` | ...                             |
++----------+-------------+------------------+---------------------------------+
+
++-----------------------------------------------------------------------------+
+| A `kind signature` assigns a kind to each parameter of a type function.     |
++-----------------------------------------------------------------------------+
+| `Kind check` fails if we pass the wrong kind to a type function.            |
++-----------------------------------------------------------------------------+
+| For example the kind signature of type function ``->`` is::                 |
+|                                                                             |
+|  (->) :: Type -> Type -> Type                                               |
++-----------------------------------------------------------------------------+
+| We cannot pass an unlifted type (e.g. Int#) or a type function (e.g. a type |
+| of kind ``Type -> Type``) to this function.                                 |
++-----------------------------------------------------------------------------+
+
+.. _RuntimeRep: https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#runtime-representation-polymorphism
+
++------------------------------------------------------------------------------------------------------------------------------+
+| A concrete type's kind encodes the runtime representation.                                                                   |
++----------------------+----------------------+--------------------------------------------------------------------------------+
+| Kinds                | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Lifted Types         | ``Type`` or ``*``                                                              |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Constraints          | ``Constraint``                                                                 |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Type level naturals  | ``Nat``                                                                        |
+|                      +----------------------+--------------------------------------------------------------------------------+
+|                      | Type level symbols   | ``Symbol``                                                                     |
++----------------------+----------------------+--------------------------------------------------------------------------------+
+| GHC internally represents a kind as ``TYPE`` parameterised by `RuntimeRep`_.                                                 |
++------------------------------------------------------------------------------------------------------------------------------+
+| ``Type`` (Post GHC 8.0 only) or ``*`` is the only kind visible outside GHC, and defined as:                                  |
+| ``type Type = TYPE 'PtrRepLifted'``                                                                                          |
++------------------------------------------------------------------------------------------------------------------------------+
+
 Polymorphic Functions
 ---------------------
 
@@ -482,7 +605,9 @@ type:
 
 ::
 
-  id (3 :: Integer)
+  id (3 :: Int)
+
+This is also known as `parametric polymorphism`.
 
 Quantification of Type Variables
 --------------------------------
@@ -512,24 +637,45 @@ When we say a type variable is `not quantified`, it means that it is
 universally quantified. Whereas just saying `quantified` is equivalent to
 saying `existentially quantified`.
 
-Kinds: Ensuring correctness of Types
-------------------------------------
+Type Level Polymorphism
+~~~~~~~~~~~~~~~~~~~~~~~
 
-Values at the type level could be of different `kinds`. For example a type
-could be lifted or unlifted. A type could be a concrete type or it could a type
-function of one parameter or it could be a type function of two parameters etc.
++----------------------+--------------------------------------------------------------------------------+------------------+
+| Polymorphic Type Fns | ``t :: k1 -> k2``, where k1 is a kind variable representing types of rank0     |                  |
++----------------------+--------------------------------------------------------------------------------+------------------+
+| Type Functions       | ``t :: Type -> Type``                                                          | Polymorphic type |
++----------------------+--------------------------------------------------------------------------------+------------------+
+| Concrete Types       | ``t :: Type``                                                                  | Monomorhic type  |
++----------------------+--------------------------------------------------------------------------------+------------------+
 
-kinds can protect us from passing a type of wrong kind to a type function by
-using a kind signature.
+Data Level Polymorphism
+~~~~~~~~~~~~~~~~~~~~~~~
 
-For example the kind of ``->`` is::
-
-  (->) :: Type -> Type -> Type
-
-Which means a function always takes a concrete type as an argument, you cannot
-use a type function (a type of kind ``(Type -> Type)``) as an argument to a
-function. Similarly since unlifted types (e.g. Int#) do not have a kind
-``Type``, you cannot use them as arguments to functions.
++----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
+| Polymorphic Functions| Rank3  | ``f :: (Rank2 polymorphic function type) -> b``                                | Abstract functions      |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | f :: ((forall a. a -> a) -> Int) -> Int                                        |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | Rank can be determined by counting the nesting depth of the type variable      |                         |
+|                      +--------+--------------------------------------------------------------------------------+                         |
+|                      | Rank2  | ``f :: (Rank1 polymorphic function type) -> b``                                |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | This function itself may be monomorphic but it accepts a polymorphic function  |                         |
+|                      |        | as an argument                                                                 |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | The key point is that the instantiation of the polymorphic function passed as  |                         |
+|                      |        | argument is decided by this function.                                          |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | f :: (forall a. a -> a) -> Int                                                 |                         |
+|                      +--------+--------------------------------------------------------------------------------+                         |
+|                      | Rank1  | ``f :: a -> b`` where type variable `a` represents values of Rank0             |                         |
++----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
+| Monomorphic Functions         | ``f :: Char -> Int``                                                           | Concrete function       |
+|                               |                                                                                | Abstract value          |
+|                               |                                                                                | Polymorphic value       |
++-------------------------------+--------------------------------------------------------------------------------+-------------------------+
+| Concrete Data Values          | ``f :: Int``                                                                   | Monomorphic value       |
++-------------------------------+--------------------------------------------------------------------------------+-------------------------+
 
 Summary of Programming Levels
 -----------------------------
@@ -547,70 +693,6 @@ Summary of Programming Levels
 +--------------+---------------------------+-------------+----------------------------------------------------+
 | Run time     | `Data` level programming  | Data        | Concrete data values, Functions, Data Constructors |
 +--------------+---------------------------+-------------+----------------------------------------------------+
-
-Kinds
------
-
-.. _RuntimeRep: https://downloads.haskell.org/~ghc/latest/docs/html/users_guide/glasgow_exts.html#runtime-representation-polymorphism
-
-+------------------------------------------------------------------------------------------------------------------------------+
-| A type's kind encodes the runtime representation.                                                                            |
-+----------------------+----------------------+--------------------------------------------------------------------------------+
-| Kinds                | Unlifted Types       | ``TYPE 'IntRep'``, ``TYPE 'DoubleRep'`` ...                                    |
-|                      +----------------------+--------------------------------------------------------------------------------+
-|                      | Lifted Types         | ``Type`` or ``*``                                                              |
-|                      +----------------------+--------------------------------------------------------------------------------+
-|                      | Constraints          | ``Constraint``                                                                 |
-|                      +----------------------+--------------------------------------------------------------------------------+
-|                      | Type level naturals  | ``Nat``                                                                        |
-|                      +----------------------+--------------------------------------------------------------------------------+
-|                      | Type level symbols   | ``Symbol``                                                                     |
-+----------------------+----------------------+--------------------------------------------------------------------------------+
-| GHC internally represents a kind as ``TYPE`` parameterised by `RuntimeRep`_.                                                 |
-+------------------------------------------------------------------------------------------------------------------------------+
-| ``Type`` (Post GHC 8.0 only) or ``*`` is the only kind visible outside GHC, and defined as:                                  |
-| ``type Type = TYPE 'PtrRepLifted'``                                                                                          |
-+------------------------------------------------------------------------------------------------------------------------------+
-
-Type Level Values & Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+----------------------+--------------------------------------------------------------------------------+------------------+
-| Polymorphic Type Fns | ``t :: k1 -> k2``, where k1 is a kind variable representing types of rank0     |                  |
-+----------------------+--------------------------------------------------------------------------------+------------------+
-| Type Functions       | ``t :: Type -> Type``                                                          | Polymorphic type |
-+----------------------+--------------------------------------------------------------------------------+------------------+
-| Concrete Types       | ``t :: Type``                                                                  | Monomorhic type  |
-+----------------------+--------------------------------------------------------------------------------+------------------+
-
-Data Level Values & Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
-| Polymorphic Functions| Rank3  | ``f :: (Rank2 polymorphic function type) -> b``                                | Abstract functions      |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | f :: ((forall a. a -> a) -> Integer) -> Integer                                |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | Rank can be decided by counting the nesting depth of the type variable         |                         |
-|                      +--------+--------------------------------------------------------------------------------+                         |
-|                      | Rank2  | ``f :: (Rank1 polymorphic function type) -> b``                                |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | This function itself may be monomorphic but it accepts a polymorphic function  |                         |
-|                      |        | as an argument                                                                 |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | The key point is that the instantiation of the polymorphic function passed as  |                         |
-|                      |        | argument is decided by this function.                                          |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | f :: (forall a. a -> a) -> Integer                                             |                         |
-|                      +--------+--------------------------------------------------------------------------------+                         |
-|                      | Rank1  | ``f :: a -> b`` where type variable `a` represents values of Rank0             |                         |
-+----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
-| Monomorphic Functions         | ``f :: Char -> Int``                                                           | Concrete function       |
-|                               |                                                                                | Abstract value          |
-|                               |                                                                                | Polymorphic value       |
-+-------------------------------+--------------------------------------------------------------------------------+-------------------------+
-| Concrete Data Values          | ``f :: Int``                                                                   | Monomorphic value       |
-+-------------------------------+--------------------------------------------------------------------------------+-------------------------+
 
 General Model of a Haskell Program
 ----------------------------------

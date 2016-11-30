@@ -198,3 +198,4 @@ References
 * https://www.fpcomplete.com/blog/2016/11/comparative-concurrency-with-haskell
 * https://www.microsoft.com/en-us/research/publication/beautiful-concurrency/
 * https://www.fpcomplete.com/blog/2016/11/mastering-time-to-market-haskell
+* https://www.fpcomplete.com/blog/2016/11/comparison-scala-and-haskell
