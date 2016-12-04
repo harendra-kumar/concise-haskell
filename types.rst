@@ -56,11 +56,28 @@ Terminology
 | Boxed                      | Physical representation wrapped with control info               |
 |                            | (trackable heap object).                                        |
 +----------------------------+-----------------------------------------------------------------+
-| Bottom (_|_)               | An undefined or non existing value                              |
+| Lazy value                 | All ordinary Haskell values are lazy meaning they are evaluated |
+|                            | on demand. Lazy values are also called lifted values.           |
 +----------------------------+-----------------------------------------------------------------+
-| Unlifted                   | Not lazily evaluated; does not have a concept of bottom         |
+| Diverging computation      | A function or computation that does not return to the caller is |
+|                            | said to diverge. Divergence is denoted by bottom.               |
 +----------------------------+-----------------------------------------------------------------+
-| Lifted                     | Supports lazy evaluation; contains an implicit bottom value     |
+|                            | In order theory, the least element (if it exists) of a          |
+|                            | partially ordered set is also called the bottom and is denoted  |
+|                            | by ⊥.                                                           |
+|                            +-----------------------------------------------------------------+
+| Bottom (_|_)               | Bottom is the least defined value added to all types to denote  |
+|                            | undefined, diverging and lazy values                            |
++----------------------------+-----------------------------------------------------------------+
+| Lifting                    | Adding a `bottom` to an ordered set is called `lifting`.        |
++----------------------------+-----------------------------------------------------------------+
+| Unlifted (type)            | Operational: Cannot be constructed lazily                       |
+|                            +-----------------------------------------------------------------+
+|                            | Denotational: Does not contain a bottom value                   |
++----------------------------+-----------------------------------------------------------------+
+| Lifted (type)              | Operational: Can be constructed lazily                          |
+|                            +-----------------------------------------------------------------+
+|                            | Denotational: Contains a bottom value                           |
 +----------------------------+-----------------------------------------------------------------+
 | Primitives                 | Types which cannot be expressed in Haskell                      |
 +----------------------------+-----------------------------------------------------------------+
@@ -78,41 +95,39 @@ Kinds
 Lifting Types with Bottom
 -------------------------
 
-Types that are lifted include a bottom value. A bottom can represent undefined or
-unevaluated values.
+In theoretical terms adding a bottom value to the set of values denoted by a
+type is called lifting the type.
+
+A bottom value is implicit in lifted types. For example, you can imagine:
+
+``data () = ()`` <=> ``data () = () | ⊥``
+
+From an operational standpoint it means that the data constructors of a lifted
+type are lazily evaluated. In the context of lazy evaluation (graph reduction)
+the unevaluated expression can be thought of as bottom which can be evaluated
+on demand to determine the actual value.
+
+Bottom concept is useful in reasoning about some semantic properties of Haskell
+programs like lazy evaluation, non-termination, partial functions, errors and
+exceptions.
 
 +-----------------------------------------------------------------------------+
-| `Bottom` (_|_), technically a non-existing value, or an undefined           |
-| value, is used to accomodate the                                            |
-| following practical conditions.                                             |
-+--------------------------------------------+--------------------------------+
-| non-termination                            | let x = x in x                 |
+| Any value of polymorphic type `forall a. a` denotes bottom. Functions       |
+| denoting bottom can be used anywhere in an expression of any type.          |
++-----------------------------------------------------------------------------+
+| Evaluating bottom (excluding lazy values) always results in an error or     |
+| non-termination.                                                            |
++-----------+------+----------------------------------------------------------+
+| error     | `::` | forall a. [Char] -> a                                    |
++-----------+------+----------------------------------------------------------+
+| undefined | `::` | forall a. a                                              |
++-----------+------+----------------------------------------------------------+
+| throw     | `::` | e -> a                                                   |
++-----------+------+-------------------------+--------------------------------+
+| non-termination                            | let x = x                      |
 +--------------------------------------------+--------------------------------+
 | partial functions                          | head []                        |
 +--------------------------------------------+--------------------------------+
-| unevaluated values                         | [1..]                          |
-| e.g. in infinite data structures           |                                |
-+--------------------------------------------+--------------------------------+
-| Since a bottom value can arise anywhere, it implicitly inhabits all (lifted)|
-| types or expressions.                                                       |
-|                                                                             |
-| * All lifted types include bottom, they can be constructed lazily.          |
-| * By extension, all expressions built with lifted types include bottom.     |
-| * Bottom has a free type i.e. it can match any type.                        |
-+-----------------------------------------------------------------------------+
-| This is an inconsistency from type theory perspective to accomodate these   |
-| situations.                                                                 |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Partial functions can use these to generate a bottom explicitly             |
-+-----------+------+----------------------------------------------------------+
-| error     | `::` | forall a.  => [Char] -> a                                |
-+-----------+------+----------------------------------------------------------+
-| undefined | `::` | forall a.  => a                                          |
-+-----------+------+----------------------------------------------------------+
-| Unevaluated bottoms are implemented by lazy evaluation.                     |
-+-----------------------------------------------------------------------------+
 
 Runtime Representation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -245,9 +260,8 @@ Basic Haskell Types
 +---------------+---+----------------------------------------------------+----------------------------+
 
 +---------------+---+----------------------------------------------------+----------------------------+
-| data ()       | = | ()                                                 | The unit datatype, 0-tuple |
-+---------------+---+----------------------------------------------------+----------------------------+
-| data Unit a   | = | Unit a                                             | 1-tuple                    |
+| data ()       | = | ()                                                 | The void or unit datatype, |
+|               |   |                                                    | 0-tuple                    |
 +---------------+---+----------------------------------------------------+----------------------------+
 | data (a, b)   | = | (a, b)                                             | 2-tuple                    |
 +---------------+---+----------------------------------------------------+----------------------------+
@@ -638,9 +652,8 @@ Detailed Data Construction Syntax
 | -XExistentialQuantification                                                                                        |
 +--------------------------------------------------------------------------------------------------------------------+
 | Quantified type variables that appear in arguments but not in the result type for any constructor are              |
-| `existentials` confined to the local scope.                                                                        |
-| The existence, visibility or scope of these type variables is localized to this closed group of constructors. The  |
-| typechecker will refuse to typecheck them with types outside this scope.                                           |
+| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
+| They will typecheck with other instances only within this local scope.                                             |
 +------------------------------------------------------------+-------------------------------------------------------+
 | ::                                                         | ::                                                    |
 |                                                            |                                                       |
@@ -711,7 +724,7 @@ Deconstruction (Pattern Matching)
 * TBD define scrutinee
 
 +-----------------------------------------------------------------------------+
-| Pattern matching is the only way to break down constructed data             |
+| Pattern matching is the only way to destructure algebraic data              |
 +-----------------------------------------------------------------------------+
 | A concrete data structure is represented by one of multiple alternative     |
 | constructors as we saw in data type definitons. Pattern matching is reverse |
@@ -724,26 +737,52 @@ Deconstruction (Pattern Matching)
 | matches with the data structure then the variables in the pattern are       |
 | bound to the corresponding values of the data structure.                    |
 +-----------------------------------------------------------------------------+
+| Pattern match in case and function are always strict by default             |
++-----------------------------------------------------------------------------+
+| Pattern match in let and where are always lazy by default                   |
++-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
+|  -- Pattern match is lazy                                                   |
 |  let Cons x xs = list                                                       |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
+|  -- Pattern match is lazy                                                   |
 |  where Cons x xs = list                                                     |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
+|  -- Pattern match is strict                                                 |
 |  case list of                                                               |
 |    Cons x xs -> ...                                                         |
 |    Empty     -> ...                                                         |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
+|  -- Pattern match is strict                                                 |
 |   f (Cons x xs) = ...                                                       |
 |   f (Empty)     = ...                                                       |
 |                                                                             |
 |   f list -- apply the function to a list                                    |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Lazy or irrefutable patterns - pattern match always succeeds.               |
++-----------------------------------------------------------------------------+
+| Lazy patterns work well only when you have single constructor for the type, |
+| e.g. tuples. For example `f undefined` will work on the following:          |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   f ~(x,y) = 1    -- will not evaluate the tuple                            |
++-----------------------------------------------------------------------------+
+| With multiple equations lazy match will always match the first one:         |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f ~(Just x) = 1                                                            |
+|  f Nothing   = 2    -- will never match                                     |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
@@ -795,7 +834,6 @@ Deconstruction (Pattern Matching)
 |                                                                             |
 +-----------------------------------------------------------------------------+
 
-TODO: Lazy vs strict pattern match.
 
 Type Synonyms
 -------------
@@ -840,7 +878,7 @@ newtype
 | data constructor:                                                           |
 |                                                                             |
 | * you cannot provide multiple arguments to W. It only `wraps` a type, it    |
-|   does not combine multiple types.                                          |
+|   does not construct a type.                                                |
 | * it does not lift the wrapped type, however it wraps only lifted types.    |
 | * you can’t use existential quantification for newtype declarations.        |
 | * it is just a type level artifiact and has no runtime overhead.            |
@@ -855,10 +893,13 @@ newtype
 |  newtype WrapInt = WrapInt Int                                              |
 |  newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)  |
 +-----------------------------------------------------------------------------+
-| `type` creates a `synonym` which means it can be freely used in place of the|
-| original type and vice versa.  Both the types are swappable. However, the   |
-| type created by `newtype` is an entirely new type and cannot be used in     |
-| place of any other type.                                                    |
+| Unlike a type synonym the type created by `newtype` is an entirely new type |
+| and cannot be used in place of the original type.                           |
++-----------------------------------------------------------------------------+
+| Newtypes may also be used to define recursive types. For example:           |
+| ::                                                                          |
+|                                                                             |
+|  newtype List a = In (Maybe (a, List a))                                    |
 +-----------------------------------------------------------------------------+
 
 Data Families
@@ -1028,6 +1069,9 @@ Type Synonym Families
 
 Fun With Types
 --------------
+
+Specializing Polymorphic Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Smart Constructors
 ~~~~~~~~~~~~~~~~~~
