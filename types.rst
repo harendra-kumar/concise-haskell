@@ -96,9 +96,6 @@ Terminology
 |                            | (e.g. closed type families)                                     |
 +----------------------------+-----------------------------------------------------------------+
 
-Kinds
------
-
 Lifting Types with Bottom
 -------------------------
 
@@ -109,14 +106,14 @@ A bottom value is implicit in lifted types. For example, you can imagine:
 
 ``data () = ()`` <=> ``data () = () | ⊥``
 
+Bottom concept is useful in reasoning about some semantic properties of Haskell
+programs like lazy evaluation, non-termination, partial functions, errors and
+exceptions.
+
 From an operational standpoint it means that the data constructors of a lifted
 type are lazily evaluated. In the context of lazy evaluation (graph reduction)
 the unevaluated expression can be thought of as bottom which can be evaluated
 on demand to determine the actual value.
-
-Bottom concept is useful in reasoning about some semantic properties of Haskell
-programs like lazy evaluation, non-termination, partial functions, errors and
-exceptions.
 
 +-----------------------------------------------------------------------------+
 | Any value of polymorphic type `forall a. a` denotes bottom. Functions       |
@@ -135,6 +132,9 @@ exceptions.
 +--------------------------------------------+--------------------------------+
 | partial functions                          | head []                        |
 +--------------------------------------------+--------------------------------+
+
+Kinds
+-----
 
 Runtime Representation
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -432,8 +432,8 @@ Generalized Algebraic Data Type (GADT) Syntax
 |  3) Bar a (b :: Type -> Type)                                    |
 +------------------------------------------------------------------+
 
-Detailed Data Construction Syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Typeclass Derivation and Constraints
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------+-------------------------------------------------------+
 | Haskell98 Syntax                                           | GADT Syntax                                           |
@@ -461,6 +461,11 @@ Detailed Data Construction Syntax
 | * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
 | * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
 | * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
++--------------------------------------------------------------------------------------------------------------------+
+
+Misc Data Construction Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 +--------------------------------------------------------------------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
