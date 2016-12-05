@@ -14,20 +14,6 @@
 Type-o-pedia
 ============
 
-* Basics
-* Kinds
-* Primitive Types
-* Basic Haskell Types
-* Construction
-
-  * Basic syntax, algebraic, recursive types
-  * Ordinary vs Generalized (GADT)
-  * Monomorphic vs Polymorphic vs Family
-  * Detailed syntax
-* Pattern Matching
-* Type synonyms
-* newtype
-
 Basics
 ------
 
@@ -349,12 +335,6 @@ Data Construction Example
     |  'b'   |  l2   |----->|  'a'   |  l1   |----->|  Empty |
     +--------+-------+      +--------+-------+      +--------+
 
-Evaluation Semantics
-~~~~~~~~~~~~~~~~~~~~
-
-* All data constructors are lazy by default.
-* Strictness annotations.
-
 Terminology
 ...........
 
@@ -469,7 +449,7 @@ Misc Data Construction Syntax
 +--------------------------------------------------------------------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
-| Strictness Annotations                                                                                             |
+| All data constructors are lazy by default. You can add strictness annotations to make them strict.                 |
 +------------------------------------------------------------+-------------------------------------------------------+
 |                                                            | ::                                                    |
 |                                                            |                                                       |
@@ -872,9 +852,10 @@ Deconstruction (Pattern Matching)
 | matches with the data structure then the variables in the pattern are       |
 | bound to the corresponding values of the data structure.                    |
 +-----------------------------------------------------------------------------+
-| Pattern match in case and function are always strict by default             |
+| Pattern match in `case` and `function definition` are always strict by      |
+| default. In fact this is the only way to strictness in Haskell.             |
 +-----------------------------------------------------------------------------+
-| Pattern match in let and where are always lazy by default                   |
+| Pattern match in `let` and `where` clauses are always lazy by default       |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
