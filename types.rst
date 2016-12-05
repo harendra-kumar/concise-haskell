@@ -505,7 +505,7 @@ Records
 |    R {               |     R :: {                                           |
 |        x :: String   |         x  :: String                                 |
 |      , y :: Int      |       , y  :: Int                                    |
-|    } deriving (Show) |       } -> Student                                   |
+|    } deriving (Show) |       } -> R                                         |
 |                      |     deriving (Show)                                  |
 +----------------------+------------------------------------------------------+
 | Selector functions to extract a field from a record data structure are      |
@@ -514,8 +514,27 @@ Records
 |  x :: R -> String                                                           |
 |  y :: R -> Int                                                              |
 +-----------------------------------------------------------------------------+
-| Two records in the same module cannot have fields with the same name,       |
-| the selector function names will clash.                                     |
+| `DuplicateRecordFields` (8.0.1) allows using identical fields in different  |
+| records even in the same module. Selector functions are disambiguated using |
+| the type of the field.                                                      |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  data S =                                                                   |
+|    S {                                                                      |
+|        x :: String                                                          |
+|      , z :: Int                                                             |
+|    } deriving (Show)                                                        |
++-----------------------------------------------------------------------------+
+| Exporting and importing selector functions:                                 |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  Module M (y)    where ...     -- y is unambiguous field                    |
+|  Module M (R(x)) where ...     -- x is ambiguous field                      |
+|                                                                             |
+|  import M (y)                  -- y is unambiguous field                    |
+|  import M (R(x))               -- x is ambiguous field                      |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
@@ -533,23 +552,58 @@ Records
 +------------------------------+----------------------------------------------+
 | f (R "a" 1) = ...            | f (R { x = "a", y = 1}) = ...                |
 +------------------------------+----------------------------------------------+
-| In construction and pattern matching, with `DisambiguateRecordFields`       |
-| its ok to use field x and y unqualified even if:                            |
-|                                                                             |
-| * they clash with field names in other records.                             |
-| * the corresponding module is imported qualified                            |
+| In construction and pattern matching `DisambiguateRecordFields` allows      |
+| using field x and y unqualified even if they clash with field names in      |
+| other records and even when the record is defined in a module which is      |
+| imported qualified.                                                         |
 +-----------------------------------------------------------------------------+
 | Note: Record constructor brackets have a higher precedence than function    |
 | application.                                                                |
 +-----------------------------------------------------------------------------+
-| Accessing field ``x``                                                       |
+| Accessing field ``x`` using its selector function                           |
 +----------------------------------+------------------------------------------+
 | ``x R {x = "a", y = 1}``         | ``x r``                                  |
 +----------------------------------+------------------------------------------+
+| When using `DuplicateRecordFields`:                                         |
+|                                                                             |
+| * Selector functions can be used only when unambiguous                      |
+| * Conflicting selector functions can be disambiguated using an explicit     |
+|   type signature or type inferred from the context.                         |
+| * If only one of two conflicting selectors is imported by a module then it  |
+|   can be used unambiguously.                                                |
++-----------------------------------------------------------------------------+
+| Type (inferred or explicit) of the selector function can be used to         |
+| disambiguate:                                                               |
++----------------------+------------------+-----------------------------------+
+| v = x :: S -> Int    | v :: S -> Int    | f :: (S -> Int) -> _              |
+|                      | v = x            | f x                               |
++----------------------+------------------+-----------------------------------+
+| Argument type of the selector function can be used to disambiguate when     |
+| explicit (not inferred):                                                    |
++----------------------+------------------------------------------------------+
+| ok s = x (s :: S)    | bad :: S -> Int                                      |
+|                      | bad s = x s        -- Ambiguous                      |
++----------------------+------------------------------------------------------+
 | Updating one or more fields                                                 |
 +----------------------------------+------------------------------------------+
 | ``R {x = "a", y = 1} {x = "b"}`` | ``r { x = "b", y = 2}``                  |
 +----------------------------------+------------------------------------------+
+| When using `DuplicateRecordFields`:                                         |
++-----------------------------------------------------------------------------+
+| Disambiguation by field names:                                              |
++-----------------------------------------------------------------------------+
+| s {z = 5} -- field z occurs only in record type S                           |
++-----------------------------------------------------------------------------+
+| By the type of the updated expression (post update) (explicit or inferred): |
++--------------------+----------------+---------------------------------------+
+| v = s {x = 5} :: S | v :: S -> S    | f :: S -> _                           |
+|                    | v = s {x = 5}  | f (s {x = 5})                         |
++--------------------+----------------+---------------------------------------+
+| By the explicit type of what is being updated (pre update) (not inferred):  |
++-------------------------+---------------------------------------------------+
+| ok s = (s :: S) {x = 5} | bad :: S                                          |
+|                         | bad s = s {x = 5} -- Ambiguous                    |
++-------------------------+---------------------------------------------------+
 
 Existential Quantification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
