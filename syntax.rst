@@ -55,30 +55,6 @@ Basic Data Types (Prelude)
 | Double   | -5.3     | 0.3333333333333333  | Double precision floating point |
 +----------+----------+---------------------+---------------------------------+
 
-Basic Algebraic Data Types (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* TODO: provide links to the definitions in base
-
-+----------+----------+----------+------------+-------------------------------+
-| ()       | ()       |          |            | Void value or empty tuple     |
-+----------+----------+----------+------------+-------------------------------+
-| (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Tuple of mixed types          |
-+----------+----------+----------+------------+-------------------------------+
-| [a]      | []       | 1 : []   | 1 : 2 : [] | List of Int                   |
-|          |          |          |            | Explicit constructor syntax   |
-|          +----------+----------+------------+-------------------------------+
-|          | []       | [1]      | [1,2]      | Sugared syntax                |
-|          +----------+----------+------------+-------------------------------+
-|          | []       | ['a']    | ['a','b']  | List of chars (String)        |
-|          +----------+----------+------------+-------------------------------+
-|          | ""       | "a"      | "ab"       | String literals               |
-+----------+----------+----------+------------+-------------------------------+
-| Ordering | LT       | EQ       | GT         |                               |
-+----------+----------+----------+------------+-------------------------------+
-| Bool     | True     | False    |            |                               |
-+----------+----------+----------+------------+-------------------------------+
-
 Type Signatures
 ~~~~~~~~~~~~~~~
 
@@ -132,7 +108,9 @@ Constructing Data
 Deconstructing Data by Pattern Match
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* All pattern matches (function, let, where) can be expressed in terms of `case`
+* Pattern matching on case and function is strict by default
+* Pattern match in function can be expressed in terms of case
+* Pattern matching in let and where is lazy by default
 * pattern matches on sum types can fail if we have not covered all possibilities
 * ignore value with _
 * as pattern
@@ -196,6 +174,39 @@ Type Synonyms
 
 newtype
 ^^^^^^^
+
+Basic Algebraic Data Types (Prelude)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* TODO: provide links to the definitions in base
+
+::
+
+  data []   a = []    | :    a (List a)                -- Recursive
+
+Note that Haskell's built-in list is not really a special syntax it is a user
+defined data type, '[]' is the empty list constructor and ':' is the Cons
+constructor. Though there is a syntactic sugar to specify lists in a more
+convenient way [1, 2] is equivalent to 1 : 2 : [].
+
++----------+----------+----------+------------+-------------------------------+
+| ()       | ()       |          |            | Void value or empty tuple     |
++----------+----------+----------+------------+-------------------------------+
+| (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Tuple of mixed types          |
++----------+----------+----------+------------+-------------------------------+
+| [a]      | []       | 1 : []   | 1 : 2 : [] | List of Int                   |
+|          |          |          |            | Explicit constructor syntax   |
+|          +----------+----------+------------+-------------------------------+
+|          | []       | [1]      | [1,2]      | Sugared syntax                |
+|          +----------+----------+------------+-------------------------------+
+|          | []       | ['a']    | ['a','b']  | List of chars (String)        |
+|          +----------+----------+------------+-------------------------------+
+|          | ""       | "a"      | "ab"       | String literals               |
++----------+----------+----------+------------+-------------------------------+
+| Ordering | LT       | EQ       | GT         |                               |
++----------+----------+----------+------------+-------------------------------+
+| Bool     | True     | False    |            |                               |
++----------+----------+----------+------------+-------------------------------+
 
 Functions
 ---------
@@ -273,10 +284,12 @@ Infix and operator function (built-in)
 
 * List of operators
 
-Defining Functions
-~~~~~~~~~~~~~~~~~~
+Functions & Definition Equations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * ignore value with _
+* top level non-function definitions
+* top level functions
 * Equations / regular def
 * let, where
 * lambda
