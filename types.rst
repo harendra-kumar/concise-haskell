@@ -950,19 +950,113 @@ Deconstruction (Pattern Matching)
 |                                                                             |
 +-----------------------------------------------------------------------------+
 
+Pattern Synonyms
+----------------
+
++-----------------------------------------------------------------------------+
+| `-XPatternSynonyms` (7.8.1)                                                 |
++=============================================================================+
+| A pattern synonym is a function that can be instantiated to a pattern or    |
+| constructor                                                                 |
++---------------------+-------------------------------------------------------+
+| Match only          | ``pattern HeadP x <- x : xs                           |
+|                     | -- match the head of a list``                         |
++---------------------+-------------------------------------------------------+
+| For `match and construct` pattern synonyms all the variables of the         |
+| right-hand side must also occur on the left-hand side; also, wildcard       |
+| patterns and view patterns are not allowed.                                 |
++---------------------+-------------------------------------------------------+
+| Match and construct | ``pattern Singleton x  =  [x]                         |
+| (Symmetric          | -- match or construct a singleton list``              |
+| bidirectional)      |                                                       |
++---------------------+-------------------------------------------------------+
+| Match and construct | ::                                                    |
+| (Assymetric         |                                                       |
+| bidirectional)      |  pattern Head x <- x:xs where   -- match              |
+|                     |      Head x = [x]               -- construct          |
++---------------------+-------------------------------------------------------+
+| Example                                                                     |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let list = Head "a"                                                       |
+|   let Head x = [1..]                                                        |
++-----------------------------------------------------------------------------+
+| A pattern synonym:                                                          |
+|                                                                             |
+| * starts with an uppercase letter just like a constructor.                  |
+| * can be defined only at top level and not as a local definition.           |
+| * can be defined as infix as well.                                          |
+| * cannot be defined recursively.                                            |
++-----------------------------------------------------------------------------+
+| Import and export                                                           |
++-----------------------------------------------------------------------------+
+| Standalone                                                                  |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  module M (pattern Head) where ... -- export only the pattern               |
+|  import M (pattern Head)           -- import only the pattern               |
+|  import Data.Maybe (pattern Just)  -- import only data constructor 'Just'   |
+|                                    -- but not the type constructor 'Maybe'  |
++-----------------------------------------------------------------------------+
+| Bundled with type constructor                                               |
+| (must be same type as the type constructor)                                 |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  module M (List(Head)) where ...     -- bundle with List type constructor   |
+|  module M (List(.., Head)) where ... -- append to all currently bundled     |
+|                                      -- constructors                        |
++-----------------------------------------------------------------------------+
+| Types                                                                       |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  pattern P ::                                                               |
+|            CReq          -- required to match the pattern                   |
+|         => CProv         -- provided on pattern match                       |
+|         => t1 -> t2 -> ... -> tN -> t                                       |
+|  pattern P var1  var2  ...    varN <- pat                                   |
+|                                                                             |
+|  pattern P :: CReq => ...        -- CProv is omitted                        |
+|  pattern P :: () => CProv => ... -- CReq is omitted                         |
+|                                                                             |
+|  Use of a bidirectional pattern synonym as an expression has the type:      |
+|  (CReq, CProv) => t1 -> t2 -> ... -> tN -> t                                |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| A record pattern synonym behaves just like a record.                        |
+| Does not seem to work before 8.0.1                                          |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  pattern Point :: Int -> Int -> (Int, Int)                                  |
+|  pattern Point {x, y} = (x, y)                                              |
++-----------------------------------------------------------------------------+
+| All record operations can be used on this definition now.                   |
++-----------------------------------------------------------------------------+
+| A pattern match only record pattern synonym defines record selectors as well|
++---------------+---------------------------+---------------------------------+
+| Construction  | ``zero = Point 0 0``      | ``zero = Point { x = 0, y = 0}``|
++---------------+---------------------------+---------------------------------+
+| Pattern match | ``f (Point 0 0) = True``  | ``f (Point { x = 0, y = 0 })``  |
++---------------+---------------------------+---------------------------------+
+| Access        | ``x (0,0) == 0``                                            |
++---------------+-------------------------------------------------------------+
+| Update        | ``(0, 0) { x = 1 } == (1,0)``                               |
++---------------+-------------------------------------------------------------+
 
 Type Synonyms
 -------------
 
 +-----------------------------------------------------------------------------+
-| Create a type synonym for an existing type                                  |
+| A type synonym is a function that expands to a type                         |
 +-----------------------------------------------------------------------------+
-| ::                                                                          |
+|  ``type ThisOrThat a b = Either a b``                                       |
 |                                                                             |
-|  type ThisOrThat a b = Either a b                                           |
-|  type ThisOrInt  a   = Either a Int                                         |
-+-----------------------------------------------------------------------------+
-| The synonym can be used anywhere the original type can be used.             |
+|  ``type ThisOrInt  a   = Either a Int``                                     |
 +-----------------------------------------------------------------------------+
 
 +---------------------------------------------------------------------------------------------------------------+
