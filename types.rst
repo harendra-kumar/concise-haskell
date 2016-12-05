@@ -43,6 +43,13 @@ Terminology
 | Rigid type                 | Type is fixed by annotation (signature) and not determined by   |
 |                            | inference.                                                      |
 +----------------------------+-----------------------------------------------------------------+
+| Rigid type variable        | The scope (quantification) of the type variable is fixed by     |
+| (skolem)                   | annotation.                                                     |
++----------------------------+-----------------------------------------------------------------+
+| Unify                      | A type variable can be unified with other type variable if they |
+|                            | are in the same quantification scope and therefore mean one and |
+|                            | the same thing.                                                 |
++----------------------------+-----------------------------------------------------------------+
 | Concrete                   | Represents a real physical value (not abstract)                 |
 +----------------------------+-----------------------------------------------------------------+
 | Monomorphic                | Has only one possible concrete representation                   |
@@ -66,8 +73,8 @@ Terminology
 |                            | partially ordered set is also called the bottom and is denoted  |
 |                            | by ⊥.                                                           |
 |                            +-----------------------------------------------------------------+
-| Bottom (_|_)               | Bottom is the least defined value added to all types to denote  |
-|                            | undefined, diverging and lazy values                            |
+| Bottom (_|_)               | In Haskell, bottom is the least defined value added to all      |
+|                            | types to denote, undefined, diverging and lazy values.          |
 +----------------------------+-----------------------------------------------------------------+
 | Lifting                    | Adding a `bottom` to an ordered set is called `lifting`.        |
 +----------------------------+-----------------------------------------------------------------+
@@ -483,18 +490,18 @@ Detailed Data Construction Syntax
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | -XEmptyDataDecls                                                                                                   |
-+------------------------------------------------------------+-------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------------------+
 | ::                                                                                                                 |
 |                                                                                                                    |
 |  data T a    -- T :: Type -> Type                                                                                  |
-+------------------------------------------------------------+-------------------------------------------------------+
++--------------------------------------------------------------------------------------------------------------------+
 
 Records
 ~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| NoTraditionalRecordSyntax (7.4.1) -- to disable the record syntax           |
-+-----------------------------------------------------------------------------+
+| `-XNoTraditionalRecordSyntax` (7.4.1) -- to disable the record syntax       |
++=============================================================================+
 | .. class :: center                                                          |
 |                                                                             |
 | Records                                                                     |
@@ -514,9 +521,9 @@ Records
 |  x :: R -> String                                                           |
 |  y :: R -> Int                                                              |
 +-----------------------------------------------------------------------------+
-| `DuplicateRecordFields` (8.0.1) allows using identical fields in different  |
-| records even in the same module. Selector functions are disambiguated using |
-| the type of the field.                                                      |
+| `-XDuplicateRecordFields` (8.0.1) allows using identical fields in different|
+| records even in the same module. Selector functions and updates are         |
+| disambiguated using the type of the field.                                  |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -530,80 +537,111 @@ Records
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  Module M (y)    where ...     -- y is unambiguous field                    |
-|  Module M (R(x)) where ...     -- x is ambiguous field                      |
+|  Module M (y)    where ...     -- only when y is unambiguous field          |
+|  Module M (R(x)) where ...     -- even when x is ambiguous field            |
 |                                                                             |
-|  import M (y)                  -- y is unambiguous field                    |
-|  import M (R(x))               -- x is ambiguous field                      |
+|  import M (y)                  -- only when y is unambiguous field          |
+|  import M (R(x))               -- even when x is ambiguous field            |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Constructing                                                                |
-+------------------------------+----------------------------------------------+
-| ``r = R "a" 1``              | ``r = R { y = 1, x = "a" }``                 |
-+------------------------------+----------------------------------------------+
-| ``show (R "a" 1)``           | ``show R { y = 1, x = "a" }``                |
-+------------------------------+----------------------------------------------+
-| Pattern matching                                                            |
-+------------------------------+----------------------------------------------+
-| f (R _ _) = ...              | f R {} = ...  -- Note {} precedence          |
-+------------------------------+----------------------------------------------+
-| f (R "a" _) = ...            | f R { x = "a"} = ...                         |
-+------------------------------+----------------------------------------------+
-| f (R "a" 1) = ...            | f (R { x = "a", y = 1}) = ...                |
-+------------------------------+----------------------------------------------+
-| In construction and pattern matching `DisambiguateRecordFields` allows      |
-| using field x and y unqualified even if they clash with field names in      |
-| other records and even when the record is defined in a module which is      |
-| imported qualified.                                                         |
-+-----------------------------------------------------------------------------+
-| Note: Record constructor brackets have a higher precedence than function    |
+| Construction and pattern matching                                           |
++=============================================================================+
+| Record constructor brackets {} have a higher precedence than function       |
 | application.                                                                |
 +-----------------------------------------------------------------------------+
-| Accessing field ``x`` using its selector function                           |
+| `-XDisambiguateRecordFields` allows using record fields x and y unqualified |
+| even if they clash with field names in other records and even when the      |
+| record is defined in a module which is imported qualified.                  |
++-----------------------------------------------------------------------------+
+| **Construction**                                                            |
++----------------------------+------------------------------------------------+
+| ``show (R "a" 1)``         | ``show R { y = 1, x = "a" }                    |
+|                            | -- Note precedence of {}``                     |
++----------------------------+------------------------------------------------+
+| ``r = R "a" 1``            | ``r = R { y = 1, x = "a" }``                   |
++----------------------------+------------------------------------------------+
+| `-XRecordWildCards`        | ``let {x = "a"; y = 2} in R {..}               |
+|                            | -- R {x = x, y = y}``                          |
++----------------------------+------------------------------------------------+
+| **Pattern matching**                                                        |
++----------------------------+------------------------------------------------+
+| ``f (R _ _)   = ...``      | ``f R {}                 = ...                 |
+|                            | -- Note precedence of {}``                     |
++----------------------------+------------------------------------------------+
+| ``f (R "a" 1) = ...``      | ``f R {x = "a", y = 1}   = ...``               |
++----------------------------+------------------------------------------------+
+| ``f (R a b) = ...``        | ``f (R {x = a, y = b})   = a ++ show b``       |
++----------------------------+------------------------------------------------+
+| `-XNamedFieldPuns`         | ``f (R {x, y})           = ...                 |
+|                            | -- f (R {x = x, y = y})``                      |
+|                            +------------------------------------------------+
+|                            | ``f (R {x, y = b})       = ...                 |
+|                            | -- f (R {x = x, y = b})``                      |
+|                            +------------------------------------------------+
+|                            | ``f (R {M.x, M.y})       = ... -- M is module  |
+|                            | qualifier``                                    |
++----------------------------+------------------------------------------------+
+| `-XRecordWildCards`        | ``f (R {..})             = ...                 |
+|                            | -- f (R {x = x, y = y})``                      |
+| ``..`` expands to missing  +------------------------------------------------+
+| `in-scope` record fields   | ``f (R {x = "a", ..})    = ...                 |
+|                            | -- f (R {x = "a", y = y})``                    |
+|                            +------------------------------------------------+
+|                            | ``import R(y)``                                |
+|                            |                                                |
+|                            | ``f (R {..})             = ...                 |
+|                            | -- f (R {y = y})``                             |
++----------------------------+------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Access and update                                                           |
++=============================================================================+
+| **Accessing field 'x' using its selector function**                         |
 +----------------------------------+------------------------------------------+
 | ``x R {x = "a", y = 1}``         | ``x r``                                  |
 +----------------------------------+------------------------------------------+
-| When using `DuplicateRecordFields`:                                         |
-|                                                                             |
-| * Selector functions can be used only when unambiguous                      |
-| * Conflicting selector functions can be disambiguated using an explicit     |
-|   type signature or type inferred from the context.                         |
-| * If only one of two conflicting selectors is imported by a module then it  |
-|   can be used unambiguously.                                                |
+| When using `-XDuplicateRecordFields` disambiguate selectors:                |
 +-----------------------------------------------------------------------------+
-| Type (inferred or explicit) of the selector function can be used to         |
-| disambiguate:                                                               |
-+----------------------+------------------+-----------------------------------+
-| v = x :: S -> Int    | v :: S -> Int    | f :: (S -> Int) -> _              |
-|                      | v = x            | f x                               |
-+----------------------+------------------+-----------------------------------+
-| Argument type of the selector function can be used to disambiguate when     |
-| explicit (not inferred):                                                    |
-+----------------------+------------------------------------------------------+
-| ok s = x (s :: S)    | bad :: S -> Int                                      |
-|                      | bad s = x s        -- Ambiguous                      |
-+----------------------+------------------------------------------------------+
-| Updating one or more fields                                                 |
+| By inferred or explicit type of the selector function (e.g. ``x``).         |
++-----------------------+-------------------+---------------------------------+
+| ``v = x :: S -> Int`` | ``v :: S -> Int`` | ``f :: (S -> Int) -> _``        |
+|                       |                   |                                 |
+|                       | ``v = x``         | ``f x``                         |
++-----------------------+-------------------+---------------------------------+
+| By explicit but not inferred type of the record being accessed (e.g. ``s``).|
++-----------------------+-----------------------------------------------------+
+| ``ok s = x (s :: S)`` | ``bad :: S -> Int``                                 |
+|                       |                                                     |
+|                       | ``bad s = x s        -- Ambiguous``                 |
++-----------------------+-----------------------------------------------------+
+| If only one of the conflicting selectors is imported by a module then it    |
+| can be used unambiguously.                                                  |
++-----------------------------------------------------------------------------+
+| **Updating one or more fields**                                             |
 +----------------------------------+------------------------------------------+
 | ``R {x = "a", y = 1} {x = "b"}`` | ``r { x = "b", y = 2}``                  |
 +----------------------------------+------------------------------------------+
-| When using `DuplicateRecordFields`:                                         |
+| When using `-XDuplicateRecordFields`, disambiguate duplicate fields:        |
 +-----------------------------------------------------------------------------+
-| Disambiguation by field names:                                              |
+| By field names:                                                             |
 +-----------------------------------------------------------------------------+
-| s {z = 5} -- field z occurs only in record type S                           |
+| ``s {z = 5} -- field z occurs only in record type S``                       |
 +-----------------------------------------------------------------------------+
-| By the type of the updated expression (post update) (explicit or inferred): |
-+--------------------+----------------+---------------------------------------+
-| v = s {x = 5} :: S | v :: S -> S    | f :: S -> _                           |
-|                    | v = s {x = 5}  | f (s {x = 5})                         |
-+--------------------+----------------+---------------------------------------+
-| By the explicit type of what is being updated (pre update) (not inferred):  |
-+-------------------------+---------------------------------------------------+
-| ok s = (s :: S) {x = 5} | bad :: S                                          |
-|                         | bad s = s {x = 5} -- Ambiguous                    |
-+-------------------------+---------------------------------------------------+
+| By the inferred or explicit type of the update application                  |
+| (e.g. ``s {x = 5}``).                                                       |
++------------------------+-------------------+--------------------------------+
+| ``v = s {x = 5} :: S`` | ``v :: S -> S``   | ``f :: S -> _``                |
+|                        |                   |                                |
+|                        | ``v = s {x = 5}`` | ``f (s {x = 5})``              |
++------------------------+-------------------+--------------------------------+
+| By the explicit but not inferred type of the record being updated           |
+| (e.g. ``s``).                                                               |
++-----------------------------+-----------------------------------------------+
+| ``ok s = (s :: S) {x = 5}`` | ``bad :: S``                                  |
+|                             |                                               |
+|                             | ``bad s = s {x = 5} -- Ambiguous``            |
++-----------------------------+-----------------------------------------------+
 
 Existential Quantification
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -632,13 +670,12 @@ Existential Quantification
 |     , tag      :: a                                        |     , tag      :: a                                   |
 |     }                                                      |     } -> Counter a                                    |
 +------------------------------------------------------------+-------------------------------------------------------+
-| The type of an existential variable is free wrt to the data type and is instantiated only during construction      |
-| based on the type used in the constructor call.                                                                    |
+| The type of an existential variable is fixed during construction based on the type used in the constructor call.   |
 +--------------------------------------------------------------------------------------------------------------------+
 | Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
 | `where` bindings.                                                                                                  |
 +--------------------------------------------------------------------------------------------------------------------+
-| The extracted value can be consumed by any functions using that type in the scope of the existential.              |
+| The extracted value can be consumed by any functions in the scope of the existential.                              |
 | The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
 | type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
 +--------------------------------------------------------------------------------------------------------------------+
