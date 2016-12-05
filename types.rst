@@ -425,6 +425,173 @@ Generalized Algebraic Data Type (GADT) Syntax
 |  3) Bar a (b :: Type -> Type)                                    |
 +------------------------------------------------------------------+
 
+Detailed Data Construction Syntax
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++------------------------------------------------------------+-------------------------------------------------------+
+| Haskell98 Syntax                                           | GADT Syntax                                           |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class :: center                                                                                                 |
+|                                                                                                                    |
+| Typeclass Derivation                                                                                               |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Maybe a = Nothing | Just a                           |    data Maybe a where                                 |
+|      deriving (Eq, Ord)                                    |        Nothing :: Maybe a                             |
+|                                                            |        Just    :: a -> Maybe a                        |
+|                                                            |        deriving (Eq, Ord)                             |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class :: center                                                                                                 |
+|                                                                                                                    |
+| Typeclass Constraint                                                                                               |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Set a = Eq a => MkSet [a]                            |   data Set a where                                    |
+|                                                            |     MkSet :: Eq a => [a] -> Set a                     |
++------------------------------------------------------------+-------------------------------------------------------+
+| * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
+| * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
+| * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
++--------------------------------------------------------------------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| Strictness Annotations                                                                                             |
++------------------------------------------------------------+-------------------------------------------------------+
+|                                                            | ::                                                    |
+|                                                            |                                                       |
+|                                                            |   data Term a where                                   |
+|                                                            |     Lit :: !Int -> Term Int                           |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| Infix type constructor                                                                                             |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         |                                                       |
+|                                                            |                                                       |
+|  ``data a :*: b = Foo a b``                                |                                                       |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| -XTypeOperators                                                                                                    |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         |                                                       |
+|                                                            |                                                       |
+|  data a + b = Plus a b                                     |                                                       |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| -XEmptyDataDecls                                                                                                   |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                                                                                 |
+|                                                                                                                    |
+|  data T a    -- T :: Type -> Type                                                                                  |
++------------------------------------------------------------+-------------------------------------------------------+
+
+Records
+~~~~~~~
+
++-----------------------------------------------------------------------------+
+| NoTraditionalRecordSyntax (7.4.1) -- to disable the record syntax           |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+| Records                                                                     |
++----------------------+------------------------------------------------------+
+| ::                   | ::                                                   |
+|                      |                                                      |
+|  data R =            |   data R where                                       |
+|    R {               |     R :: {                                           |
+|        x :: String   |         x  :: String                                 |
+|      , y :: Int      |       , y  :: Int                                    |
+|    } deriving (Show) |       } -> Student                                   |
+|                      |     deriving (Show)                                  |
++----------------------+------------------------------------------------------+
+| Selector functions to extract a field from a record data structure are      |
+| automatically generated for each record field::                             |
+|                                                                             |
+|  x :: R -> String                                                           |
+|  y :: R -> Int                                                              |
++-----------------------------------------------------------------------------+
+| Two records in the same module cannot have fields with the same name,       |
+| the selector function names will clash.                                     |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Constructing                                                                |
++------------------------------+----------------------------------------------+
+| ``r = R "a" 1``              | ``r = R { y = 1, x = "a" }``                 |
++------------------------------+----------------------------------------------+
+| ``show (R "a" 1)``           | ``show R { y = 1, x = "a" }``                |
++------------------------------+----------------------------------------------+
+| Pattern matching                                                            |
++------------------------------+----------------------------------------------+
+| f (R _ _) = ...              | f R {} = ...  -- Note {} precedence          |
++------------------------------+----------------------------------------------+
+| f (R "a" _) = ...            | f R { x = "a"} = ...                         |
++------------------------------+----------------------------------------------+
+| f (R "a" 1) = ...            | f (R { x = "a", y = 1}) = ...                |
++------------------------------+----------------------------------------------+
+| In construction and pattern matching, with `DisambiguateRecordFields`       |
+| its ok to use field x and y unqualified even if:                            |
+|                                                                             |
+| * they clash with field names in other records.                             |
+| * the corresponding module is imported qualified                            |
++-----------------------------------------------------------------------------+
+| Note: Record constructor brackets have a higher precedence than function    |
+| application.                                                                |
++-----------------------------------------------------------------------------+
+| Accessing field ``x``                                                       |
++----------------------------------+------------------------------------------+
+| ``x R {x = "a", y = 1}``         | ``x r``                                  |
++----------------------------------+------------------------------------------+
+| Updating one or more fields                                                 |
++----------------------------------+------------------------------------------+
+| ``R {x = "a", y = 1} {x = "b"}`` | ``r { x = "b", y = 2}``                  |
++----------------------------------+------------------------------------------+
+
+Existential Quantification
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++--------------------------------------------------------------------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| -XExistentialQuantification                                                                                        |
++--------------------------------------------------------------------------------------------------------------------+
+| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
+| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
+| They will typecheck with other instances only within this local scope.                                             |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Foo = forall a.                                     |   data Foo where                                      |
+|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
+|                                                            |                                                       |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Counter a = forall self.                            |   data Counter a where                                |
+|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
+|     { _this    :: self                                     |     { _this    :: self                                |
+|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
+|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
+|     , tag      :: a                                        |     , tag      :: a                                   |
+|     }                                                      |     } -> Counter a                                    |
++------------------------------------------------------------+-------------------------------------------------------+
+| The type of an existential variable is free wrt to the data type and is instantiated only during construction      |
+| based on the type used in the constructor call.                                                                    |
++--------------------------------------------------------------------------------------------------------------------+
+| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
+| `where` bindings.                                                                                                  |
++--------------------------------------------------------------------------------------------------------------------+
+| The extracted value can be consumed by any functions using that type in the scope of the existential.              |
+| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
+| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
++--------------------------------------------------------------------------------------------------------------------+
+| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
+| example, all fields prefixed with ``_`` in the above example are private.                                          |
++--------------------------------------------------------------------------------------------------------------------+
+
 GADT (Aggregated Type)
 ~~~~~~~~~~~~~~~~~~~~~~
 
@@ -589,169 +756,6 @@ GADT (Aggregated Type)
 | available information rather than being supplied. Of course the type        |
 | signature must be supplied with the unknowns at the right places.           |
 +-----------------------------------------------------------------------------+
-
-Records
-~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| NoTraditionalRecordSyntax (7.4.1) -- to disable the record syntax           |
-+-----------------------------------------------------------------------------+
-| .. class :: center                                                          |
-|                                                                             |
-| Records                                                                     |
-+----------------------+------------------------------------------------------+
-| ::                   | ::                                                   |
-|                      |                                                      |
-|  data R =            |   data R where                                       |
-|    R {               |     R :: {                                           |
-|        x :: String   |         x  :: String                                 |
-|      , y :: Int      |       , y  :: Int                                    |
-|    } deriving (Show) |       } -> Student                                   |
-|                      |     deriving (Show)                                  |
-+----------------------+------------------------------------------------------+
-| Selector functions to extract a field from a record data structure are      |
-| automatically generated for each record field::                             |
-|                                                                             |
-|  x :: R -> String                                                           |
-|  y :: R -> Int                                                              |
-+-----------------------------------------------------------------------------+
-| Two records in the same module cannot have fields with the same name,       |
-| the selector function names will clash.                                     |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Constructing                                                                |
-+------------------------------+----------------------------------------------+
-| ``r = R "a" 1``              | ``r = R { y = 1, x = "a" }``                 |
-+------------------------------+----------------------------------------------+
-| ``show (R "a" 1)``           | ``show R { y = 1, x = "a" }``                |
-+------------------------------+----------------------------------------------+
-| Pattern matching                                                            |
-+------------------------------+----------------------------------------------+
-| f (R _ _) = ...              | f R {} = ...  -- Note {} precedence          |
-+------------------------------+----------------------------------------------+
-| f (R "a" _) = ...            | f R { x = "a"} = ...                         |
-+------------------------------+----------------------------------------------+
-| f (R "a" 1) = ...            | f (R { x = "a", y = 1}) = ...                |
-+------------------------------+----------------------------------------------+
-| In construction and pattern matching, with `DisambiguateRecordFields`       |
-| its ok to use field x and y unqualified even if:                            |
-|                                                                             |
-| * they clash with field names in other records.                             |
-| * the corresponding module is imported qualified                            |
-+-----------------------------------------------------------------------------+
-| Note: Record constructor brackets have a higher precedence than function    |
-| application.                                                                |
-+-----------------------------------------------------------------------------+
-| Accessing field ``x``                                                       |
-+----------------------------------+------------------------------------------+
-| ``x R {x = "a", y = 1}``         | ``x r``                                  |
-+----------------------------------+------------------------------------------+
-| Updating one or more fields                                                 |
-+----------------------------------+------------------------------------------+
-| ``R {x = "a", y = 1} {x = "b"}`` | ``r { x = "b", y = 2}``                  |
-+----------------------------------+------------------------------------------+
-
-Detailed Data Construction Syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+------------------------------------------------------------+-------------------------------------------------------+
-| Haskell98 Syntax                                           | GADT Syntax                                           |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class :: center                                                                                                 |
-|                                                                                                                    |
-| Typeclass Derivation                                                                                               |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data Maybe a = Nothing | Just a                           |    data Maybe a where                                 |
-|      deriving (Eq, Ord)                                    |        Nothing :: Maybe a                             |
-|                                                            |        Just    :: a -> Maybe a                        |
-|                                                            |        deriving (Eq, Ord)                             |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class :: center                                                                                                 |
-|                                                                                                                    |
-| Typeclass Constraint                                                                                               |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data Set a = Eq a => MkSet [a]                            |   data Set a where                                    |
-|                                                            |     MkSet :: Eq a => [a] -> Set a                     |
-+------------------------------------------------------------+-------------------------------------------------------+
-| * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
-| * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
-| * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
-+--------------------------------------------------------------------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| -XExistentialQuantification                                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+
-| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
-| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
-| They will typecheck with other instances only within this local scope.                                             |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|   data Foo = forall a.                                     |   data Foo where                                      |
-|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
-|                                                            |                                                       |
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|   data Counter a = forall self.                            |   data Counter a where                                |
-|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
-|     { _this    :: self                                     |     { _this    :: self                                |
-|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
-|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
-|     , tag      :: a                                        |     , tag      :: a                                   |
-|     }                                                      |     } -> Counter a                                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| The type of an existential variable is free wrt to the data type and is instantiated only during construction      |
-| based on the type used in the constructor call.                                                                    |
-+--------------------------------------------------------------------------------------------------------------------+
-| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
-| `where` bindings.                                                                                                  |
-+--------------------------------------------------------------------------------------------------------------------+
-| The extracted value can be consumed by any functions using that type in the scope of the existential.              |
-| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
-| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
-+--------------------------------------------------------------------------------------------------------------------+
-| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
-| example, all fields prefixed with ``_`` in the above example are private.                                          |
-+--------------------------------------------------------------------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| Strictness Annotations                                                                                             |
-+------------------------------------------------------------+-------------------------------------------------------+
-|                                                            | ::                                                    |
-|                                                            |                                                       |
-|                                                            |   data Term a where                                   |
-|                                                            |     Lit :: !Int -> Term Int                           |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| Infix type constructor                                                                                             |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         |                                                       |
-|                                                            |                                                       |
-|  ``data a :*: b = Foo a b``                                |                                                       |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| -XTypeOperators                                                                                                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         |                                                       |
-|                                                            |                                                       |
-|  data a + b = Plus a b                                     |                                                       |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| -XEmptyDataDecls                                                                                                   |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                                                                                 |
-|                                                                                                                    |
-|  data T a    -- T :: Type -> Type                                                                                  |
-+------------------------------------------------------------+-------------------------------------------------------+
-
 
 Deconstruction (Pattern Matching)
 ---------------------------------
