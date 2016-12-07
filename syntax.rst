@@ -1,25 +1,37 @@
-Syntax in a nutshell
+Syntax in a Nutshell
 ====================
 
-* https://www.haskell.org/hoogle/ One stop shop for any help including keywords
-* https://wiki.haskell.org/Keywords Description of all keywords
-* https://hackage.haskell.org/package/base-4.9.0.0/docs/Prelude.html
-* https://hackage.haskell.org/package/base
-* https://hackage.haskell.org/ All Haskell packages and their documentation
+Terminology
+-----------
 
 +----------+------------------------------------------------------------------+
-| built-in | This is used to indicate functionality provided by GHC, the      |
+| built-in | Functionality provided by the language i.e. GHC, the             |
 |          | compiler                                                         |
 +----------+------------------------------------------------------------------+
-| packages | Libraries or modules live in packages, which need to be installed|
+| packages | Modules (libraries) live in packages which can be installed      |
+|          | independently.                                                   |
 +----------+------------------------------------------------------------------+
 | base     | `base` is a package providing basic and essential functionality  |
 +----------+------------------------------------------------------------------+
-| Prelude  | A module from `base` package which is automatically imported     |
+| Prelude  | A module from `base` package which is implicitly imported        |
 +----------+------------------------------------------------------------------+
 
-* Its a good idea to get familiar with Prelude and then other modules in the
-  base package after you are familiar with the basic syntax.
++---------------+-------------------------------------------------------------+
+| Precedence    | Higher precedence operator is evaluated before lower.       |
++---------------+-------------------------------------------------------------+
+| Associativity | How operators of the same precedence are grouped in the     |
+|               | absence of parentheses.                                     |
++---------------+-------------------------------------------------------------+
+| Fixity        | Same as associativity.                                      |
++---------------+--------------+--------------+-------------------------------+
+| Associative   | (1 + 2) + 3  | 1 + 2 + 3    | 1 + (2 + 3)                   |
++---------------+--------------+--------------+-------------------------------+
+| Right         |              | 1 : 2 : []   | 1 : (2 : [])                  |
+| Associative   |              |              |                               |
++---------------+--------------+--------------+-------------------------------+
+| Left          | ((f x) y) z  | f x y z      |                               |
+| Associative   |              |              |                               |
++---------------+--------------+--------------+-------------------------------+
 
 Filenames
 ---------
@@ -34,6 +46,79 @@ Filenames
 
 Importing Modules
 -----------------
+
+Operator Precedence and Associativity
+-------------------------------------
+
++---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+| Groups              | Prec| Op         | Description                              | Left Associative    | Associativity | Right Associative   |
+|                     |     |            |                                          |                     | Reason        |                     |
++=====================+=====+============+==========================================+=====================+===============+=====================+
+| Functionish (       |     | {}         | Record application                       | ({...} {...}) {...} |               |                     |
+| application, index) +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     |            | Function application                     | (f x) y             |               |                     |
+|                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     | 9   | .          | Function composition                     |                     | Reduction     | f . (g . h)         |
+|                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     | !!         | List index                               | (a !! 2) !! 3       |               |                     |
+|                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     | !          | Map, Array index                         | (a ! 2) ! 3         |               |                     |
+|                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     | ``\\``     | Map subtract                             | ``(a \\ b) \\ c``   | ?             |                     |
+|                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     | //         | Array append                             | (a // b) // c       | ?             |                     |
++---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+| Arithmetic (        | 7   | / *        | Multiplication and division              | (1 / 2) / 2         | Rounding      |                     |
+| Numeric, list)      +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     | 6   | \+ -       | Addition and subtraction                 | (1 + 2) + 2         | Overflow      |                     |
+|                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     | 5   | :          | List construction                        |                     |               | 1 : (2 : [])        |
+|                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     | ++         | List append                              |                     | Reduction     | a ++ (b ++ c)       |
+|                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     |     | ``\\``     | List subtract                            |                                                           |
++---------------------+-----+------------+------------------------------------------+-----------------------------------------------------------+
+| Comparisons &       | 4   | == /=      | Comparisons and predicates               |                                                           |
+| Boolean             |     | < <= > >=  |                                          |                                                           |
+|                     |     | elem       |                                          |                                                           |
+|                     |     | notElem    |                                          |                                                           |
+|                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     | 3   | &&         | boolean `and`                            |                     | Reduction     | a && (b && c)       |
+|                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     | 2   | ||         | boolean `or`                             |                     | Reduction     | a || (b || c)       |
++---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+| Sequencing & $      | 1   | >> >>=     | Sequencing                               | (a >> b) >> c       |               |                     |
+|                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+|                     | 0   | $          | function application                     |                     |               | f $ (g $ h x)       |
++---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+| You cannot mix different operators at the same precedence without explicit parenthesis.                                                       |
++-----------------------------------------------------------------------------------------------------------------------------------------------+
+| Only ``:`` and ``$`` are right associative due to inherent semantics, the rest are right associative                                          |
+| only to force the reduction order of the expression for performance reasons or to force evaluation semantics.                                 |
++-----------------------------------------------------------------------------------------------------------------------------------------------+
+| All left associative operations are left associative because of inherent semantics.                                                           |
++-----------------------------------------------------------------------------------------------------------------------------------------------+
+| For any other operators use hoogle.                                                                                                           |
++-----------------------------------------------------------------------------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Some Precedence Examples                                                    |
++==================================+==========================================+
+| show R {x = 1, y = 1}            | show (R {x = 1, y = 1})                  |
++----------------------------------+------------------------------------------+
+| f . g x                          | f . (g x)                                |
++----------------------------------+------------------------------------------+
+| 1 * 2 + 3 + 4 / 5                | (1 * 2) + 3 + (4 / 5)                    |
++----------------------------------+------------------------------------------+
+| 1 + 2 : 3 : []                   | (1 + 2) : 3 : []                         |
++----------------------------------+------------------------------------------+
+| 1 == 1 && 2 > 1                  | (1 == 1) && (2 > 1)                      |
++----------------------------------+------------------------------------------+
+| False && True || True            | (False && True) || True                  |
++----------------------------------+------------------------------------------+
+| ``"a" ++ "b" \\ "a"``            | Cannot mix different operators with      |
+|                                  | same precedence                          |
++----------------------------------+------------------------------------------+
 
 Data Types
 ----------
@@ -72,6 +157,11 @@ Type Signatures
 
   f :: Int -> Int -> Int
   f a b = a + b + 10
+
+* partial type signatures (_ wildcard)
+
+Function Type
+~~~~~~~~~~~~~
 
 Type of Expression
 ~~~~~~~~~~~~~~~~~~
@@ -208,14 +298,30 @@ convenient way [1, 2] is equivalent to 1 : 2 : [].
 | Bool     | True     | False    |            |                               |
 +----------+----------+----------+------------+-------------------------------+
 
+Functions & Definition Equations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* ignore value with _
+* top level non-function definitions
+* top level functions
+* Equations / regular def
+* let, where
+* lambda
+
 Functions
 ---------
+
++---------------+--------------+
+| Definition    | Application  |
++===============+==============+
+| f a b c = ... | v = f x y z  |
++---------------+--------------+
 
 Function Application (built-in)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| `Space` is highest precedence and right associative function application    |
+| `Space` is highest precedence and left associative function application     |
 +-----------------------------------------------------------------------------+
 | f x                                                                         |
 +---------+-------------------------------------------------------------------+
@@ -224,11 +330,34 @@ Function Application (built-in)
 | f x y z | ((f x) y) z                                                       |
 +---------+-------------------------------------------------------------------+
 
+Prefix and Infix Functions (built-in)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-------------+---------------+
+| Prefix      | Infix         |
++=============+===============+
+| ``div 4 3`` | ``4 `div` 3`` |
++-------------+---------------+
+| ``(+) 4 3`` | ``4 + 3``     |
++-------------+---------------+
+| ``(5 /) x`` | ``5 / x``     |
++-------------+---------------+
+| ``(/ 5) x`` | ``x / 5``     |
++-------------+---------------+
+| ``(5 -) x`` | ``5 - x``     |
++-------------+---------------+
+
++---------------------------------------------+
+| Special case prefix ``-`` is always unary   |
++-------------+-------------------------------+
+| ``(- 5)``   | ``-5``                        |
++-------------+-------------------------------+
+
 Function Application (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| * $ is just opposite of space i.e. lowest precedence and left associative.  |
+| * $ is just opposite of space i.e. lowest precedence and right associative. |
 | * Think evaluating everything after a $ before applying it to the function  |
 |   before it.                                                                |
 +-------------+---------------------------------------------------------------+
@@ -271,29 +400,6 @@ Function Composition (Prelude)
 | f . g x           | f . (g x)                                               |
 +-------------------+---------------------------------------------------------+
 
-Infix and operator function (built-in)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+-------------+---------------+
-| Function    | Operator      |
-+-------------+---------------+
-| ``(+) 4 3`` | ``4 + 3``     |
-+-------------+---------------+
-| ``div 4 3`` | ``4 `div` 3`` |
-+-------------+---------------+
-
-* List of operators
-
-Functions & Definition Equations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* ignore value with _
-* top level non-function definitions
-* top level functions
-* Equations / regular def
-* let, where
-* lambda
-
 Defining Modules
 ----------------
 
@@ -302,7 +408,7 @@ module declaration: module X where ...
 Common Prelude Functions
 ------------------------
 
-Arithmatic
+Arithmetic
 ~~~~~~~~~~
 
 * Defined in base
@@ -311,7 +417,7 @@ TODO: show the result of the expression
 
 +-----------+-------------+-------------------------+
 | Operation | Example     | Description             |
-+-----------+-------------+-------------------------+
++===========+=============+=========================+
 | \+        | 3 + 2       | Addition                |
 +-----------+-------------+-------------------------+
 | \-        | 3 - 2       | Subtraction             |
@@ -328,7 +434,8 @@ TODO: show the result of the expression
 +--------+----------------+---------------------------------------------------+
 | \**    | 3 \** 2.2      | Floating power                                    |
 +--------+----------------+---------------------------------------------------+
-| div    | 3 \`div\` (-2) | Integral division truncated toward -infinity      |
+| div    | 3 \`div\` (-2) | Integral division truncated towards negative      |
+|        |                | infinity                                          |
 +--------+----------------+---------------------------------------------------+
 | mod    | 3 \`mod\` (-2) | modulus of `div`                                  |
 +--------+----------------+---------------------------------------------------+
@@ -359,14 +466,14 @@ Boolean Logic
 
 +-----------+---------------+-------------------------+
 | Operation | Example       | Remarks                 |
++===========+===============+=========================+
+| ==        | True == False |                         |
++-----------+---------------+-------------------------+
+| /=        | True /= False |                         |
 +-----------+---------------+-------------------------+
 | ||        | True || False |                         |
 +-----------+---------------+-------------------------+
 | &&        | True && False |                         |
-+-----------+---------------+-------------------------+
-| ==        | True == False |                         |
-+-----------+---------------+-------------------------+
-| /=        | True /= False |                         |
 +-----------+---------------+-------------------------+
 | not       | not True      |                         |
 +-----------+---------------+-------------------------+
@@ -378,4 +485,13 @@ Lists
 
 References
 ----------
+
+* https://www.haskell.org/hoogle/ One stop shop for any help including keywords
+* https://wiki.haskell.org/Keywords Description of all keywords
+* https://hackage.haskell.org/package/base-4.9.0.0/docs/Prelude.html
+* https://hackage.haskell.org/package/base
+* https://hackage.haskell.org/ All Haskell packages and their documentation
+
+* Its a good idea to get familiar with Prelude and then other modules in the
+  base package after you are familiar with the basic syntax.
 
