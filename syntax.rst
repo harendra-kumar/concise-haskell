@@ -278,80 +278,113 @@ Defining New Data Types
 
   data Pair   = Pair Int Int deriving (Show, Eq)       -- Product
   data RPair  = RPair { first :: Int, second :: Int }  -- Record
-  data Color  = Red | Green                            -- Sum
+  data Count  = Red Int | Green Int                    -- Sum
   data List a = Empty | Cons a (List a)                -- Recursive
 
 Constructing Data
 ~~~~~~~~~~~~~~~~~
 
 +---------------------------------------------------+
+| Use the constructor on RHS                        |
++---------------------------------------------------+
 | ::                                                |
 |                                                   |
 |   let pair  = Pair 10 20                          |
 |   let pair  = RPair 10 20                         |
 |   let pair  = RPair {first=10, second=20}         |
-|   let color = Red                                 |
+|   let count = Red 5                               |
 |   let list  = Cons 10 (Cons 20 Empty) :: List Int |
 +---------------------------------------------------+
 
 Deconstructing Data by Pattern Match
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-* Pattern matching on case and function is strict by default
-* Pattern match in function can be expressed in terms of case
-* Pattern matching in let and where is lazy by default
-* pattern matches on sum types can fail if we have not covered all possibilities
-* ignore value with _
-* as pattern
++-----------------------------------------------------------------------------+
+| A pattern match uses data constructor functions as patterns on LHS to       |
+| deconstruct the corresponding algebraic data into its components.           |
++-----------------------------------------------------------------------------+
+| A pattern match can be performed in `case`, `function definition`, `let` and|
+| `where` clauses.                                                            |
++-----------------------------------------------------------------------------+
 
 Decomposing Product Types
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-+--------------------------------------------------+
-| ::                                               |
-|                                                  |
-|   let pair = Pair 10 20                          |
-+----------------------+---------------------------+
-| Case                 | Function                  |
-+----------------------+---------------------------+
-| ::                   | ::                        |
-|                      |                           |
-|  case pair of        |  total (Pair a b) = a + b |
-|    Pair a b -> a + b |                           |
-+----------------------+---------------------------+
-| Let                  | Where                     |
-+----------------------+---------------------------+
-| ::                   | ::                        |
-|                      |                           |
-|  let Pair a b = pair |  total = a + b            |
-|  in a + b            |   where Pair a b = pair   |
-+----------------------+---------------------------+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let pair = Pair 10 20                                                     |
++--------------------------------------+--------------------------------------+
+| Case                                 | Function                             |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case pair of                        |  total (Pair a b) = a + b            |
+|    Pair a b -> a + b                 |                                      |
++--------------------------------------+--------------------------------------+
+| Let                                  | Where                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  let Pair a b = pair                 |  total = a + b                       |
+|  in a + b                            |   where Pair a b = pair              |
++--------------------------------------+--------------------------------------+
 
-Selecting Sum Types
-^^^^^^^^^^^^^^^^^^^
+Matching Sum Types
+^^^^^^^^^^^^^^^^^^
 
-+------------------------------------------------------------------+
-| ::                                                               |
-|                                                                  |
-|  let color = Red                                                 |
-+--------------------------------+---------------------------------+
-| Case                           | Function                        |
-+--------------------------------+---------------------------------+
-| ::                             | ::                              |
-|                                |                                 |
-|  case color of                 |  name Red   = "red"             |
-|    Red   -> "red"              |  name Green = "green"           |
-|    Green -> "green"            |                                 |
-|                                |                                 |
-+--------------------------------+---------------------------------+
-| Let                            | Where                           |
-+--------------------------------+---------------------------------+
-| ::                             | ::                              |
-|                                |                                 |
-|  let Red   = color in "red"    |  where Red   = color in "red"   |
-|  -- pattern match will fail    |  -- pattern match will fail     |
-|  let Green = color in "green"  |  where Green = color in "green" |
-+--------------------------------+---------------------------------+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  let count = Red 5                                                          |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Since sum type has more than one constructor, the pattern match may fail at |
+| run time with a non-exhaustive pattern match error if we do not cover all   |
+| constructors.                                                               |
++--------------------------------------+--------------------------------------+
+| Case                                 | Function                             |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case count of                       |  name Red   i = "R " ++ show i       |
+|    Red   i -> "R " ++ show i         |  name Green i = "G " ++ show i       |
+|    Green i -> "G " ++ show i         |                                      |
++--------------------------------------+--------------------------------------+
+
++-----------------------------------------------------------------------------+
+| `let` and `where` patterns will always be non-exhaustive for sum types as we|
+| can match only one constructor. The pattern match will fail at run time if  |
+| the data does not match the specified constructor.                          |
++--------------------------------------+--------------------------------------+
+| Let                                  | Where                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  let Red i = count                   |  reds = "R " ++ show i               |
+|  in "R " ++ show i                   |    where Red i = count               |
+|                                      |                                      |
+|  -- this match will fail             |  -- this match will fail             |
+|  let Green i = count                 |  greens = "G " ++ show i             |
+|  in "G " ++ show i                   |    where Green = count in "green"    |
++--------------------------------------+--------------------------------------+
+
+More on Pattern Matches
+^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  data Pair = Pair ((Int, Int), (Int, Int))                                  |
+|  let  pair = Pair ((1, 2), (3, 4))                                          |
++-------------------------+---------------------------------------------------+
+| Pattern in pattern      | ``total (Pair a (i, j))   = i + j``               |
++-------------------------+---------------------------------------------------+
+| Wild card (``_``) match | ``total (Pair _ (i, j))   = i + j``               |
++-------------------------+---------------------------------------------------+
+| As pattern              | ``total (Pair a b@(i, j)) = (i + j, b)``          |
++-------------------------+---------------------------------------------------+
 
 Expressing Conditions
 ^^^^^^^^^^^^^^^^^^^^^
@@ -378,7 +411,9 @@ defined data type, '[]' is the empty list constructor and ':' is the Cons
 constructor. Though there is a syntactic sugar to specify lists in a more
 convenient way [1, 2] is equivalent to 1 : 2 : [].
 
-+----------+----------+----------+------------+-------------------------------+
++----------+----------------------------------+-------------------------------+
+| Type     | Values                           | Description                   |
++==========+==========+==========+============+===============================+
 | ()       | ()       |          |            | Void value or empty tuple     |
 +----------+----------+----------+------------+-------------------------------+
 | (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Tuple of mixed types          |
