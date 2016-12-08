@@ -16,23 +16,6 @@ Terminology
 | Prelude  | A module from `base` package which is implicitly imported        |
 +----------+------------------------------------------------------------------+
 
-+---------------+-------------------------------------------------------------+
-| Precedence    | Higher precedence operator is evaluated before lower.       |
-+---------------+-------------------------------------------------------------+
-| Associativity | How operators of the same precedence are grouped in the     |
-|               | absence of parentheses.                                     |
-+---------------+-------------------------------------------------------------+
-| Fixity        | Same as associativity.                                      |
-+---------------+--------------+--------------+-------------------------------+
-| Associative   | (1 + 2) + 3  | 1 + 2 + 3    | 1 + (2 + 3)                   |
-+---------------+--------------+--------------+-------------------------------+
-| Right         |              | 1 : 2 : []   | 1 : (2 : [])                  |
-| Associative   |              |              |                               |
-+---------------+--------------+--------------+-------------------------------+
-| Left          | ((f x) y) z  | f x y z      |                               |
-| Associative   |              |              |                               |
-+---------------+--------------+--------------+-------------------------------+
-
 Filenames
 ---------
 
@@ -47,16 +30,65 @@ Filenames
 Importing Modules
 -----------------
 
-Operator Precedence and Associativity
--------------------------------------
+Operators
+---------
+
++-----------------------------------------------------------------------------+
+| Operators are just ordinary functions with a default infix syntax.          |
+| The only additional property of an operator is its fixity.                  |
+| TODO: What makes a valid operator identifier?                               |
++-----------------------------------------------------------------------------+
+
++---------------+-------------------------------------------------------------+
+| Precedence    | Higher precedence operator is evaluated before lower.       |
++---------------+-------------------------------------------------------------+
+| Associativity | How operators of the same precedence are grouped in the     |
+|               | absence of parentheses.                                     |
++---------------+-------------------------------------------------------------+
+| Fixity        | Precedence and associativity together is called fixity      |
++---------------+--------------+--------------+-------------------------------+
+| Associative   | (1 + 2) + 3  | 1 + 2 + 3    | 1 + (2 + 3)                   |
++---------------+--------------+--------------+-------------------------------+
+| Right         |              | 1 : 2 : []   | 1 : (2 : [])                  |
+| Associative   |              |              |                               |
++---------------+--------------+--------------+-------------------------------+
+| Left          | ((f x) y) z  | f x y z      |                               |
+| Associative   |              |              |                               |
++---------------+--------------+--------------+-------------------------------+
+
+Defining Operator Fixity (Precedence and Associativity)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-------------------+---------------------------------------------------------+
+| Default fixity    | Left associative, precedence 9                          |
++-------------------+---------------------------------------------------------+
+| Associative       | infix `precedence` `op`                                 |
++-------------------+---------------------------------------------------------+
+| Left associative  | infixl `precedence` `op`                                |
++-------------------+---------------------------------------------------------+
+| Right associative | infixr `precedence` `op`                                |
++-------------------+---------------------------------------------------------+
+| Precedence is an integer ranging from 0-9.                                  |
++-----------------------------------------------------------------------------+
+| Numerically higher precedence operators are evaluated before lower.         |
++-----------------------------------------------------------------------------+
+| Operators at the same precedence cannot be used in a single                 |
+| expression without using explicit parenthesis.                              |
++-----------------------------------------------------------------------------+
+| There are only two built-in operators i.e. a record creation or update      |
+| (``{}``) and function application (whitespace or juxtaposition).            |
++-----------------------------------------------------------------------------+
+
+Fixity of common operators
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
 | Groups              | Prec| Op         | Description                              | Left Associative    | Associativity | Right Associative   |
 |                     |     |            |                                          |                     | Reason        |                     |
 +=====================+=====+============+==========================================+=====================+===============+=====================+
-| Functionish (       |     | {}         | Record application                       | ({...} {...}) {...} |               |                     |
+| Functionish (       |     | {}         | Record application (built-in)            | ({...} {...}) {...} |               |                     |
 | application, index) +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
-|                     |     |            | Function application                     | (f x) y             |               |                     |
+|                     |     |            | Function application (built-in)          | (f x) y             |               |                     |
 |                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
 |                     | 9   | .          | Function composition                     |                     | Reduction     | f . (g . h)         |
 |                     |     +------------+------------------------------------------+---------------------+---------------+---------------------+
@@ -91,14 +123,12 @@ Operator Precedence and Associativity
 |                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
 |                     | 0   | $          | function application                     |                     |               | f $ (g $ h x)       |
 +---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
-| You cannot mix different operators at the same precedence without explicit parenthesis.                                                       |
-+-----------------------------------------------------------------------------------------------------------------------------------------------+
-| Only ``:`` and ``$`` are right associative due to inherent semantics, the rest are right associative                                          |
+| Note that only ``:`` and ``$`` are right associative due to inherent semantics, the rest are right associative                                |
 | only to force the reduction order of the expression for performance reasons or to force evaluation semantics.                                 |
 +-----------------------------------------------------------------------------------------------------------------------------------------------+
-| All left associative operations are left associative because of inherent semantics.                                                           |
+| Note also that all left associative operations are left associative because of inherent semantics.                                            |
 +-----------------------------------------------------------------------------------------------------------------------------------------------+
-| For any other operators use hoogle.                                                                                                           |
+| For any other operators not in this table use hoogle to see the fixity in documentation or code.                                              |
 +-----------------------------------------------------------------------------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
@@ -120,18 +150,92 @@ Operator Precedence and Associativity
 |                                  | same precedence                          |
 +----------------------------------+------------------------------------------+
 
-Defining Operator Fixity
-~~~~~~~~~~~~~~~~~~~~~~~~
+Operators as Functions and Vice Versa
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+-------------------+-------------------+
-| Default           | infixl 9          |
-+-------------------+-------------------+
-| Associative       | infix `0-9` `op`  |
-+-------------------+-------------------+
-| Left associative  | infixl `0-9` `op` |
-+-------------------+-------------------+
-| Right associative | infixr `0-9` `op` |
-+-------------------+-------------------+
++-------------+---------------+
+| Prefix      | Infix         |
++=============+===============+
+| ``div 4 3`` | ``4 `div` 3`` |
++-------------+---------------+
+| ``(+) 4 3`` | ``4 + 3``     |
++-------------+---------------+
+| ``(5 /) x`` | ``5 / x``     |
++-------------+---------------+
+| ``(/ 5) x`` | ``x / 5``     |
++-------------+---------------+
+| ``(5 -) x`` | ``5 - x``     |
++-------------+---------------+
+
++---------------------------------------------+
+| Special case prefix ``-`` is always unary   |
++-------------+-------------------------------+
+| ``(- 5)``   | ``-5``                        |
++-------------+-------------------------------+
+
+Type Level Syntax
+-----------------
+
+Type Signatures
+~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A type signature can be associated with an identifer or an expression using |
+| the ``::`` operator which can be read as `has type`.                        |
++----------------+------------------------------------------------------------+
+| Type signature | ``<identifier or expression> :: <type>``                   |
++----------------+------------------------------------------------------------+
+| A type is a type level value which can be specified as a type               |
+| identifier or a value composed using type functions.                        |
++-----------------------------------------------------------------------------+
+
++--------------------+--------------------------------------------------------+
+| Identifier         | ::                                                     |
+|                    |                                                        |
+|                    |   v :: Int                                             |
+|                    |   v = 10                                               |
++--------------------+--------------------------------------------------------+
+| Expression         | ::                                                     |
+|                    |                                                        |
+|                    |   v = 10 :: Int                                        |
++--------------------+--------------------------------------------------------+
+| Typed Holes (GHC 7.8.1)                                                     |
++-----------------------------------------------------------------------------+
+| Use ``_`` wildcard in place of a value to indicate a type hole. GHC         |
+| will report the inferred type of the value to be used in place of the hole. |
++--------------------+--------------------------------------------------------+
+| Typed hole         | ::                                                     |
+|                    |                                                        |
+|                    |  v :: Int                                              |
+|                    |  v = _ + 10                                            |
++--------------------+--------------------------------------------------------+
+
+Type Operators
+~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| ``->`` is a left associative type operator. It takes a functions            |
+| `argument type` and `return type` as operands and generates a function type.|
+| It is used to generate type signatures of functions from the argument types |
+| and the return type of the function.                                        |
++-----------------------------------------------------------------------------+
+| A function taking an `Int` argument `x` and returning an `Int`              |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  inc :: (->) Int Int    -- function form                                    |
+|  inc :: Int -> Int      -- operator form                                    |
+|  inc x = x + 1                                                              |
++-----------------------------------------------------------------------------+
+| A function taking two `Int` arguments `x` and `y` and returning an `Int`    |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  add :: (->) Int ((->) Int Int)  -- function form                           |
+|  add :: Int -> (Int -> Int)      -- explicit left associative form          |
+|  add :: Int -> Int -> Int        -- commonly used form                      |
+|  add x y = x + y                                                            |
++-----------------------------------------------------------------------------+
 
 Data Types
 ----------
@@ -152,38 +256,6 @@ Basic Data Types (Prelude)
 +----------+----------+---------------------+---------------------------------+
 | Double   | -5.3     | 0.3333333333333333  | Double precision floating point |
 +----------+----------+---------------------+---------------------------------+
-
-Type Signatures
-~~~~~~~~~~~~~~~
-
-+--------+-------------------------------------------------------------------+
-| ``::`` | Specifies type of a function or expression. Read it as `has type` |
-+--------+-------------------------------------------------------------------+
-
-::
-
-  v :: Int
-  v = 10
-
-  f :: Int -> Int
-  f a = a + 10
-
-  f :: Int -> Int -> Int
-  f a b = a + b + 10
-
-* partial type signatures (_ wildcard)
-
-Function Type
-~~~~~~~~~~~~~
-
-Type of Expression
-~~~~~~~~~~~~~~~~~~
-
-* Expression or subexpression
-
-::
-
-  v = 10 :: Int
 
 Defining New Data Types
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -342,29 +414,6 @@ Function Application (built-in)
 +---------+-------------------------------------------------------------------+
 | f x y z | ((f x) y) z                                                       |
 +---------+-------------------------------------------------------------------+
-
-Prefix and Infix Functions (built-in)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+-------------+---------------+
-| Prefix      | Infix         |
-+=============+===============+
-| ``div 4 3`` | ``4 `div` 3`` |
-+-------------+---------------+
-| ``(+) 4 3`` | ``4 + 3``     |
-+-------------+---------------+
-| ``(5 /) x`` | ``5 / x``     |
-+-------------+---------------+
-| ``(/ 5) x`` | ``x / 5``     |
-+-------------+---------------+
-| ``(5 -) x`` | ``5 - x``     |
-+-------------+---------------+
-
-+---------------------------------------------+
-| Special case prefix ``-`` is always unary   |
-+-------------+-------------------------------+
-| ``(- 5)``   | ``-5``                        |
-+-------------+-------------------------------+
 
 Function Application (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
