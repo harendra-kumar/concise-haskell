@@ -5,15 +5,23 @@ Terminology
 -----------
 
 +----------+------------------------------------------------------------------+
+| REPL     | Read Eval Print Loop - an interactive language interpreter       |
++----------+------------------------------------------------------------------+
+| GHC      | The glorious glasgow Haskell compiler                            |
++----------+------------------------------------------------------------------+
+| GHCi     | The interactive REPL version of GHC                              |
++----------+------------------------------------------------------------------+
 | built-in | Functionality provided by the language i.e. GHC, the             |
 |          | compiler                                                         |
 +----------+------------------------------------------------------------------+
 | packages | Modules (libraries) live in packages which can be installed      |
-|          | independently.                                                   |
+|          | independently. Some packages (e.g. base) are installed with the  |
+|          | compiler.                                                        |
 +----------+------------------------------------------------------------------+
 | base     | `base` is a package providing basic and essential functionality  |
 +----------+------------------------------------------------------------------+
-| Prelude  | A module from `base` package which is implicitly imported        |
+| Prelude  | A module from `base` package providing the bare necessities and  |
+|          | imported implicitly.                                             |
 +----------+------------------------------------------------------------------+
 
 Filenames
