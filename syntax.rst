@@ -305,8 +305,9 @@ Deconstructing Data by Pattern Match
 | A pattern match uses data constructor functions as patterns on LHS to       |
 | deconstruct the corresponding algebraic data into its components.           |
 +-----------------------------------------------------------------------------+
-| A pattern match can be performed in `case`, `function definition`, `let` and|
-| `where` clauses.                                                            |
+| Patterns matches in `case` and `function definition` are strict.            |
++-----------------------------------------------------------------------------+
+| Patterns matches in `let` and `where` are lazy.                             |
 +-----------------------------------------------------------------------------+
 
 Decomposing Product Types
@@ -345,6 +346,8 @@ Matching Sum Types
 | Since sum type has more than one constructor, the pattern match may fail at |
 | run time with a non-exhaustive pattern match error if we do not cover all   |
 | constructors.                                                               |
++-----------------------------------------------------------------------------+
+| Patterns are matched from top to bottom.                                    |
 +--------------------------------------+--------------------------------------+
 | Case                                 | Function                             |
 +--------------------------------------+--------------------------------------+
@@ -388,17 +391,6 @@ More on Pattern Matches
 | As pattern              | ``total (Pair a b@(i, j)) = (i + j, b)``          |
 +-------------------------+---------------------------------------------------+
 
-Expressing Conditions
-^^^^^^^^^^^^^^^^^^^^^
-
-* if and guards
-
-Type Synonyms
-^^^^^^^^^^^^^
-
-newtype
-^^^^^^^
-
 Basic Algebraic Data Types (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -434,18 +426,92 @@ convenient way [1, 2] is equivalent to 1 : 2 : [].
 | Bool     | True     | False    |            |                               |
 +----------+----------+----------+------------+-------------------------------+
 
-Functions & Definition Equations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Definition Equations
+--------------------
 
-* ignore value with _
-* top level non-function definitions
-* top level functions
-* Equations / regular def
++-----------------------------------------------------------------------------+
+| All identifier names must start with a lower case letter or ``_``.          |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| A non-function definition equation gives a name to a value.                 |
++-----------------------------------------------------------------------------+
+| k = 10                                                                      |
++-----------------------------------------------------------------------------+
+| v = k * 2^10                                                                |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Function definition in a single equation form.                              |
++-----------------------------------------------------------------------------+
+| sumOfSquares x y = x * x + y * y                                            |
++-----------------------------------------------------------------------------+
+
+Top level Definitions
+~~~~~~~~~~~~~~~~~~~~~
+
+Definitions which are not inside any other definition are called `top level
+definitions`. A top level definiton can be a function or non-function
+definition.
+
+Local Definitions
+~~~~~~~~~~~~~~~~~
+
 * let, where
+* let in a do block
+* let indentation
+* where in a do block - cannot refer to bindings extracted from a monad
+
+Anonymous Functions
+~~~~~~~~~~~~~~~~~~~
+
 * lambda
 
-Functions
----------
+Indentation - Layout Rule
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* http://stackoverflow.com/questions/18024924/haskell-why-is-a-multi-line-let-expression-a-syntax-error
+
++-----------------------------------------------------------------------------+
+| Multiline expressions in do syntax must be indented beyond the variable name|
++------------------------------------+----------------------------------------+
+| Correct                            | Wrong                                  |
++------------------------------------+----------------------------------------+
+| ::                                 | ::                                     |
+|                                    |                                        |
+|  main = do                         |  main = do                             |
+|    let foo = case 0 of             |    let foo = case 0 of                 |
+|         0 -> 4                     |        0 -> 4                          |
+|    return ()                       |    return ()                           |
++------------------------------------+----------------------------------------+
+
+Expressing Conditions
+---------------------
+
+* case is the source of all conditions
+
++-----------------------------------------------------------------------------+
+| Function definition in multiple equation (pattern matching) form. Each      |
+| equation defines the function for a subset of its inputs.                   |
++-----------------------------------------------------------------------------+
+* pattern matched defs
+* matching order top to bottom
+* ignore value with _
++-----------------------------------------------------------------------------+
+
+* guarded defs (in conditional section?)
+
+* case statement
+* if statement
+* guards
+
+  * wherever pattern matches are used? let?
+  * function defs
+  * case expression
+  * list comprehensions
+
+Function Applications
+---------------------
 
 +---------------+--------------+
 | Definition    | Application  |
@@ -513,10 +579,15 @@ Function Composition (Prelude)
 | f . g x           | f . (g x)                                               |
 +-------------------+---------------------------------------------------------+
 
+Do Expression
+-------------
+
+TBD
+
 Defining Modules
 ----------------
 
-module declaration: module X where ...
+TBD - module declaration: module X where ...
 
 Common Prelude Functions
 ------------------------
@@ -594,7 +665,8 @@ Boolean Logic
 Lists
 ~~~~~
 
-* See prelude
+* List comprehensions
+* See prelude for list functions
 
 References
 ----------
