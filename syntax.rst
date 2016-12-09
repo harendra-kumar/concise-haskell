@@ -23,9 +23,11 @@ Terminology
 | Prelude  | A module from `base` package providing the bare necessities and  |
 |          | imported implicitly.                                             |
 +----------+------------------------------------------------------------------+
+| Scope    | Scope of visibility of variable bindings.                        |
++----------+------------------------------------------------------------------+
 
-Composing with Functions
-------------------------
+Composing Expressions
+---------------------
 
 Expressions
 ~~~~~~~~~~~
@@ -42,23 +44,23 @@ Expressions
 | You can type these expressions in GHCi to evaluate and print the result.    |
 +-----------------------------------------------------------------------------+
 | A function call is an expression:                                           |
-+-----------+---------+-------------------------------------------------------+
-| print 'a' | even 10 | subtract 0.5 10.5                                     |
-+-----------+---------+-------------------------------------------------------+
++-----------+-----------+-----------------------------------------------------+
+| print 'a' | even 10   | subtract 0.5 10.5                                   |
++-----------+-----------+-----------------------------------------------------+
 | These functions are called `prefix functions` since the function name comes |
 | before its arguments.                                                       |
 +-----------------------------------------------------------------------------+
 | We can also use operators in an expression. A `binary operator` is an       |
 | `infix function` as the function name is placed in the middle of its two    |
 | arguments.                                                                  |
-+------------+-------+-------+------------------------------------------------+
-| 'a' == 'b' | 5 + 4 | 5 - 4 | 2^3                                            |
-+------------+-------+-------+------------------------------------------------+
++---------+---------+---------------------------------------------------------+
+| 5 + 4   | 5 - 4   | 2^3                                                     |
++---------+---------+---------------------------------------------------------+
 | It becomes obvious that they are really functions if we use them in prefix  |
 | notation:                                                                   |
-+--------------+---------+---------+------------------------------------------+
-| (==) 'a' 'b' | (+) 5 4 | (-) 5 4 | (^) 2 3                                  |
-+--------------+---------+---------+------------------------------------------+
++---------+---------+---------------------------------------------------------+
+| (+) 5 4 | (-) 5 4 | (^) 2 3                                                 |
++---------+---------+---------------------------------------------------------+
 | A Haskell expression is composed using functions, operators and values.     |
 | Arguments of functions could be expressions themselves. Argument            |
 | expressions must be enclosed in parenthesis.                                |
@@ -122,139 +124,8 @@ Arithmetic Operations (Prelude)
 | rem       | 3 \`div\` (-2) | remainder of `quot`                            |
 +-----------+----------------+------------------------------------------------+
 
-Equation Definitions
---------------------
-
-Definitions allow you to:
-
-* break bigger expressions into smaller ones
-* define reusable expressions or functions
-
-+-----------------------------------------------------------------------------+
-| All identifier names must start with a lower case letter or ``_``.          |
-+-----------------------------------------------------------------------------+
-| In GHCi the definitions are always prefixed with a `let`                    |
-+-----------------------------------------------------------------------------+
-
-Top level Definitions
-~~~~~~~~~~~~~~~~~~~~~
-
-Definitions which are not inside any other definition are called `top level
-definitions`. A top level definiton can be a function or non-function
-definition. Top level definitions have a global scope and are visible to all
-other expressions in the file.
-
-+-----------------------------------------------------------------------------+
-| A non-function definition equation gives a name to a concrete value.        |
-+-----------------------------------------------------------------------------+
-| ``k = 10``                                                                  |
-+-----------------------------------------------------------------------------+
-| ``v = k * 2^10``                                                            |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Function definition equation                                                |
-+-----------------------------------------------------------------------------+
-| ``square n = n * n``                                                        |
-+-----------------------------------------------------------------------------+
-| ``sumOfSquares x y = square x + square y``                                  |
-+-----------------------------------------------------------------------------+
-
-Nested Local Definitions
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| A `let` or `where` clause creates a local scope and can use variable        |
-| bindings from all parent scopes. Multiple function or non-function          |
-| equations can be defined in `let` or `where` just like top level.           |
-+-----------------------------------------------------------------------------+
-
-Expression Local
-^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| A `let` clause is an expression with one or more local definitions.         |
-+-----------------------------------------------------------------------------+
-| Since `let` is an expression it can be used wherever an expression can be   |
-| used.                                                                       |
-+-----------------------------------------------------------------------------+
-| Bindings introduced by let are visible only in the let expression.          |
-+-----------------------------------------------------------------------------+
-| ``10 + let x = 5 in x * x + 2^3``                                           |
-+-----------------------------------------------------------------------------+
-| ``let x = 1 in let y = 2 in let z = 3 in x + y + z``                        |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   let x = 1                                                                 |
-|       y = 2                                                                 |
-|       z = 3                                                                 |
-|   in x + y + z                                                              |
-+-----------------------------------------------------------------------------+
-| ``sumOfSquares x y = let square n = n * n in (square x + square y)``        |
-+-----------------------------------------------------------------------------+
-
-Equation Local
-^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| A `where` clause defines one or more equations in a local scope             |
-| of another equation.                                                        |
-+-----------------------------------------------------------------------------+
-| A `where` clause is not an expression in itself therefore unlike `let` it   |
-| cannot be embedded arbitrarily inside an expression. It can only be used    |
-| after as part of an equation definition.                                    |
-+-----------------------------------------------------------------------------+
-| Bindings introduced by where are visible only in the local scope of the     |
-| equation it is defined in.                                                  |
-+-----------------------------------------------------------------------------+
-| ``sumOfSquares x y = (square x + square y) where square n = n * n``         |
-+-------------------------+---------------------------------------------------+
-| ::                      | ::                                                |
-|                         |                                                   |
-|  n = x + y + z          |  n = x                                            |
-|    where x = 1          |     where x = y + 1                               |
-|          y = 2          |              where y = z + 2                      |
-|          z = 3          |                       where z = 3                 |
-+-------------------------+---------------------------------------------------+
-
-Anonymous Functions
-~~~~~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| A lambda is an expression denoting a function. It allows you to define a    |
-| function in-place inside an expression.                                     |
-+-----------------------------------------------------------------------------+
-| ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
-+-----------------------------------------------------------------------------+
-
-Equation Indentation Rule
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A Haskell program is a set of equations binding an identifier to an expression.
-Equations may be nested inside other equations using `let` or `where` clauses.
-
-+-----------------------------------------------------------------------------+
-| All equations at a given scope (`top level`, `let` or `where`) must start   |
-| in the same column.                                                         |
-+-----------------------------------------------------------------------------+
-
-A multiline equation can continue in an arbitrary column as long as it is
-indented at least one column beyond the start column of the equation.
-
-A `do` expression block has a few more rules described later.
-
-Function Applications
-~~~~~~~~~~~~~~~~~~~~~
-
-+---------------+--------------+
-| Definition    | Application  |
-+===============+==============+
-| f a b c = ... | v = f x y z  |
-+---------------+--------------+
-
 Function Application (built-in)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | `Space` is highest precedence and left associative function application     |
@@ -267,7 +138,7 @@ Function Application (built-in)
 +---------+-------------------------------------------------------------------+
 
 Function Application (Prelude)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | * $ is just opposite of space i.e. lowest precedence and right associative. |
@@ -296,7 +167,7 @@ Function Application (Prelude)
 +--------------+--------------------------------------------------------------+
 
 Function Composition (Prelude)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | * ``.`` is composition, lower precedence than function application and      |
@@ -325,7 +196,7 @@ Operators as Functions and Vice Versa (built-in)
 +-------------+---------------+
 
 +---------------------------------------------+
-| Sections                                    |
+| Operator Sections                           |
 +=============+===============================+
 | ``(5 /) x`` | ``5 / x``                     |
 +-------------+-------------------------------+
@@ -337,6 +208,150 @@ Operators as Functions and Vice Versa (built-in)
 +-------------+-------------------------------+
 | ``(- 5)``   | ``-5``                        |
 +-------------+-------------------------------+
+
+Defining Equations
+------------------
+
++-----------------------------------------------------------------------------+
+| A definition equation gives a name to an expression:                        |
++-----------+-----------------------------------------------------------------+
+| In a file | ``<identifier> = <expression>``                                 |
++-----------+-----------------------------------------------------------------+
+| In GHCi   | ``let <identifier> = <expression>``                             |
++-----------+-----------------------------------------------------------------+
+| All identifier names must start with a lower case letter or ``_``.          |
++-----------------------------------------------------------------------------+
+
+Definitions allow you to:
+
+* break bigger expressions into smaller ones
+* define reusable expressions
+
+Top level Definitions
+~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| Definitions which are not nested inside any other definition are called     |
+| `top level definitions`.                                                    |
++-----------------------------------------------------------------------------+
+| Top level definitions have a global scope which means the identifiers bound |
+| by these equations are visible to all other equations and their nested      |
+| local scopes in the file.                                                   |
++-----------------------------------------------------------------------------+
+| ``k = 10``                                                                  |
++-----------------------------------------------------------------------------+
+| ``v = k * 2^10``                                                            |
++-----------------------------------------------------------------------------+
+
+Nested Local Definitions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A `let` or `where` clause defines a local scope. Variables introduced in a  |
+| local scope are not visible in parent or sibling equation scopes.           |
++-----------------------------------------------------------------------------+
+| Bindings in a local scope will shadow bindings of the same name from parent |
+| scopes.                                                                     |
++-----------------------------------------------------------------------------+
+| Multiple equations can be defined in a single `let` or `where` clause just  |
+| like at the top level.                                                      |
++-----------------------------------------------------------------------------+
+
+Expression Local (let)
+^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| A `let` clause is an expression with one or more local definitions.         |
++-----------------------------------------------------------------------------+
+| Since `let` is an expression it can be used wherever an expression can be   |
+| used.                                                                       |
++-----------------------------------------------------------------------------+
+| Bindings introduced by let are visible only in the let expression.          |
++-----------------------------------------------------------------------------+
+| ``10 + let x = 5 in x * x + 2^3``                                           |
++-----------------------------------------------------------------------------+
+| ``let x = 1 in let y = 2 in let z = 3 in x + y + z``                        |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let x = 1                                                                 |
+|       y = 2                                                                 |
+|       z = 3                                                                 |
+|   in x + y + z                                                              |
++-----------------------------------------------------------------------------+
+
+Equation Local (where)
+^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| A `where` clause defines one or more equations in a local scope             |
+| of another equation.                                                        |
++-----------------------------------------------------------------------------+
+| A `where` clause is not an expression in itself therefore unlike `let` it   |
+| cannot be embedded arbitrarily inside an expression. It can only be used    |
+| after as part of an equation definition.                                    |
++-----------------------------------------------------------------------------+
+| Bindings introduced by where are visible only in the local scope of the     |
+| equation it is defined in.                                                  |
++-------------------------+---------------------------------------------------+
+| ::                      | ::                                                |
+|                         |                                                   |
+|  n = x + y + z          |  n = x                                            |
+|    where x = 1          |     where x = y + 1                               |
+|          y = 2          |              where y = z + 2                      |
+|          z = 3          |                       where z = 3                 |
++-------------------------+---------------------------------------------------+
+
+Equation Indentation Rule
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| When you are writing multiline equations or multiple equations in GHCi or in|
+| a file you need to ensure that they are `properly indented`.                |
++-----------------------------------------------------------------------------+
+| All equations at a given scope (`top level`, `let` or `where`) must start   |
+| in the same column.                                                         |
+| A multiline equation can continue in an arbitrary column as long as it is   |
+| indented at least one column beyond the start column of the equation.       |
++-----------------------------------------------------------------------------+
+| A `do` expression block has a few more rules described later.               |
++-----------------------------------------------------------------------------+
+
+Defining Functions As Compositions
+----------------------------------
+
++--------------+---------------+
+| Application  | Definition    |
++==============+===============+
+| v = f x y z  | f a b c = ... |
++--------------+---------------+
+
++-----------------------------------------------------------------------------+
+| Function definition equations                                               |
++-----------------------------------------------------------------------------+
+| ``square n = n * n``                                                        |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = square x + square y``                                  |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = let square n = n * n in (square x + square y)``        |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = (square x + square y) where square n = n * n``         |
++-----------------------------------------------------------------------------+
+
+Anonymous Functions
+~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A lambda is an expression denoting a function. It allows you to define a    |
+| function in-place inside an expression.                                     |
++-----------------------------------------------------------------------------+
+| ``\a b c -> ...``                                                           |
++-----------------------------------------------------------------------------+
+| ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
++-----------------------------------------------------------------------------+
+
+Implementing Functions
+----------------------
 
 Case Expressions
 ----------------
@@ -551,10 +566,9 @@ Type Operators
 ~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| ``->`` is a left associative type operator. It takes a functions            |
-| `argument type` and `return type` as operands and generates a function type.|
-| It is used to generate type signatures of functions from the argument types |
-| and the return type of the function.                                        |
+| ``->`` is a left associative type operator which is used to generate type   |
+| signatures of functions. It takes a function's `argument type` and          |
+| `return type` as operands and generates a function type.                    |
 +-----------------------------------------------------------------------------+
 | A function taking an `Int` argument `x` and returning an `Int`              |
 +-----------------------------------------------------------------------------+
