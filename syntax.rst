@@ -1,6 +1,14 @@
 Syntax in a Nutshell
 ====================
 
++-----------------------------------------------------------------------------+
+| This is arranged in a strict dependency based sequence as much as possible, |
+| later sections building on previous ones to ensure a smooth sequential      |
+| reading flow.                                                               |
++-----------------------------------------------------------------------------+
+| Roadmap (TBD)                                                               |
++-----------------------------------------------------------------------------+
+
 Terminology
 -----------
 
