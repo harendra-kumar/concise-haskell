@@ -664,6 +664,48 @@ Importing Modules
 | import qualified Data.List as L | All qualified by ``L``         | ``L.take``         |
 +---------------------------------+--------------------------------+--------------------+
 
+Defining Modules
+----------------
+
+TBD - module declaration: module X where ...
+
+Lists
+~~~~~
+
+::
+
+  data []   a = []    | :    a (List a)                -- Recursive
+
+Note that Haskell's built-in list is not really a special syntax it is a user
+defined data type, '[]' is the empty list constructor and ':' is the Cons
+constructor. Though there is a syntactic sugar to specify lists in a more
+convenient way [1, 2] is equivalent to 1 : 2 : [].
+
+* List comprehensions
+* See prelude for list functions
+
+Do Expression
+-------------
+
+* TBD
+* let in a do block
+* where in a do block - cannot refer to bindings extracted from a monad
+
+* http://stackoverflow.com/questions/18024924/haskell-why-is-a-multi-line-let-expression-a-syntax-error
+
++-----------------------------------------------------------------------------+
+| Multiline expressions in do syntax must be indented beyond the variable name|
++------------------------------------+----------------------------------------+
+| Correct                            | Wrong                                  |
++------------------------------------+----------------------------------------+
+| ::                                 | ::                                     |
+|                                    |                                        |
+|  main = do                         |  main = do                             |
+|    let foo = case 0 of             |    let foo = case 0 of                 |
+|         0 -> 4                     |        0 -> 4                          |
+|    return ()                       |    return ()                           |
++------------------------------------+----------------------------------------+
+
 Operators
 ---------
 
@@ -848,48 +890,6 @@ Type Operators
 |  add :: Int -> Int -> Int        -- commonly used form                      |
 |  add x y = x + y                                                            |
 +-----------------------------------------------------------------------------+
-
-Do Expression
--------------
-
-* TBD
-* let in a do block
-* where in a do block - cannot refer to bindings extracted from a monad
-
-* http://stackoverflow.com/questions/18024924/haskell-why-is-a-multi-line-let-expression-a-syntax-error
-
-+-----------------------------------------------------------------------------+
-| Multiline expressions in do syntax must be indented beyond the variable name|
-+------------------------------------+----------------------------------------+
-| Correct                            | Wrong                                  |
-+------------------------------------+----------------------------------------+
-| ::                                 | ::                                     |
-|                                    |                                        |
-|  main = do                         |  main = do                             |
-|    let foo = case 0 of             |    let foo = case 0 of                 |
-|         0 -> 4                     |        0 -> 4                          |
-|    return ()                       |    return ()                           |
-+------------------------------------+----------------------------------------+
-
-Defining Modules
-----------------
-
-TBD - module declaration: module X where ...
-
-Lists
-~~~~~
-
-::
-
-  data []   a = []    | :    a (List a)                -- Recursive
-
-Note that Haskell's built-in list is not really a special syntax it is a user
-defined data type, '[]' is the empty list constructor and ':' is the Cons
-constructor. Though there is a syntactic sugar to specify lists in a more
-convenient way [1, 2] is equivalent to 1 : 2 : [].
-
-* List comprehensions
-* See prelude for list functions
 
 References
 ----------
