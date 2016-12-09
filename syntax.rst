@@ -54,9 +54,9 @@ Expressions
 | A Haskell expression is composed using functions, operators and values.     |
 | Arguments of functions could be expressions themselves, argument            |
 | expressions must be enclosed in parenthesis.                                |
-+-----------------------------------------------------------------------------+
-| print (subtract (2^3) ((5 + 4) + (5 - 4)))                                  |
-+-----------------------------------------------------------------------------+
++---------------+-------------------------------------------------------------+
+| 3 * 3 + 4 * 4 | print (subtract (2^3) ((5 + 4) + (5 - 4)))                  |
++---------------+-------------------------------------------------------------+
 
 Basic Data Types (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -151,6 +151,26 @@ Boolean Logic
 +-----------+---------------+-------------------------+
 | not       | not True      |                         |
 +-----------+---------------+-------------------------+
+
+Case Expressions
+----------------
+
+tool to build ad-hoc functions.
+
+A case expression is one of the most fundamental building blocks of Haskell.
+It examines the input and allows us to evaluate a different expression in
+different cases of input.
+
+It is essentially a function which enumerates the output in different cases of
+inputs making it the lowest level tool to build functions by mapping input to
+ouput.
+
+Thinking in terms of conditionals, `case` is the fundamental tool to express
+branching in Haskell.
+
+Case combined with other expressions allows us to create more complex
+expressions involving branching or custom mapping to outputs based on
+inputs.
 
 Filenames
 ---------
