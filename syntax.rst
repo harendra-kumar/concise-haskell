@@ -155,6 +155,10 @@ Boolean Logic
 Case Expressions
 ----------------
 
+Case is the root source of all branching, pattern matching and strict
+evaluation in Haskell. All other pattern matches and conditionals are syntactic
+sugar on top of case.
+
 tool to build ad-hoc functions.
 
 A case expression is one of the most fundamental building blocks of Haskell.
