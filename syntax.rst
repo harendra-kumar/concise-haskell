@@ -136,7 +136,8 @@ Function Application (built-in)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| `Space` is highest precedence and left associative function application     |
+| `whitespace` or `juxtaposition` is highest precedence and left associative  |
+| function application                                                        |
 +-----------------------------------------------------------------------------+
 | f x                                                                         |
 +---------+-------------------------------------------------------------------+
@@ -149,9 +150,8 @@ Function Application (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| * $ is just opposite of space i.e. lowest precedence and right associative. |
-| * Think evaluating everything after a $ before applying it to the function  |
-|   before it.                                                                |
+| Think evaluating everything after a `$` before applying it to the function  |
+| preceding it.                                                               |
 +-------------+---------------------------------------------------------------+
 | f $ x       | f x                                                           |
 +-------------+---------------------------------------------------------------+
@@ -161,7 +161,8 @@ Function Application (Prelude)
 +-------------+---------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| & is reverse function application                                           |
+| ``&`` is reverse function application i.e. argument is written before the   |
+| function.                                                                   |
 +-----------+-----------------------------------------------------------------+
 | x & f     | f x                                                             |
 +-----------+-----------------------------------------------------------------+
@@ -325,8 +326,8 @@ Equation Indentation Rule
 | A `do` expression block has a few more rules described later.               |
 +-----------------------------------------------------------------------------+
 
-Defining Functions As Compositions
-----------------------------------
+Defining Functions
+------------------
 
 +--------------+---------------+
 | Application  | Definition    |
@@ -362,23 +363,58 @@ Implementing Functions
 ----------------------
 
 Till now we defined new functions as expressions composed of existing functions
-or operators. This section is about implementing real new functions by
-defining input data structure and mapping an input data  to output data in an
+or operators. This section is about implementing real new functions by defining
+input data structure and mapping an input data to desired output data in an
 ad-hoc manner using a case expression.
 
 +--------------------------+---------------------+----------------------------+
 | Data Level               | Bridge              | Type Level                 |
-+--------------------------+---------------------+----------------------------+
++==========================+=====================+============================+
 | Data construction        |                     |                            |
 +--------------------------+                     |                            |
-| Data consumption         |                     |                            |
-| (Function with           | Data declaration    | User defined aka           |
-| case expression and      |                     | Algebraic Data Types       |
-| pattern match)           |                     |                            |
+| Data deconstruction      | Data declaration    | User defined               |
+| and mapping              |                     | Algebraic Data Types       |
+| (Function)               |                     |                            |
 +--------------------------+---------------------+----------------------------+
 
-Case Expressions
-----------------
+Data Declaration
+~~~~~~~~~~~~~~~~
+
+Creates a user defined algebraic data type.
+
+::
+
+  data Pair   = Pair Int Int deriving (Show, Eq)       -- Product
+  data Count  = Red Int | Green Int                    -- Sum
+  data List a = Empty | Cons a (List a)                -- Recursive
+
+Constructing Data
+~~~~~~~~~~~~~~~~~
+
++---------------------------------------------------+
+| Use the constructor on RHS                        |
++---------------------------------------------------+
+| ::                                                |
+|                                                   |
+|   let pair  = Pair 10 20                          |
+|   let count = Red 5                               |
+|   let list  = Cons 10 (Cons 20 Empty) :: List Int |
++---------------------------------------------------+
+
+Deconstruction & Mapping (Functions)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Case Expression
+~~~~~~~~~~~~~~~
+
+The only source of creating new mappings (or functions) is a case expression.
+
+Deconstructing input and mapping to output with Case Expressions
+
+| Type to Type map
+| Pattern Match | Branch | Output Expression
+| All inputs of same type
+| All outputs of same type
 
 Case is the only construct in Haskell to define a mapping from one type to
 another.
@@ -386,6 +422,9 @@ another.
 Case is the root source of all branching, pattern matching and strict
 evaluation in Haskell. All other pattern matches and conditionals are syntactic
 sugar on top of case.
+
+Notice that case is inherently a function, it accepts a variable value to
+deconstruct. You cannot use case in a non-function.
 
 tool to build ad-hoc functions.
 
@@ -403,6 +442,199 @@ branching in Haskell.
 Case combined with other expressions allows us to create more complex
 expressions involving branching or custom mapping to outputs based on
 inputs.
+
+Pattern Matches
+~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A pattern match uses data constructor functions as patterns on LHS to       |
+| deconstruct the corresponding algebraic data into its components.           |
++-----------------------------------------------------------------------------+
+| Patterns matches in `case` and `function definition` are strict.            |
++-----------------------------------------------------------------------------+
+| Patterns matches in `let` and `where` are lazy.                             |
++-----------------------------------------------------------------------------+
+
+Deconstructing Product Types
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+A pure product type has a single constructor and therefore there is only one
+possible branch and match always succeeds. Represents a composition or
+collection of values.
+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let pair = Pair 10 20                                                     |
++--------------------------------------+--------------------------------------+
+| Case                                 | Function                             |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case pair of                        |  total (Pair a b) = a + b            |
+|    Pair a b -> a + b                 |                                      |
++--------------------------------------+--------------------------------------+
+| Let                                  | Where                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  let Pair a b = pair                 |  total = a + b                       |
+|  in a + b                            |   where Pair a b = pair              |
++--------------------------------------+--------------------------------------+
+
+Mapping Sum Types
+^^^^^^^^^^^^^^^^^
+
+Sum types represent optionality, branching or mapping.
+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  let count = Red 5                                                          |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Since sum type has more than one constructor, the pattern match may fail at |
+| run time with a non-exhaustive pattern match error if we do not cover all   |
+| constructors.                                                               |
++-----------------------------------------------------------------------------+
+| Patterns are matched from top to bottom.                                    |
++--------------------------------------+--------------------------------------+
+| Case                                 | Function                             |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case count of                       |  name Red   i = "R " ++ show i       |
+|    Red   i -> "R " ++ show i         |  name Green i = "G " ++ show i       |
+|    Green i -> "G " ++ show i         |                                      |
++--------------------------------------+--------------------------------------+
+
++-----------------------------------------------------------------------------+
+| `let` and `where` patterns will always be non-exhaustive for sum types as we|
+| can match only one constructor. The pattern match will fail at run time if  |
+| the data does not match the specified constructor.                          |
++--------------------------------------+--------------------------------------+
+| Let                                  | Where                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  let Red i = count                   |  reds = "R " ++ show i               |
+|  in "R " ++ show i                   |    where Red i = count               |
+|                                      |                                      |
+|  -- this match will fail             |  -- this match will fail             |
+|  let Green i = count                 |  greens = "G " ++ show i             |
+|  in "G " ++ show i                   |    where Green = count in "green"    |
++--------------------------------------+--------------------------------------+
+
+More on Pattern Matches
+^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  data Pair = Pair ((Int, Int), (Int, Int))                                  |
+|  let  pair = Pair ((1, 2), (3, 4))                                          |
++-------------------------+---------------------------------------------------+
+| Pattern in pattern      | ``total (Pair a (i, j))   = i + j``               |
++-------------------------+---------------------------------------------------+
+| Wild card (``_``) match | ``total (Pair _ (i, j))   = i + j``               |
++-------------------------+---------------------------------------------------+
+| As pattern              | ``total (Pair a b@(i, j)) = (i + j, b)``          |
++-------------------------+---------------------------------------------------+
+
+Basic Algebraic Data Types (Prelude)
+------------------------------------
+
+* TODO: provide links to the definitions in base
+* Provide the definitions as well
+
++----------+----------------------------------+-------------------------------+
+| Type     | Values                           | Description                   |
++==========+==========+==========+============+===============================+
+| Bool     | True     | False    |            |                               |
++----------+----------+----------+------------+-------------------------------+
+| [a]      | []       | 1 : []   | 1 : 2 : [] | List of Int                   |
+|          |          |          |            | Explicit constructor syntax   |
+|          +----------+----------+------------+-------------------------------+
+|          | []       | [1]      | [1,2]      | Sugared syntax                |
+|          +----------+----------+------------+-------------------------------+
+|          | []       | ['a']    | ['a','b']  | List of chars (String)        |
+|          +----------+----------+------------+-------------------------------+
+|          | ""       | "a"      | "ab"       | String literals               |
++----------+----------+----------+------------+-------------------------------+
+| ()       | ()       |          |            | Void value or empty tuple     |
++----------+----------+----------+------------+-------------------------------+
+| (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Two Tuple                     |
++----------+----------+----------+------------+-------------------------------+
+
+Boolean Conditions
+------------------
+
+Comparisons resulting in Booleans (Prelude)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------+-------------+-------------------------+
+| ==        | 3 == 2      |  Equals                 |
++-----------+-------------+-------------------------+
+| /=        | 3 /= 2      |  Not equal              |
++-----------+-------------+-------------------------+
+| >         | 3 >  2      |  Greater than           |
++-----------+-------------+-------------------------+
+| >=        | 3 >= 2      |  Greater than or equal  |
++-----------+-------------+-------------------------+
+| <         | 3 <  2      |  Less than              |
++-----------+-------------+-------------------------+
+| <=        | 3 <= 2      |  Less than or equal     |
++-----------+-------------+-------------------------+
+
+Operations on Booleans (Prelude)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------+---------------+-------------------------+
+| Operation | Example       | Remarks                 |
++===========+===============+=========================+
+| ==        | True == False |                         |
++-----------+---------------+-------------------------+
+| /=        | True /= False |                         |
++-----------+---------------+-------------------------+
+| ||        | True || False |                         |
++-----------+---------------+-------------------------+
+| &&        | True && False |                         |
++-----------+---------------+-------------------------+
+| not       | not True      |                         |
++-----------+---------------+-------------------------+
+
+Branching on Booleans
+~~~~~~~~~~~~~~~~~~~~~
+
+* case is the source of all conditions
+
+Branching in Haskell is defined using functions. it is not a basic building
+block but a function is. branching is inherent as part of a function
+definition.
+
+Branching and pattern matching go together because we always branch after
+and only after a pattern match.
+
++-----------------------------------------------------------------------------+
+| Function definition in multiple equation (pattern matching) form. Each      |
+| equation defines the function for a subset of its inputs.                   |
++-----------------------------------------------------------------------------+
+* pattern matched defs
+* matching order top to bottom
+* ignore value with _
++-----------------------------------------------------------------------------+
+
+* guarded defs (in conditional section?)
+
+* case statement
+* if statement
+* guards
+
+  * wherever pattern matches are used? let?
+  * function defs
+  * case expression
+  * list comprehensions
 
 Filenames
 ---------
@@ -525,6 +757,8 @@ Fixity of common operators
 |                     +-----+------------+------------------------------------------+---------------------+---------------+---------------------+
 |                     | 0   | $          | function application                     |                     |               | f $ (g $ h x)       |
 +---------------------+-----+------------+------------------------------------------+---------------------+---------------+---------------------+
+| $ is just opposite of normal function application (juxtaposition or whitespace) i.e. lowest precedence and right associative.                 |
++-----------------------------------------------------------------------------------------------------------------------------------------------+
 | Note that only ``:`` and ``$`` are right associative due to inherent semantics, the rest are right associative                                |
 | only to force the reduction order of the expression for performance reasons or to force evaluation semantics.                                 |
 +-----------------------------------------------------------------------------------------------------------------------------------------------+
@@ -615,228 +849,6 @@ Type Operators
 |  add x y = x + y                                                            |
 +-----------------------------------------------------------------------------+
 
-Data Types
-----------
-
-Defining New Data Types
-~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-  data Pair   = Pair Int Int deriving (Show, Eq)       -- Product
-  data RPair  = RPair { first :: Int, second :: Int }  -- Record
-  data Count  = Red Int | Green Int                    -- Sum
-  data List a = Empty | Cons a (List a)                -- Recursive
-
-Constructing Data
-~~~~~~~~~~~~~~~~~
-
-+---------------------------------------------------+
-| Use the constructor on RHS                        |
-+---------------------------------------------------+
-| ::                                                |
-|                                                   |
-|   let pair  = Pair 10 20                          |
-|   let pair  = RPair 10 20                         |
-|   let pair  = RPair {first=10, second=20}         |
-|   let count = Red 5                               |
-|   let list  = Cons 10 (Cons 20 Empty) :: List Int |
-+---------------------------------------------------+
-
-Deconstructing Data by Pattern Match
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| A pattern match uses data constructor functions as patterns on LHS to       |
-| deconstruct the corresponding algebraic data into its components.           |
-+-----------------------------------------------------------------------------+
-| Patterns matches in `case` and `function definition` are strict.            |
-+-----------------------------------------------------------------------------+
-| Patterns matches in `let` and `where` are lazy.                             |
-+-----------------------------------------------------------------------------+
-
-Decomposing Product Types
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   let pair = Pair 10 20                                                     |
-+--------------------------------------+--------------------------------------+
-| Case                                 | Function                             |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  case pair of                        |  total (Pair a b) = a + b            |
-|    Pair a b -> a + b                 |                                      |
-+--------------------------------------+--------------------------------------+
-| Let                                  | Where                                |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  let Pair a b = pair                 |  total = a + b                       |
-|  in a + b                            |   where Pair a b = pair              |
-+--------------------------------------+--------------------------------------+
-
-Matching Sum Types
-^^^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  let count = Red 5                                                          |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Since sum type has more than one constructor, the pattern match may fail at |
-| run time with a non-exhaustive pattern match error if we do not cover all   |
-| constructors.                                                               |
-+-----------------------------------------------------------------------------+
-| Patterns are matched from top to bottom.                                    |
-+--------------------------------------+--------------------------------------+
-| Case                                 | Function                             |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  case count of                       |  name Red   i = "R " ++ show i       |
-|    Red   i -> "R " ++ show i         |  name Green i = "G " ++ show i       |
-|    Green i -> "G " ++ show i         |                                      |
-+--------------------------------------+--------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| `let` and `where` patterns will always be non-exhaustive for sum types as we|
-| can match only one constructor. The pattern match will fail at run time if  |
-| the data does not match the specified constructor.                          |
-+--------------------------------------+--------------------------------------+
-| Let                                  | Where                                |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  let Red i = count                   |  reds = "R " ++ show i               |
-|  in "R " ++ show i                   |    where Red i = count               |
-|                                      |                                      |
-|  -- this match will fail             |  -- this match will fail             |
-|  let Green i = count                 |  greens = "G " ++ show i             |
-|  in "G " ++ show i                   |    where Green = count in "green"    |
-+--------------------------------------+--------------------------------------+
-
-More on Pattern Matches
-^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  data Pair = Pair ((Int, Int), (Int, Int))                                  |
-|  let  pair = Pair ((1, 2), (3, 4))                                          |
-+-------------------------+---------------------------------------------------+
-| Pattern in pattern      | ``total (Pair a (i, j))   = i + j``               |
-+-------------------------+---------------------------------------------------+
-| Wild card (``_``) match | ``total (Pair _ (i, j))   = i + j``               |
-+-------------------------+---------------------------------------------------+
-| As pattern              | ``total (Pair a b@(i, j)) = (i + j, b)``          |
-+-------------------------+---------------------------------------------------+
-
-Basic Algebraic Data Types (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* TODO: provide links to the definitions in base
-
-::
-
-  data []   a = []    | :    a (List a)                -- Recursive
-
-Note that Haskell's built-in list is not really a special syntax it is a user
-defined data type, '[]' is the empty list constructor and ':' is the Cons
-constructor. Though there is a syntactic sugar to specify lists in a more
-convenient way [1, 2] is equivalent to 1 : 2 : [].
-
-+----------+----------------------------------+-------------------------------+
-| Type     | Values                           | Description                   |
-+==========+==========+==========+============+===============================+
-| ()       | ()       |          |            | Void value or empty tuple     |
-+----------+----------+----------+------------+-------------------------------+
-| (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Tuple of mixed types          |
-+----------+----------+----------+------------+-------------------------------+
-| [a]      | []       | 1 : []   | 1 : 2 : [] | List of Int                   |
-|          |          |          |            | Explicit constructor syntax   |
-|          +----------+----------+------------+-------------------------------+
-|          | []       | [1]      | [1,2]      | Sugared syntax                |
-|          +----------+----------+------------+-------------------------------+
-|          | []       | ['a']    | ['a','b']  | List of chars (String)        |
-|          +----------+----------+------------+-------------------------------+
-|          | ""       | "a"      | "ab"       | String literals               |
-+----------+----------+----------+------------+-------------------------------+
-| Ordering | LT       | EQ       | GT         |                               |
-+----------+----------+----------+------------+-------------------------------+
-| Bool     | True     | False    |            |                               |
-+----------+----------+----------+------------+-------------------------------+
-
-Comparisons (Prelude)
-~~~~~~~~~~~~~~~~~~~~~
-
-+-----------+-------------+-------------------------+
-| ==        | 3 == 2      |  Equals                 |
-+-----------+-------------+-------------------------+
-| /=        | 3 /= 2      |  Not equal              |
-+-----------+-------------+-------------------------+
-| >         | 3 >  2      |  Greater than           |
-+-----------+-------------+-------------------------+
-| >=        | 3 >= 2      |  Greater than or equal  |
-+-----------+-------------+-------------------------+
-| <         | 3 <  2      |  Less than              |
-+-----------+-------------+-------------------------+
-| <=        | 3 <= 2      |  Less than or equal     |
-+-----------+-------------+-------------------------+
-
-Boolean Logic (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~
-
-+-----------+---------------+-------------------------+
-| Operation | Example       | Remarks                 |
-+===========+===============+=========================+
-| ==        | True == False |                         |
-+-----------+---------------+-------------------------+
-| /=        | True /= False |                         |
-+-----------+---------------+-------------------------+
-| ||        | True || False |                         |
-+-----------+---------------+-------------------------+
-| &&        | True && False |                         |
-+-----------+---------------+-------------------------+
-| not       | not True      |                         |
-+-----------+---------------+-------------------------+
-
-Expressing Conditions
----------------------
-
-* case is the source of all conditions
-
-Branching in Haskell is defined using functions. it is not a basic building
-block but a function is. branching is inherent as part of a function
-definition.
-
-Branching and pattern matching go together because we always branch after
-and only after a pattern match.
-
-+-----------------------------------------------------------------------------+
-| Function definition in multiple equation (pattern matching) form. Each      |
-| equation defines the function for a subset of its inputs.                   |
-+-----------------------------------------------------------------------------+
-* pattern matched defs
-* matching order top to bottom
-* ignore value with _
-+-----------------------------------------------------------------------------+
-
-* guarded defs (in conditional section?)
-
-* case statement
-* if statement
-* guards
-
-  * wherever pattern matches are used? let?
-  * function defs
-  * case expression
-  * list comprehensions
-
 Do Expression
 -------------
 
@@ -866,6 +878,15 @@ TBD - module declaration: module X where ...
 
 Lists
 ~~~~~
+
+::
+
+  data []   a = []    | :    a (List a)                -- Recursive
+
+Note that Haskell's built-in list is not really a special syntax it is a user
+defined data type, '[]' is the empty list constructor and ':' is the Cons
+constructor. Though there is a syntactic sugar to specify lists in a more
+convenient way [1, 2] is equivalent to 1 : 2 : [].
 
 * List comprehensions
 * See prelude for list functions
