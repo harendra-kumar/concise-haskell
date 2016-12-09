@@ -361,8 +361,27 @@ Anonymous Functions
 Implementing Functions
 ----------------------
 
+Till now we defined new functions as expressions composed of existing functions
+or operators. This section is about implementing real new functions by
+defining input data structure and mapping an input data  to output data in an
+ad-hoc manner using a case expression.
+
++--------------------------+---------------------+----------------------------+
+| Data Level               | Bridge              | Type Level                 |
++--------------------------+---------------------+----------------------------+
+| Data construction        |                     |                            |
++--------------------------+                     |                            |
+| Data consumption         |                     |                            |
+| (Function with           | Data declaration    | User defined aka           |
+| case expression and      |                     | Algebraic Data Types       |
+| pattern match)           |                     |                            |
++--------------------------+---------------------+----------------------------+
+
 Case Expressions
 ----------------
+
+Case is the only construct in Haskell to define a mapping from one type to
+another.
 
 Case is the root source of all branching, pattern matching and strict
 evaluation in Haskell. All other pattern matches and conditionals are syntactic
@@ -790,6 +809,13 @@ Expressing Conditions
 ---------------------
 
 * case is the source of all conditions
+
+Branching in Haskell is defined using functions. it is not a basic building
+block but a function is. branching is inherent as part of a function
+definition.
+
+Branching and pattern matching go together because we always branch after
+and only after a pattern match.
 
 +-----------------------------------------------------------------------------+
 | Function definition in multiple equation (pattern matching) form. Each      |
