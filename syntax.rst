@@ -51,8 +51,13 @@ Expressions
 +------------+-------+-------+------------------------------------------------+
 | 'a' == 'b' | 5 + 4 | 5 - 4 | 2^3                                            |
 +------------+-------+-------+------------------------------------------------+
+| It becomes obvious that they are really functions if we use them in prefix  |
+| notation:                                                                   |
++--------------+---------+---------+------------------------------------------+
+| (==) 'a' 'b' | (+) 5 4 | (-) 5 4 | (^) 2 3                                  |
++--------------+---------+---------+------------------------------------------+
 | A Haskell expression is composed using functions, operators and values.     |
-| Arguments of functions could be expressions themselves, argument            |
+| Arguments of functions could be expressions themselves. Argument            |
 | expressions must be enclosed in parenthesis.                                |
 +---------------+-------------------------------------------------------------+
 | 3 * 3 + 4 * 4 | print (subtract (2^3) ((5 + 4) + (5 - 4)))                  |
@@ -79,78 +84,162 @@ Basic Data Types (Prelude)
 * escape codes
 * other ways to write literals e.g. 1.0e7
 
-Basic Prelude Functions
------------------------
-
-Arithmetic
-~~~~~~~~~~
+Arithmetic Operations (Prelude)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Defined in base
 * TODO: point to prelude itself
 * TODO: show the result of the expression
 
-+-----------+-------------+-------------------------+
-| Operation | Example     | Description             |
-+===========+=============+=========================+
-| \+        | 3 + 2       | Addition                |
-+-----------+-------------+-------------------------+
-| \-        | 3 - 2       | Subtraction             |
-+-----------+-------------+-------------------------+
-| \*        | 3 * 2       | Multiplication          |
-+-----------+-------------+-------------------------+
-| /         | 3 / 2       | Fractional division     |
-+-----------+-------------+-------------------------+
++-----------+----------------+------------------------------------------------+
+| Operation | Example        | Description                                    |
++===========+================+================================================+
+| \+        | 3 + 2          | Addition                                       |
++-----------+----------------+------------------------------------------------+
+| \-        | 3 - 2          | Subtraction                                    |
++-----------+----------------+------------------------------------------------+
+| \*        | 3 * 2          | Multiplication                                 |
++-----------+----------------+------------------------------------------------+
+| /         | 3 / 2          | Fractional division                            |
++-----------+----------------+------------------------------------------------+
+| ^         | 3 ^ 2          | Positive integral power                        |
++-----------+----------------+------------------------------------------------+
+| ^^        | 3 ^^ 2         | Integral power                                 |
++-----------+----------------+------------------------------------------------+
+| \**       | 3 \** 2.2      | Fractional power                               |
++-----------+----------------+------------------------------------------------+
+| div       | 3 \`div\` (-2) | Integral division truncated towards negative   |
+|           |                | infinity                                       |
++-----------+----------------+------------------------------------------------+
+| mod       | 3 \`mod\` (-2) | modulus of `div`                               |
++-----------+----------------+------------------------------------------------+
+| quot      | 3 \`div\` (-2) | Integral division quotient truncated towards   |
+|           |                | zero                                           |
++-----------+----------------+------------------------------------------------+
+| rem       | 3 \`div\` (-2) | remainder of `quot`                            |
++-----------+----------------+------------------------------------------------+
 
-+--------+----------------+---------------------------------------------------+
-| ^      | 3 ^ 2          | Positive integer power                            |
-+--------+----------------+---------------------------------------------------+
-| ^^     | 3 ^^ 2         | Integer power                                     |
-+--------+----------------+---------------------------------------------------+
-| \**    | 3 \** 2.2      | Floating power                                    |
-+--------+----------------+---------------------------------------------------+
-| div    | 3 \`div\` (-2) | Integral division truncated towards negative      |
-|        |                | infinity                                          |
-+--------+----------------+---------------------------------------------------+
-| mod    | 3 \`mod\` (-2) | modulus of `div`                                  |
-+--------+----------------+---------------------------------------------------+
-| quot   | 3 \`div\` (-2) | Integral division quotient truncated towards zero |
-+--------+----------------+---------------------------------------------------+
-| rem    | 3 \`div\` (-2) | remainder of `quot`                               |
-+--------+----------------+---------------------------------------------------+
+Equation Definitions
+--------------------
 
-Comparisons
-~~~~~~~~~~~
+Definitions allow you to:
 
-+-----------+-------------+-------------------------+
-| ==        | 3 == 2      |  Equals                 |
-+-----------+-------------+-------------------------+
-| /=        | 3 /= 2      |  Not equal              |
-+-----------+-------------+-------------------------+
-| >         | 3 >  2      |  Greater than           |
-+-----------+-------------+-------------------------+
-| >=        | 3 >= 2      |  Greater than or equal  |
-+-----------+-------------+-------------------------+
-| <         | 3 <  2      |  Less than              |
-+-----------+-------------+-------------------------+
-| <=        | 3 <= 2      |  Less than or equal     |
-+-----------+-------------+-------------------------+
+* break bigger expressions into smaller ones
+* define reusable expressions or functions
 
-Boolean Logic
-~~~~~~~~~~~~~
++-----------------------------------------------------------------------------+
+| All identifier names must start with a lower case letter or ``_``.          |
++-----------------------------------------------------------------------------+
+| In GHCi the definitions are always prefixed with a `let`                    |
++-----------------------------------------------------------------------------+
 
-+-----------+---------------+-------------------------+
-| Operation | Example       | Remarks                 |
-+===========+===============+=========================+
-| ==        | True == False |                         |
-+-----------+---------------+-------------------------+
-| /=        | True /= False |                         |
-+-----------+---------------+-------------------------+
-| ||        | True || False |                         |
-+-----------+---------------+-------------------------+
-| &&        | True && False |                         |
-+-----------+---------------+-------------------------+
-| not       | not True      |                         |
-+-----------+---------------+-------------------------+
+Top level Definitions
+~~~~~~~~~~~~~~~~~~~~~
+
+Definitions which are not inside any other definition are called `top level
+definitions`. A top level definiton can be a function or non-function
+definition. Top level definitions have a global scope and are visible to all
+other expressions in the file.
+
++-----------------------------------------------------------------------------+
+| A non-function definition equation gives a name to a concrete value.        |
++-----------------------------------------------------------------------------+
+| ``k = 10``                                                                  |
++-----------------------------------------------------------------------------+
+| ``v = k * 2^10``                                                            |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Function definition equation                                                |
++-----------------------------------------------------------------------------+
+| ``square n = n * n``                                                        |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = square x + square y``                                  |
++-----------------------------------------------------------------------------+
+
+Nested Local Definitions
+~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A `let` or `where` clause creates a local scope and can use variable        |
+| bindings from all parent scopes. Multiple function or non-function          |
+| equations can be defined in `let` or `where` just like top level.           |
++-----------------------------------------------------------------------------+
+
+Expression Local
+^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| A `let` clause is an expression with one or more local definitions.         |
++-----------------------------------------------------------------------------+
+| Since `let` is an expression it can be used wherever an expression can be   |
+| used.                                                                       |
++-----------------------------------------------------------------------------+
+| Bindings introduced by let are visible only in the let expression.          |
++-----------------------------------------------------------------------------+
+| ``10 + let x = 5 in x * x + 2^3``                                           |
++-----------------------------------------------------------------------------+
+| ``let x = 1 in let y = 2 in let z = 3 in x + y + z``                        |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let x = 1                                                                 |
+|       y = 2                                                                 |
+|       z = 3                                                                 |
+|   in x + y + z                                                              |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = let square n = n * n in (square x + square y)``        |
++-----------------------------------------------------------------------------+
+
+Equation Local
+^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| A `where` clause defines one or more equations in a local scope             |
+| of another equation.                                                        |
++-----------------------------------------------------------------------------+
+| A `where` clause is not an expression in itself therefore unlike `let` it   |
+| cannot be embedded arbitrarily inside an expression. It can only be used    |
+| after as part of an equation definition.                                    |
++-----------------------------------------------------------------------------+
+| Bindings introduced by where are visible only in the local scope of the     |
+| equation it is defined in.                                                  |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = (square x + square y) where square n = n * n``         |
++-------------------------+---------------------------------------------------+
+| ::                      | ::                                                |
+|                         |                                                   |
+|  n = x + y + z          |  n = x                                            |
+|    where x = 1          |     where x = y + 1                               |
+|          y = 2          |              where y = z + 2                      |
+|          z = 3          |                       where z = 3                 |
++-------------------------+---------------------------------------------------+
+
+Anonymous Functions
+~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A lambda is an expression denoting a function. It allows you to define a    |
+| function in-place inside an expression.                                     |
++-----------------------------------------------------------------------------+
+| ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
++-----------------------------------------------------------------------------+
+
+Equation Indentation Rule
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A Haskell program is a set of equations binding an identifier to an expression.
+Equations may be nested inside other equations using `let` or `where` clauses.
+
++-----------------------------------------------------------------------------+
+| All equations in a given scope (`top level`, `let` or `where`) must start   |
+| in the same column.                                                         |
++-----------------------------------------------------------------------------+
+
+A multiline equation can continue in any arbitrary column as long as it is
+indented at least one column beyond the start column of the equation.
+
+A `do` expression block has a bit more stringent rule which is described later.
 
 Case Expressions
 ----------------
@@ -569,64 +658,39 @@ convenient way [1, 2] is equivalent to 1 : 2 : [].
 | Bool     | True     | False    |            |                               |
 +----------+----------+----------+------------+-------------------------------+
 
-Definition Equations
---------------------
-
-+-----------------------------------------------------------------------------+
-| All identifier names must start with a lower case letter or ``_``.          |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| A non-function definition equation gives a name to a value.                 |
-+-----------------------------------------------------------------------------+
-| k = 10                                                                      |
-+-----------------------------------------------------------------------------+
-| v = k * 2^10                                                                |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Function definition in a single equation form.                              |
-+-----------------------------------------------------------------------------+
-| sumOfSquares x y = x * x + y * y                                            |
-+-----------------------------------------------------------------------------+
-
-Top level Definitions
+Comparisons (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~
 
-Definitions which are not inside any other definition are called `top level
-definitions`. A top level definiton can be a function or non-function
-definition.
++-----------+-------------+-------------------------+
+| ==        | 3 == 2      |  Equals                 |
++-----------+-------------+-------------------------+
+| /=        | 3 /= 2      |  Not equal              |
++-----------+-------------+-------------------------+
+| >         | 3 >  2      |  Greater than           |
++-----------+-------------+-------------------------+
+| >=        | 3 >= 2      |  Greater than or equal  |
++-----------+-------------+-------------------------+
+| <         | 3 <  2      |  Less than              |
++-----------+-------------+-------------------------+
+| <=        | 3 <= 2      |  Less than or equal     |
++-----------+-------------+-------------------------+
 
-Local Definitions
-~~~~~~~~~~~~~~~~~
+Boolean Logic (Prelude)
+~~~~~~~~~~~~~~~~~~~~~~~
 
-* let, where
-* let in a do block
-* let indentation
-* where in a do block - cannot refer to bindings extracted from a monad
-
-Anonymous Functions
-~~~~~~~~~~~~~~~~~~~
-
-* lambda
-
-Indentation - Layout Rule
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* http://stackoverflow.com/questions/18024924/haskell-why-is-a-multi-line-let-expression-a-syntax-error
-
-+-----------------------------------------------------------------------------+
-| Multiline expressions in do syntax must be indented beyond the variable name|
-+------------------------------------+----------------------------------------+
-| Correct                            | Wrong                                  |
-+------------------------------------+----------------------------------------+
-| ::                                 | ::                                     |
-|                                    |                                        |
-|  main = do                         |  main = do                             |
-|    let foo = case 0 of             |    let foo = case 0 of                 |
-|         0 -> 4                     |        0 -> 4                          |
-|    return ()                       |    return ()                           |
-+------------------------------------+----------------------------------------+
++-----------+---------------+-------------------------+
+| Operation | Example       | Remarks                 |
++===========+===============+=========================+
+| ==        | True == False |                         |
++-----------+---------------+-------------------------+
+| /=        | True /= False |                         |
++-----------+---------------+-------------------------+
+| ||        | True || False |                         |
++-----------+---------------+-------------------------+
+| &&        | True && False |                         |
++-----------+---------------+-------------------------+
+| not       | not True      |                         |
++-----------+---------------+-------------------------+
 
 Expressing Conditions
 ---------------------
@@ -725,7 +789,24 @@ Function Composition (Prelude)
 Do Expression
 -------------
 
-TBD
+* TBD
+* let in a do block
+* where in a do block - cannot refer to bindings extracted from a monad
+
+* http://stackoverflow.com/questions/18024924/haskell-why-is-a-multi-line-let-expression-a-syntax-error
+
++-----------------------------------------------------------------------------+
+| Multiline expressions in do syntax must be indented beyond the variable name|
++------------------------------------+----------------------------------------+
+| Correct                            | Wrong                                  |
++------------------------------------+----------------------------------------+
+| ::                                 | ::                                     |
+|                                    |                                        |
+|  main = do                         |  main = do                             |
+|    let foo = case 0 of             |    let foo = case 0 of                 |
+|         0 -> 4                     |        0 -> 4                          |
+|    return ()                       |    return ()                           |
++------------------------------------+----------------------------------------+
 
 Defining Modules
 ----------------
