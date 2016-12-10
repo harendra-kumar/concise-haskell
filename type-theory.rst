@@ -34,11 +34,8 @@ Terminology
 |                                 | application using variable binding and substitution.            |
 +---------------------------------+-----------------------------------------------------------------+
 
-Curry-Howard Correspondence
----------------------------
-
-Introduction
-~~~~~~~~~~~~
+Curry-Howard Isomorphism
+------------------------
 
 +---------------------------------------+
 | Type ~ Rules (Propositions) ~ Theorem |
@@ -46,9 +43,11 @@ Introduction
 | Inhabited Type ~ Proof of the theorem |
 +---------------------------------------+
 
++-------------------------------------------------+
+| Example:                                        |
 +------+-----------------------+------------------+
 | Type | Rules                 | Inhabited values |
-+------+-----------------------+------------------+
++======+=======================+==================+
 | A    | * A is a number       |                  |
 |      | * A is greater than 0 |                  |
 |      | * A is less than 0    | None             |
@@ -58,19 +57,19 @@ Introduction
 |      | * B is less than 5    |                  |
 +------+-----------------------+------------------+
 
+Curry-Howard Correspondence
+---------------------------
+
 +-------------+---+-------------+
 | Mathematics |   | Programming |
-+-------------+---+-------------+
++=============+===+=============+
 | Formulas    | ~ | Types       |
 +-------------+---+-------------+
 | Proofs      | ~ | Programs    |
 +-------------+---+-------------+
 
-In Haskell, a type constructor is the proof of the theorem represented by the
-type.
-
-Details
-~~~~~~~
+Formulas & Types
+~~~~~~~~~~~~~~~~
 
 +----------------------------+-----------------------------------+
 | Logic (Formulas)           | Programming (Types)               |
@@ -89,6 +88,9 @@ Details
 +----------------------------+-----------------------------------+
 | false formula              | bottom type                       |
 +----------------------------+-----------------------------------+
+
+Proofs & Programs
+~~~~~~~~~~~~~~~~~
 
 +------------------------------+-----------------------------+
 | Natural Deduction (Proofs)   | Lambda Calculus (Programs)  |
