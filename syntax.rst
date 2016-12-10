@@ -359,109 +359,172 @@ Anonymous Functions
 | ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
 +-----------------------------------------------------------------------------+
 
-Implementing Functions
-----------------------
+Ad-hoc Functions
+----------------
 
-Till now we defined new functions as expressions composed of existing functions
-or operators. This section is about implementing real new functions by defining
-input data structure and mapping an input data to desired output data in an
-ad-hoc manner using a case expression.
+Previously we defined new functions which passed their inputs to a composition
+of existing functions without looking at it.  We will now define what we call
+`ad-hoc functions` which examine their inputs and can define a custom mapping
+from inputs to outputs.  Ad-hoc functions are implemented by using case
+analysis on its inputs (algebraic data types) and mapping selected values to
+desired output values.
 
 +--------------------------+---------------------+----------------------------+
 | Data Level               | Bridge              | Type Level                 |
 +==========================+=====================+============================+
 | Data construction        |                     |                            |
 +--------------------------+                     |                            |
-| Data deconstruction      | Data declaration    | User defined               |
-| and mapping              |                     | Algebraic Data Types       |
-| (Function)               |                     |                            |
+| Case analysis            | Data declaration    |                            |
+| (Ad-hoc Function)        |                     | Algebraic Data Types       |
 +--------------------------+---------------------+----------------------------+
 
 Data Declaration
 ~~~~~~~~~~~~~~~~
 
-Creates a user defined algebraic data type.
++-----------------------------------------------------------------------------+
+| User defined algebraic data type.                                           |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   data Pair   = Pair Int Int deriving (Show, Eq)       -- Product           |
+|   data Count  = Red Int | Green Int                    -- Sum               |
+|   data List a = Empty | Cons a (List a)                -- Recursive         |
++-----------------------------------------------------------------------------+
 
-::
-
-  data Pair   = Pair Int Int deriving (Show, Eq)       -- Product
-  data Count  = Red Int | Green Int                    -- Sum
-  data List a = Empty | Cons a (List a)                -- Recursive
-
-Constructing Data
+Data Construction
 ~~~~~~~~~~~~~~~~~
 
-+---------------------------------------------------+
-| Use the constructor on RHS                        |
-+---------------------------------------------------+
-| ::                                                |
-|                                                   |
-|   let pair  = Pair 10 20                          |
-|   let count = Red 5                               |
-|   let list  = Cons 10 (Cons 20 Empty) :: List Int |
-+---------------------------------------------------+
++-----------------------------------------------------------------------------+
+| Use a data constructor function to create a data reference                  |
++-----------------------------------------------------------------------------+
+| x = C a b c ...                                                             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let pair  = Pair 10 20                                                    |
+|   let count = Red 5                                                         |
+|   let list  = Cons 10 (Cons 20 Empty) :: List Int                           |
++-----------------------------------------------------------------------------+
 
-Deconstruction & Mapping (Functions)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Case Analysis (Ad-hoc Functions)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Case analysis is the opposite of algebraic data type construction. It allows us
+to navigate through all the choices (values) represented by the data type. For
+each choice or subset of choices we can apply a different transform so as to
+map the (input) data type to another (output) data type thus implementing the
+mapping represented by the function.
+
+A `case` expression is the only way (except syntactic sugars) to perform a case
+analysis on an algebraic data type to implement ad-hoc functions.
 
 Case Expression
 ~~~~~~~~~~~~~~~
 
-The only source of creating new mappings (or functions) is a case expression.
++-----------------------------------------------------------------------------+
+| A `case` expression maps an `<input expr>` to an output expression which    |
+| is a function of the input.                                                 |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  case <input expr> of                                                       |
+|    C1 a b c ... -> <output expr1>                                           |
+|    C2 a b c ... -> <output expr2>                                           |
+|    x            -> <output expr3>                                           |
+|    ...                                                                      |
++-----------------------------------------------------------------------------+
+| The `<input expr>` is called the `scrutinee`.                               |
++-----------------------------------------------------------------------------+
+| C1, C2 etc. are the constructors of the type of `<input expr>`. This is the |
+| selection of the choice represented by a sum type.                          |
++-----------------------------------------------------------------------------+
+| `a` `b` `c` are variables representing the components of the product type   |
+| (if any) represented by the chosen constructor.                             |
++-----------------------------------------------------------------------------+
+| Selecting a constructor (i.e. the sum type) and breaking apart the          |
+| individual components of the product in the selected constructor (if any)   |
+| is called a `pattern match`.                                                |
++-----------------------------------------------------------------------------+
+| `a` `b` `c` themselves can be specified as pattern matches deconstructing   |
+| them further.                                                               |
++-----------------------------------------------------------------------------+
+| Case alternatives are matched from top to bottom.                           |
++-----------------------------------------------------------------------------+
+| Alternative `x` will always match (irrefutable) when considered and will    |
+| hold the input value (scrutinee).                                           |
++-----------------------------------------------------------------------------+
+| Wildcard `_` can be used in place of any variable to match anything and     |
+| discard it.                                                                 |
++-----------------------------------------------------------------------------+
+| The output expression can again be a case expression to                     |
+| go deeper into the algebraic data or it could be an expression to just      |
+| transform the resulting value.                                              |
++-----------------------------------------------------------------------------+
+| All the output expressions must be of the same type i.e. the result type of |
+| the case expression.                                                        |
++-----------------------------------------------------------------------------+
 
-Deconstructing input and mapping to output with Case Expressions
++-----------------------------------------------------------------------------+
+| Some important facts about `case` and `pattern match`                       |
++=============================================================================+
+| Case is the fundamental way to pattern match in Haskell. All other forms of |
+| pattern matches are just syntactic sugar on top of case.                    |
++-----------------------------------------------------------------------------+
+| The `scrutinee` of case is strictly evaluated to WHNF to enable the pattern |
+| match. This is the only source of all forms of strict evaluation in Haskell.|
++-----------------------------------------------------------------------------+
+| `case` is also the fundamental tool to express branching in Haskell.        |
+| Branches are needed in general to map inputs to outputs which is done via a |
+| case expression in Haskell. There is no other way to express branching.  All|
+| other forms of branching are just syntactic sugar on top of case.           |
++-----------------------------------------------------------------------------+
 
-| Type to Type map
-| Pattern Match | Branch | Output Expression
-| All inputs of same type
-| All outputs of same type
+Multi Equation Function Definitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Case is the only construct in Haskell to define a mapping from one type to
-another.
+An ad-hoc function can be defined more naturally as multiple equations each
+equation defining the function for a certain input pattern by using a pattern
+match on its arguments.  This is just a syntactic sugar on a `case` pattern
+match.
 
-Case is the root source of all branching, pattern matching and strict
-evaluation in Haskell. All other pattern matches and conditionals are syntactic
-sugar on top of case.
-
-Notice that case is inherently a function, it accepts a variable value to
-deconstruct. You cannot use case in a non-function.
-
-tool to build ad-hoc functions.
-
-A case expression is one of the most fundamental building blocks of Haskell.
-It examines the input and allows us to evaluate a different expression in
-different cases of input.
-
-It is essentially a function which enumerates the output in different cases of
-inputs making it the lowest level tool to build functions by mapping input to
-ouput.
-
-Thinking in terms of conditionals, `case` is the fundamental tool to express
-branching in Haskell.
-
-Case combined with other expressions allows us to create more complex
-expressions involving branching or custom mapping to outputs based on
-inputs.
++--------------------------------------+--------------------------------------+
+| Function                             | Case                                 |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  name Red   i = "R " ++ show i       |  name c = case c of                  |
+|  name Green i = "G " ++ show i       |    Red   i -> "R " ++ show i         |
+|                                      |    Green i -> "G " ++ show i         |
++--------------------------------------+--------------------------------------+
+| All equations of a function must remain together.                           |
++-----------------------------------------------------------------------------+
+| As in case alternatives the equations are matched from top to bottom.       |
++-----------------------------------------------------------------------------+
+| A multi equation function can also be defined in `let` and `where` clauses. |
++-----------------------------------------------------------------------------+
 
 Pattern Matches
 ~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| A pattern match uses data constructor functions as patterns on LHS to       |
-| deconstruct the corresponding algebraic data into its components.           |
+| In addition to `case` expression and `function definition` pattern matches  |
+| can also be performed in `let` and `where` clauses.                         |
 +-----------------------------------------------------------------------------+
-| Patterns matches in `case` and `function definition` are strict.            |
+| Pattern matches in `case` and `function definition` are strict.             |
 +-----------------------------------------------------------------------------+
-| Patterns matches in `let` and `where` are lazy.                             |
+| Pattern matches in `let` and `where` are lazy or irrefutable. TBD define    |
+| irrefutable.                                                                |
++-----------------------------------------------------------------------------+
+| Pattern matching rules as specified for `case` apply to other forms as      |
+| well.                                                                       |
 +-----------------------------------------------------------------------------+
 
-Deconstructing Product Types
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Deconstructing a Product
+^^^^^^^^^^^^^^^^^^^^^^^^
 
-A pure product type has a single constructor and therefore there is only one
-possible branch and match always succeeds. Represents a composition or
-collection of values.
-
++-----------------------------------------------------------------------------+
+| A product is deconstructed by specifying a variable for each component of   |
+| the product.                                                                |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -482,10 +545,8 @@ collection of values.
 |  in a + b                            |   where Pair a b = pair              |
 +--------------------------------------+--------------------------------------+
 
-Mapping Sum Types
-^^^^^^^^^^^^^^^^^
-
-Sum types represent optionality, branching or mapping.
+Selecting Alternatives of a Sum
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
@@ -494,11 +555,11 @@ Sum types represent optionality, branching or mapping.
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Since sum type has more than one constructor, the pattern match may fail at |
-| run time with a non-exhaustive pattern match error if we do not cover all   |
+| Pattern match on a multi-constructor (sum) type may fail at                 |
+| run time with a `non-exhaustive pattern match` error if we do not cover all |
 | constructors.                                                               |
 +-----------------------------------------------------------------------------+
-| Patterns are matched from top to bottom.                                    |
+| Patterns are matched from top to bottom in sequence.                        |
 +--------------------------------------+--------------------------------------+
 | Case                                 | Function                             |
 +--------------------------------------+--------------------------------------+
@@ -510,9 +571,9 @@ Sum types represent optionality, branching or mapping.
 +--------------------------------------+--------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| `let` and `where` patterns will always be non-exhaustive for sum types as we|
-| can match only one constructor. The pattern match will fail at run time if  |
-| the data does not match the specified constructor.                          |
+| Pattern matches in `let` and `where` are lazy or irrefutable. We can match  |
+| any or all constructors but it may fail when we use the value belonging to  |
+| a non-matching constructor.                                                 |
 +--------------------------------------+--------------------------------------+
 | Let                                  | Where                                |
 +--------------------------------------+--------------------------------------+
@@ -523,7 +584,7 @@ Sum types represent optionality, branching or mapping.
 |                                      |                                      |
 |  -- this match will fail             |  -- this match will fail             |
 |  let Green i = count                 |  greens = "G " ++ show i             |
-|  in "G " ++ show i                   |    where Green = count in "green"    |
+|  in "G " ++ show i                   |    where Green i = count             |
 +--------------------------------------+--------------------------------------+
 
 More on Pattern Matches
@@ -540,7 +601,12 @@ More on Pattern Matches
 | Wild card (``_``) match | ``total (Pair _ (i, j))   = i + j``               |
 +-------------------------+---------------------------------------------------+
 | As pattern              | ``total (Pair a b@(i, j)) = (i + j, b)``          |
+| (``b`` as ``(i, j)``)   |                                                   |
 +-------------------------+---------------------------------------------------+
+| `b` will be bound to the original argument passed and `i` and `j` will be   |
+| bound to the deconstructed components of `b`. Pattern match of `b` is       |
+| irrefutable since `b` matches the incoming argument as it is.               |
++-----------------------------------------------------------------------------+
 
 Basic Algebraic Data Types (Prelude)
 ------------------------------------
@@ -607,27 +673,11 @@ Operations on Booleans (Prelude)
 Branching on Booleans
 ~~~~~~~~~~~~~~~~~~~~~
 
-* case is the source of all conditions
-
-Branching in Haskell is defined using functions. it is not a basic building
-block but a function is. branching is inherent as part of a function
-definition.
-
 Branching and pattern matching go together because we always branch after
 and only after a pattern match.
 
-+-----------------------------------------------------------------------------+
-| Function definition in multiple equation (pattern matching) form. Each      |
-| equation defines the function for a subset of its inputs.                   |
-+-----------------------------------------------------------------------------+
-* pattern matched defs
-* matching order top to bottom
-* ignore value with _
-+-----------------------------------------------------------------------------+
-
-* guarded defs (in conditional section?)
-
 * case statement
+* guarded defs
 * if statement
 * guards
 
