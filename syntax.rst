@@ -673,18 +673,34 @@ Operations on Booleans (Prelude)
 Branching on Booleans
 ~~~~~~~~~~~~~~~~~~~~~
 
-Branching and pattern matching go together because we always branch after
-and only after a pattern match.
++-----------------------------------------------------------------------------+
+| `if` statement is just a syntactic sugar on top of a `case` scrutiny on     |
+| `Bool`                                                                      |
++------------------------------------+----------------------------------------+
+| ::                                 | ::                                     |
+|                                    |                                        |
+|  case pred of                      |  if pred                               |
+|    True ->  expr1                  |  then expr1                            |
+|    False -> expr2                  |  else expr2                            |
++------------------------------------+----------------------------------------+
 
-* case statement
-* guarded defs
-* if statement
-* guards
-
-  * wherever pattern matches are used? let?
-  * function defs
-  * case expression
-  * list comprehensions
++-----------------------------------------------------------------------------+
+| Guards                                                                      |
++-----------------------------------------------------------------------------+
+| Pattern matches are simple and branch only based on the constructor pattern |
+| due to performance reasons. But they can always be refined by adding        |
+| boolean `guards`.                                                           |
++--------------------------------------+--------------------------------------+
+| Case                                 | Function                             |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case count of                       |  name Red   i | i < 5 = "R few"      |
+|    Red   i | i < 5                   |  name Red   _         = "R many"     |
+|            -> "R few"                |  name Green i = "G " ++ show i       |
+|    Red _   -> "R many"               |                                      |
+|    Green i -> "G " ++ show i         |                                      |
++--------------------------------------+--------------------------------------+
 
 Filenames
 ---------
