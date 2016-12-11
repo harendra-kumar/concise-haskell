@@ -438,27 +438,25 @@ Case Expression
 | C1, C2 etc. are the constructors of the type of `<input expr>`. This is the |
 | selection of the choice represented by a sum type.                          |
 +-----------------------------------------------------------------------------+
-| `a` `b` `c` are variables representing the components of the product type   |
-| (if any) represented by the chosen constructor.                             |
+| ``a`` ``b`` ``c`` are variables representing the components of the product  |
+| type (if any) represented by the chosen constructor.                        |
 +-----------------------------------------------------------------------------+
-| Selecting a constructor (i.e. the sum type) and breaking apart the          |
+| Selecting a constructor (i.e. the sum type) and selecting the               |
 | individual components of the product in the selected constructor (if any)   |
 | is called a `pattern match`.                                                |
 +-----------------------------------------------------------------------------+
-| `a` `b` `c` themselves can be specified as pattern matches deconstructing   |
-| them further.                                                               |
+| Patterns can be nested i.e. ``a`` ``b`` ``c`` themselves can be specified   |
+| as pattern matches deconstructing them further.                             |
 +-----------------------------------------------------------------------------+
 | Case alternatives are matched from top to bottom.                           |
 +-----------------------------------------------------------------------------+
-| Alternative `x` will always match (irrefutable) when considered and will    |
-| hold the input value (scrutinee).                                           |
+| If the pattern being tried is a variable (e.g. ``x``) or ``_`` the match    |
+| will always succeed (irrefutable). In case of ``_`` the input is discarded  |
+| while in case of a variable the input is bound to the variable.             |
 +-----------------------------------------------------------------------------+
-| Wildcard `_` can be used in place of any variable to match anything and     |
-| discard it.                                                                 |
-+-----------------------------------------------------------------------------+
-| The output expression can again be a case expression to                     |
-| go deeper into the algebraic data or it could be an expression to just      |
-| transform the resulting value.                                              |
+| The output expression can be another case expression to further deconstruct |
+| the retrieved components or an expression to just transform the resulting   |
+| value.                                                                      |
 +-----------------------------------------------------------------------------+
 | All the output expressions must be of the same type i.e. the result type of |
 | the case expression.                                                        |
@@ -593,19 +591,40 @@ More on Pattern Matches
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  data Pair = Pair ((Int, Int), (Int, Int))                                  |
-|  let  pair = Pair ((1, 2), (3, 4))                                          |
+|  data Pair = Pair (Int, Int) (Int, Int)                                     |
+|  let  pair = Pair (1, 2) (3, 4)                                             |
 +-------------------------+---------------------------------------------------+
-| Pattern in pattern      | ``total (Pair a (i, j))   = i + j``               |
+| Nested pattern          | ``total (Pair a (i, j))   = i + j``               |
 +-------------------------+---------------------------------------------------+
 | Wild card (``_``) match | ``total (Pair _ (i, j))   = i + j``               |
 +-------------------------+---------------------------------------------------+
-| As pattern              | ``total (Pair a b@(i, j)) = (i + j, b)``          |
+| `As pattern`            | ``total (Pair a b@(i, j)) = (i + j, b)``          |
 | (``b`` as ``(i, j)``)   |                                                   |
 +-------------------------+---------------------------------------------------+
 | `b` will be bound to the original argument passed and `i` and `j` will be   |
 | bound to the deconstructed components of `b`. Pattern match of `b` is       |
 | irrefutable since `b` matches the incoming argument as it is.               |
++-----------------------------------------------------------------------------+
+
+Irrefutable Pattern Matches
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| Irrefutable means the pattern match is committed. In a multiple alternative |
+| case it implies that the alternative is chosen and no more alternatives     |
+| will be tried.                                                              |
++-----------------------------------------------------------------------------+
+
++-------------------------------------+---------------------------------------+
+| Irrefutables that cannot fail       | Irrefutables that can fail            |
++=====================================+=======================================+
+| Wildcards (``_`` or a variable)     | As patterns                           |
++-------------------------------------+---------------------------------------+
+|                                     | Patterns in `let` and `where`         |
++-------------------------------------+---------------------------------------+
+|                                     | Patterns marked lazy using ``~``      |
++-------------------------------------+---------------------------------------+
+| Note pattern match on a single constructor data type can never fail.        |
 +-----------------------------------------------------------------------------+
 
 Basic Algebraic Data Types (Prelude)
@@ -687,9 +706,9 @@ Branching on Booleans
 +-----------------------------------------------------------------------------+
 | Guards                                                                      |
 +-----------------------------------------------------------------------------+
-| Pattern matches are simple and branch only based on the constructor pattern |
-| due to performance reasons. But they can always be refined by adding        |
-| boolean `guards`.                                                           |
+| Pattern matches select a branch solely based on the constructor             |
+| pattern. However, they can always be refined by adding boolean `guards`.    |
+| Guards can use deconstructed variables in predicates.                       |
 +--------------------------------------+--------------------------------------+
 | Case                                 | Function                             |
 +--------------------------------------+--------------------------------------+
@@ -757,8 +776,6 @@ Do Expression
 * let in a do block
 * where in a do block - cannot refer to bindings extracted from a monad
 
-* http://stackoverflow.com/questions/18024924/haskell-why-is-a-multi-line-let-expression-a-syntax-error
-
 +-----------------------------------------------------------------------------+
 | Multiline expressions in do syntax must be indented beyond the variable name|
 +------------------------------------+----------------------------------------+
@@ -804,11 +821,11 @@ Defining Operator Fixity (Precedence and Associativity)
 +-------------------+---------------------------------------------------------+
 | Default fixity    | Left associative, precedence 9                          |
 +-------------------+---------------------------------------------------------+
-| Associative       | infix `precedence` `op`                                 |
+| Associative       | ``infix <precedence> <op>``                             |
 +-------------------+---------------------------------------------------------+
-| Left associative  | infixl `precedence` `op`                                |
+| Left associative  | ``infixl <precedence> <op>``                            |
 +-------------------+---------------------------------------------------------+
-| Right associative | infixr `precedence` `op`                                |
+| Right associative | ``infixr <precedence> <op>``                            |
 +-------------------+---------------------------------------------------------+
 | Precedence is an integer ranging from 0-9.                                  |
 +-----------------------------------------------------------------------------+
@@ -935,11 +952,11 @@ Type Operators
 ~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| ``->`` is a left associative type operator which is used to generate type   |
+| ``->`` is a right associative type operator which is used to generate type  |
 | signatures of functions. It takes a function's `argument type` and          |
 | `return type` as operands and generates a function type.                    |
 +-----------------------------------------------------------------------------+
-| A function taking an `Int` argument `x` and returning an `Int`              |
+| A function taking an `Int` argument `x` and returning an `Int`:             |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -947,14 +964,50 @@ Type Operators
 |  inc :: Int -> Int      -- operator form                                    |
 |  inc x = x + 1                                                              |
 +-----------------------------------------------------------------------------+
-| A function taking two `Int` arguments `x` and `y` and returning an `Int`    |
+| A multi argument function is really a single argument function returning    |
+| another function which consumes the rest of the arguments.                  |
+| A function taking two `Int` arguments `x` and `y` and returning an `Int`:   |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
 |  add :: (->) Int ((->) Int Int)  -- function form                           |
-|  add :: Int -> (Int -> Int)      -- explicit left associative form          |
-|  add :: Int -> Int -> Int        -- commonly used form                      |
+|  add :: Int -> (Int -> Int)      -- explicit right associative form         |
+|  add :: Int -> Int -> Int        -- commonly used infix form                |
 |  add x y = x + y                                                            |
++-----------------------------------------------------------------------------+
+
+Namespaces
+----------
+
++-----------------------------------------------------------------------------+
+| Identifiers must start with an `uppercase` letter                           |
++--------------------+-------------------+------------------------------------+
+| Module identifiers | Type constructors | Data constructors                  |
++--------------------+-------------------+------------------------------------+
+| These three namespaces can use the same identifier names without conflict.  |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- 'Play' refers to three distinct objects in three distinct namespace     |
+|  module Play where         -- module name                                   |
+|  data Play a =             -- type constructor                              |
+|       Play a               -- data constructor                              |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Identifiers must start with a `lowercase` letter                            |
++------------------------------------+----------------------------------------+
+| type variables                     | term variables                         |
++------------------------------------+----------------------------------------+
+| These two namespaces can use the same identifier names without conflict.    |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- identifier 'play' refers to three distinct objects                      |
+|  play ::               -- function name                                     |
+|       play -> play     -- type variable                                     |
+|  play play = play      -- function name (global scoped)                     |
+|                        -- parameter name (local scoped)                     |
 +-----------------------------------------------------------------------------+
 
 References
