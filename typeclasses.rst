@@ -1,5 +1,5 @@
 Type Classes
-------------
+============
 
 * Specifies functions to be implemented by member type or type group
   (multiparameter)
@@ -7,15 +7,15 @@ Type Classes
   classes (called superclasses)
 * Functions could be defined in terms of each other so that only one needs to
   implemented.
-* Superclass
 
 Terminology
-===========
+-----------
 
 * Dictionary
+* Superclass
 
 Instance declarations
-=====================
+---------------------
 
 ::
 
@@ -26,7 +26,7 @@ Instance declarations
   instance <context> => C (T1 a1 ... an) (T2 b1 ... bn) : Multiparameter
 
 default instance
-================
+----------------
 
 Wildcard instance that applies when a specific instance does not::
 
@@ -34,7 +34,7 @@ Wildcard instance that applies when a specific instance does not::
     op = ... -- Default
 
 -XConstrainedClassMethods
-=========================
+-------------------------
 
 Allow class methods to constrain class type variables::
 
@@ -43,26 +43,26 @@ Allow class methods to constrain class type variables::
     elem     :: Eq a => a -> s a -> Bool
 
 -XTypeSynonymInstances
-======================
+----------------------
 ::
 
   type Point a = (a,a)
   instance C (Point a)   where ...
 
 -XFlexibleInstances
-===================
+-------------------
 ::
 
   instance C (Maybe Int) where ...   -- allows arbitrary nested types
 
 -XFlexibleContexts
-==================
+------------------
 ::
 
   instance (C t1 ... tn) => ...
 
 Overlapping & Incoherent Instances
-==================================
+----------------------------------
 
 Try `Int Bool` or `Int [Int]` in the folowing::
 
@@ -75,7 +75,7 @@ Try `Int Bool` or `Int [Int]` in the folowing::
 * When ambiguous, errors out unless ``-XIncoherentInstances`` is used
 
 UndecidableInstances
-====================
+--------------------
 
 Instance termination rules
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -118,13 +118,13 @@ Allows class synonym::
 Relaxes the paterson conditions described above.
 
 Deriving Instances
-==================
+------------------
 
 * You can’t use deriving to define instances of a data type with existentially
   quantified data constructors.
 
 Infix Constructor syntax
-========================
+------------------------
 
 ::
 
@@ -162,6 +162,6 @@ Data types
 Type synonyms
 
 References
-==========
+----------
 
 https://wiki.haskell.org/Typeclassopedia
