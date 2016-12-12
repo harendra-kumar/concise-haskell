@@ -32,9 +32,11 @@ Terminology
 | Rigid type variable        | The scope (quantification) of the type variable is fixed by     |
 | (skolem)                   | annotation.                                                     |
 +----------------------------+-----------------------------------------------------------------+
-| Unify                      | A type variable can be unified with other type variable if they |
-|                            | are in the same quantification scope and therefore mean one and |
-|                            | the same thing.                                                 |
+| Unify                      | A type variable can be `unified` with other type variable of    |
+|                            | the same name if both are in the same quantification scope and  |
+|                            | therefore are referring to one and the same thing.              |
++----------------------------+-----------------------------------------------------------------+
+| Coerce                     | Cast a type into another (compatible) type                      |
 +----------------------------+-----------------------------------------------------------------+
 | Concrete                   | Represents a real physical value (not abstract)                 |
 +----------------------------+-----------------------------------------------------------------+
@@ -85,21 +87,26 @@ Terminology
 Lifting Types with Bottom
 -------------------------
 
-In theoretical terms adding a bottom value to the set of values denoted by a
+Semantically adding a bottom value to the set of values denoted by a
 type is called lifting the type.
 
 A bottom value is implicit in lifted types. For example, you can imagine:
 
 ``data () = ()`` <=> ``data () = () | ⊥``
 
-Bottom concept is useful in reasoning about some semantic properties of Haskell
-programs like lazy evaluation, non-termination, partial functions, errors and
-exceptions.
+A type is lifted if and only if it has bottom as an element. The concept of
+bottom element is necessary to represent some important semantic properties of
+Haskell programs like lazy evaluation, non-termination, partial functions,
+errors and exceptions.
 
-From an operational standpoint it means that the data constructors of a lifted
-type are lazily evaluated. In the context of lazy evaluation (graph reduction)
-the unevaluated expression can be thought of as bottom which can be evaluated
-on demand to determine the actual value.
+Operationally, data constructors of a lifted type and terms with lifted types
+may be represented by closures and can be lazily evaluated.  In the context of
+lazy evaluation (graph reduction) the unevaluated expression can be thought of
+as bottom which can be evaluated on demand to determine the actual value.
+
+Terms with unlifted types must not be represented by closures, which implies
+that any unboxed value is necessarily unlifted. We distinguish between lifted
+and unlifted types by ascribing them different kinds.
 
 +-----------------------------------------------------------------------------+
 | Any value of polymorphic type `forall a. a` denotes bottom. Functions       |
@@ -253,7 +260,7 @@ Basic Haskell Types
 +---------------+---+----------------------------------------------------+----------------------------+
 
 +---------------+---+----------------------------------------------------+----------------------------+
-| data ()       | = | ()                                                 | The void or unit datatype, |
+| data ()       | = | ()                                                 | The unit datatype,         |
 |               |   |                                                    | 0-tuple                    |
 +---------------+---+----------------------------------------------------+----------------------------+
 | data (a, b)   | = | (a, b)                                             | 2-tuple                    |
@@ -836,64 +843,20 @@ GADT (Aggregated Type)
 Deconstruction (Pattern Matching)
 ---------------------------------
 
-* TBD define scrutinee
+Refer to the `Basic Syntax` chapter for basic pattern matching.
 
 +-----------------------------------------------------------------------------+
-| Pattern matching is the only way to destructure algebraic data              |
-+-----------------------------------------------------------------------------+
-| A concrete data structure is represented by one of multiple alternative     |
-| constructors as we saw in data type definitons. Pattern matching is reverse |
-| of the data type construction process i.e. an existing data structure's     |
-| constructor is broken down into its components.                             |
-|                                                                             |
-| We write a constructor pattern on the LHS of an equation and the data       |
-| structure to be decomposed on the RHS. A pattern looks like a constructor   |
-| call except that the arguments are unbound variables. If the pattern        |
-| matches with the data structure then the variables in the pattern are       |
-| bound to the corresponding values of the data structure.                    |
-+-----------------------------------------------------------------------------+
-| Pattern match in `case` and `function definition` are always strict by      |
-| default. In fact this is the only way to strictness in Haskell.             |
-+-----------------------------------------------------------------------------+
-| Pattern match in `let` and `where` clauses are always lazy by default       |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- Pattern match is lazy                                                   |
-|  let Cons x xs = list                                                       |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- Pattern match is lazy                                                   |
-|  where Cons x xs = list                                                     |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- Pattern match is strict                                                 |
-|  case list of                                                               |
-|    Cons x xs -> ...                                                         |
-|    Empty     -> ...                                                         |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- Pattern match is strict                                                 |
-|   f (Cons x xs) = ...                                                       |
-|   f (Empty)     = ...                                                       |
-|                                                                             |
-|   f list -- apply the function to a list                                    |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Lazy or irrefutable patterns - pattern match always succeeds.               |
-+-----------------------------------------------------------------------------+
-| Lazy patterns work well only when you have single constructor for the type, |
-| e.g. tuples. For example `f undefined` will work on the following:          |
+| A lazy pattern match does not force evaluation of the scrutinee.            |
+| For example `f undefined` will work on the following:                       |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
 |   f ~(x,y) = 1    -- will not evaluate the tuple                            |
 +-----------------------------------------------------------------------------+
-| With multiple equations lazy match will always match the first one:         |
+| Since it does not evaluate the scrutinee it always matches i.e. it is       |
+| irrefutable. Therefore any patterns after a lazy pattern will always be     |
+| ignored. For this reason, lazy patterns work well only for single           |
+| constructor types e.g. tuples.                                              |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -947,7 +910,7 @@ Deconstruction (Pattern Matching)
 +-----------------------------------------------------------------------------+
 | -XNPlusKPatterns                                                            |
 +-----------------------------------------------------------------------------+
-|                                                                             |
+|  TBD                                                                        |
 +-----------------------------------------------------------------------------+
 
 Pattern Synonyms
@@ -1048,6 +1011,25 @@ Pattern Synonyms
 | Update        | ``(0, 0) { x = 1 } == (1,0)``                               |
 +---------------+-------------------------------------------------------------+
 
+Pattern Match Implementation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a data element, a pattern match essentially identifies the individual
+constructor if it is a sum type and then branches to a target code based on the
+constructor. The target code can then break it down into its components if it
+is a product constructor.
+
+A data element of a given type is physically represented by a closure on heap.
+When a type has 8 or fewer constructors the lowest three bits of the heap
+pointer (pointer tag) are used to store a constructor identifier (0-7)
+otherwise the constructor id is kept inside the closure requiring an
+additional memory lookup.
+
+Once the constructor is identified we need to jump to the target branch of a
+case statement based on the constructor id. Depending on the number of
+constructors and sparseness of the jump table it is either implemented as a
+lookup table (array indexing) or as a binary search.
+
 Type Synonyms
 -------------
 
@@ -1084,26 +1066,28 @@ newtype
 | newtype N = W (original type) deriving ...                                  |
 +-----------------------------------------------------------------------------+
 | `W is not a data constructor`, it does not construct data, it is just a type|
-| level wrapper to wrap the original type into a new type N. Since W is not a |
-| data constructor:                                                           |
+| level (compile time) wrapper to wrap the original type into a new type N.   |
+| Since W is a type wrapper and not a data constructor:                       |
 |                                                                             |
-| * you cannot provide multiple arguments to W. It only `wraps` a type, it    |
-|   does not construct a type.                                                |
-| * it does not lift the wrapped type, however it wraps only lifted types.    |
+| * you cannot provide multiple arguments to W.                               |
 | * you can’t use existential quantification for newtype declarations.        |
-| * it is just a type level artifiact and has no runtime overhead.            |
+| * it does not lift the wrapped type, however it wraps only lifted types.    |
+| * unlike a data constructor it has no runtime overhead. The wrapper is used |
+|   for type checking at compile time and discarded thereafter.               |
 +-----------------------------------------------------------------------------+
 | However just like data constructors, you can:                               |
 |                                                                             |
-| * pattern match on wrapper W to extract the original type                   |
-| * use a deriving clause                                                     |
+| * pattern match on wrapper W to extract the original type. The pattern      |
+|   match is purely a compile time operation equivalent to coercing the type  |
+|   into the original type.                                                   |
+| * use a `deriving` clause                                                   |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
 |  newtype WrapInt = WrapInt Int                                              |
 |  newtype CharList = CharList { getCharList :: [Char] } deriving (Eq, Show)  |
 +-----------------------------------------------------------------------------+
-| Unlike a type synonym the type created by `newtype` is an entirely new type |
+| Unlike a type synonym the type created by `newtype` is a distinct type      |
 | and cannot be used in place of the original type.                           |
 +-----------------------------------------------------------------------------+
 | Newtypes may also be used to define recursive types. For example:           |
