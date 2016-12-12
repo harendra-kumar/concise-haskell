@@ -1,5 +1,5 @@
-Haskell in a Nutshell
-=====================
+Concise Haskell
+===============
 
 THIS IS A WORK IN PROGRESS.
 
