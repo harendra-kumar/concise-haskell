@@ -33,6 +33,9 @@ Terminology
 +----------+------------------------------------------------------------------+
 | Scope    | Scope of visibility of variable bindings.                        |
 +----------+------------------------------------------------------------------+
+| Scrutinee| In a `case` construct the expression on which we are pattern     |
+|          | matching.                                                        |
++----------+------------------------------------------------------------------+
 
 Composing Expressions
 ---------------------
@@ -362,12 +365,14 @@ Anonymous Functions
 Ad-hoc Functions
 ----------------
 
-Previously we defined new functions which passed their inputs to a composition
-of existing functions without looking at it.  We will now define what we call
-`ad-hoc functions` which examine their inputs and can define a custom mapping
-from inputs to outputs.  Ad-hoc functions are implemented by using case
-analysis on its inputs (algebraic data types) and mapping selected values to
-desired output values.
+Previously we defined simple functions which did not discriminate individual
+input values.  They merely passed their input to a composed pipeline of
+functions.
+
+We will now define what we call `ad-hoc functions` which have the ability to
+discriminate the input values creating a custom input to output mapping.
+Ad-hoc functions are implemented using case analysis on the algebraic
+data type inputs and mapping individual input values to custom output values.
 
 +--------------------------+---------------------+----------------------------+
 | Data Level               | Bridge              | Type Level                 |
@@ -409,21 +414,22 @@ Data Construction
 Case Analysis (Ad-hoc Functions)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Case analysis is the opposite of algebraic data type construction. It allows us
-to navigate through all the choices (values) represented by the data type. For
-each choice or subset of choices we can apply a different transform so as to
-map the (input) data type to another (output) data type thus implementing the
-mapping represented by the function.
+Algebraic data types and case analysis are the primary tools to implement
+ad-hoc functions.  Case analysis is a mechanism to navigate through the
+choices (values) represented by an algebraic data type and apply distinct
+transforms to map them to outputs.
 
 A `case` expression is the only way (except syntactic sugars) to perform a case
-analysis on an algebraic data type to implement ad-hoc functions.
+analysis by deconstructing an algebraic data type via `pattern matching` and
+mapping the individual deconstructions to corresponding output expressions.
 
 Case Expression
 ~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| A `case` expression maps an `<input expr>` to an output expression which    |
-| is a function of the input.                                                 |
+| A `case expression` is a representation of a mathematical function.         |
+| It is a map from individual constructor patterns of an `<input expr>` to    |
+| corresponding output expressions.                                           |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -433,30 +439,36 @@ Case Expression
 |    x            -> <output expr3>                                           |
 |    ...                                                                      |
 +-----------------------------------------------------------------------------+
-| The `<input expr>` is called the `scrutinee`.                               |
+| `<input expr>` is called the `scrutinee` of the case expression.            |
 +-----------------------------------------------------------------------------+
-| C1, C2 etc. are the constructors of the type of `<input expr>`. This is the |
-| selection of the choice represented by a sum type.                          |
+| Each line under the case statement specifies a mapping from scrutinee       |
+| constructor pattern to an output expression.                                |
++-----------------------------------------------------------------------------+
+| C1, C2 etc. are the constructors of the type of `<input expr>`.             |
 +-----------------------------------------------------------------------------+
 | ``a`` ``b`` ``c`` are variables representing the components of the product  |
 | type (if any) represented by the chosen constructor.                        |
 +-----------------------------------------------------------------------------+
-| Selecting a constructor (i.e. the sum type) and selecting the               |
-| individual components of the product in the selected constructor (if any)   |
-| is called a `pattern match`.                                                |
+| Patterns are matched from top to bottom. First pattern that matches the     |
+| constructor of the scrutinee is chosen and the corresponding output         |
+| expression is evaluated.                                                    |
++-----------------------------------------------------------------------------+
+| This process of selecting a constructor from a sum type and then selecting  |
+| the individual components in a product constructor is called a              |
+| `pattern match`.                                                            |
 +-----------------------------------------------------------------------------+
 | Patterns can be nested i.e. ``a`` ``b`` ``c`` themselves can be specified   |
-| as pattern matches deconstructing them further.                             |
+| patterns deconstructing them further.                                       |
 +-----------------------------------------------------------------------------+
-| Case alternatives are matched from top to bottom.                           |
-+-----------------------------------------------------------------------------+
-| If the pattern being tried is a variable (e.g. ``x``) or ``_`` the match    |
+| If the pattern being matched is a variable (e.g. ``x``) or ``_`` the match  |
 | will always succeed (irrefutable). In case of ``_`` the input is discarded  |
-| while in case of a variable the input is bound to the variable.             |
+| while in case of a variable the input is bound to that variable.            |
 +-----------------------------------------------------------------------------+
-| The output expression can be another case expression to further deconstruct |
-| the retrieved components or an expression to just transform the resulting   |
-| value.                                                                      |
+| The output expressions can make use of the bindings ``a``, ``b``, ``c``.    |
++-----------------------------------------------------------------------------+
+| In general, the output expression can be another case expression to further |
+| deconstruct and map the retrieved data components or an expression to just  |
+| transform them.                                                             |
 +-----------------------------------------------------------------------------+
 | All the output expressions must be of the same type i.e. the result type of |
 | the case expression.                                                        |
@@ -466,22 +478,25 @@ Case Expression
 | Some important facts about `case` and `pattern match`                       |
 +=============================================================================+
 | Case is the fundamental way to pattern match in Haskell. All other forms of |
-| pattern matches are just syntactic sugar on top of case.                    |
+| pattern matches are just syntactic sugar on top of case. It is helpful to   |
+| think of other forms of pattern matches in terms of case to better          |
+| understand them.                                                            |
 +-----------------------------------------------------------------------------+
 | The `scrutinee` of case is strictly evaluated to WHNF to enable the pattern |
 | match. This is the only source of all forms of strict evaluation in Haskell.|
 +-----------------------------------------------------------------------------+
-| `case` is also the fundamental tool to express branching in Haskell.        |
-| Branches are needed in general to map inputs to outputs which is done via a |
-| case expression in Haskell. There is no other way to express branching.  All|
-| other forms of branching are just syntactic sugar on top of case.           |
+| `case` is also the fundamental way to express branching in Haskell.         |
+| Languages need branches to map specific inputs to outputs which is done     |
+| via a case expression in Haskell. Haskell does not need and does not have   |
+| any other primitive branching constructs. All other forms of branching are  |
+| just syntactic sugar on top of case.                                        |
 +-----------------------------------------------------------------------------+
 
 Multi Equation Function Definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An ad-hoc function can be defined more naturally as multiple equations each
-equation defining the function for a certain input pattern by using a pattern
+An ad-hoc function can be defined more naturally as multiple equations. Each
+equation defines the function for a certain input pattern by using a pattern
 match on its arguments.  This is just a syntactic sugar on a `case` pattern
 match.
 
@@ -494,11 +509,14 @@ match.
 |  name Green i = "G " ++ show i       |    Red   i -> "R " ++ show i         |
 |                                      |    Green i -> "G " ++ show i         |
 +--------------------------------------+--------------------------------------+
-| All equations of a function must remain together.                           |
+| All equations of a function must remain together i.e. no other definition   |
+| can come between them.                                                      |
 +-----------------------------------------------------------------------------+
-| As in case alternatives the equations are matched from top to bottom.       |
+| Just like `case` alternatives, patterns in equations are matched from top   |
+| to bottom.                                                                  |
 +-----------------------------------------------------------------------------+
-| A multi equation function can also be defined in `let` and `where` clauses. |
+| Multi equation functions can also be defined inside `let` and `where`       |
+| clauses.                                                                    |
 +-----------------------------------------------------------------------------+
 
 Pattern Matches
@@ -507,14 +525,12 @@ Pattern Matches
 +-----------------------------------------------------------------------------+
 | In addition to `case` expression and `function definition` pattern matches  |
 | can also be performed in `let` and `where` clauses.                         |
+| The same pattern matching rules specified for `case` apply to other         |
+| forms as well.                                                              |
 +-----------------------------------------------------------------------------+
 | Pattern matches in `case` and `function definition` are strict.             |
 +-----------------------------------------------------------------------------+
-| Pattern matches in `let` and `where` are lazy or irrefutable. TBD define    |
-| irrefutable.                                                                |
-+-----------------------------------------------------------------------------+
-| Pattern matching rules as specified for `case` apply to other forms as      |
-| well.                                                                       |
+| Pattern matches in `let` and `where` are lazy and irrefutable.              |
 +-----------------------------------------------------------------------------+
 
 Deconstructing a Product
@@ -554,8 +570,8 @@ Selecting Alternatives of a Sum
 
 +-----------------------------------------------------------------------------+
 | Pattern match on a multi-constructor (sum) type may fail at                 |
-| run time with a `non-exhaustive pattern match` error if we do not cover all |
-| constructors.                                                               |
+| run time with a `non-exhaustive pattern match` error if it does not cover   |
+| all constructors.                                                           |
 +-----------------------------------------------------------------------------+
 | Patterns are matched from top to bottom in sequence.                        |
 +--------------------------------------+--------------------------------------+
@@ -610,9 +626,9 @@ Irrefutable Pattern Matches
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
-| Irrefutable means the pattern match is committed. In a multiple alternative |
-| case it implies that the alternative is chosen and no more alternatives     |
-| will be tried.                                                              |
+| Irrefutable means the pattern is committed for evaluation. When multiple    |
+| alternatives are possible it implies that the pattern is chosen and no more |
+| alternatives will be tried.                                                 |
 +-----------------------------------------------------------------------------+
 
 +-------------------------------------+---------------------------------------+
