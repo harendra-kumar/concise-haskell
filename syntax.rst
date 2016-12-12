@@ -720,19 +720,24 @@ Branching on Booleans
 +------------------------------------+----------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Guards                                                                      |
+| Boolean Guards                                                              |
 +-----------------------------------------------------------------------------+
-| Pattern matches select a branch solely based on the constructor             |
-| pattern. However, they can always be refined by adding boolean `guards`.    |
-| Guards can use deconstructed variables in predicates.                       |
+| A pattern match selects a branch solely based on the constructor            |
+| pattern. However, it can always be refined by adding boolean `guards`.      |
++-----------------------------------------------------------------------------+
+| * Guards are specified as comma separated boolean conditions.               |
+| * Guards can use deconstructed variables in conditions.                     |
+| * If a condition results in ``False`` the guard and the pattern match fails.|
 +--------------------------------------+--------------------------------------+
 | Case                                 | Function                             |
 +--------------------------------------+--------------------------------------+
 | ::                                   | ::                                   |
 |                                      |                                      |
 |  case count of                       |  name Red   i | i < 5 = "R few"      |
-|    Red   i | i < 5                   |  name Red   _         = "R many"     |
-|            -> "R few"                |  name Green i = "G " ++ show i       |
+|    Red   i | i < 5                   |  name Red   i | i >= 5, i < 10       |
+|            -> "R few"                |                       = "R some"     |
+|    Red   i | i >= 5, i < 10          |  name Red   _         = "R many"     |
+|            -> "R some"               |  name Green i = "G " ++ show i       |
 |    Red _   -> "R many"               |                                      |
 |    Green i -> "G " ++ show i         |                                      |
 +--------------------------------------+--------------------------------------+
