@@ -1,16 +1,22 @@
-A Type
-------
+Functor/Applicative/Monad As composition mechanisms
+---------------------------------------------------
 
-Any type creates an indirection or a context in which the value is to be
-interpreted. It says you cannot directly operate on me, you will have to
-use my way of doing things. It enforces manipulation rules. The rules
-followed by the type are specified by the typeclass.
-
-Composing Techniques
---------------------
+We have common basic primitives (functions) and apply them in many different
+ways depending on the type i.e. the behavior is a function of the type on which
+we are applying them. Intuitions:
 
 * Functor, Applicative and Monads are ways to compose and reuse.
-* A functor allows you to reuse a function from one context to another
+* A function with an argument transforms its argument
+* A Functor allows us to apply a transform to that transform. That is
+  we are able to use a normal function in a different way depending on
+  the Functor type i.e. we are combining the peculiar behavior of a new type to an
+  existing function. Pitfall - do not stereotype the concept by thinking only about a
+  collection type like list.
+* A functor allows reuse of a function from one context to another
+* A normal function could be wrapped in a (applicative) type and applied
+  to values wrapped in the same type. This is another way of composing
+  which is a transformation on normal function application to the peculiar
+  world of the type.
 * An applicative allows you to compose functor applications, monoidal functor
 * A monad allows you to compose by chaining or collecting and using the results
   in a certain way. A do block in Monad allows you to chain conveniently. In
@@ -138,20 +144,3 @@ than a Monad.
 Comonad
 -------
 
-Functor/Applicative/Monad As composition mechanisms
----------------------------------------------------
-
-We just use the basic primitives (functions) and apply them in many different
-ways depending on the type i.e. the behavior is a function of the type on which
-we are applying them. Intuitions:
-
-* A function with an argument transforms its argument
-* A Functor allows us to apply a transform to that transform. That is
-we are able to use a normal function in a different way depending on
-the Functor type i.e. we are combining the peculiar behavior of the type to an
-existing function. Pitfall - do not stereotype the concept by thinking only about a
-collection type like list.
-* A normal function could be wrapped in a (applicative) type and applied
-to values wrapped in the same type. This is another way of composing
-which is a transformation on normal function application to the peculiar
-world of the type.
