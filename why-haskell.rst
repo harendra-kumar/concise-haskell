@@ -1,22 +1,18 @@
 Why Haskell?
 ------------
 
-TBD: function diagram with arrows between related concepts
-TBD: add examples to prove each point
-TBD: add references
-
 +-----------------------+-----------------------------------------------------+
-| High level feature    | Low level feature                                   |
+| High level feature    | Low level enabler of high level feature             |
 +=======================+=====================================================+
 | Expressive            | Polymorphism (higher order functions, typeclasses), |
-|                       | Abstraction stack (low to high), Lazy               |
+|                       | Incremental abstraction ladder (low to high), Lazy  |
 +-----------------------+-----------------------------------------------------+
 | Composable            | Denotational (Functional, Pure), lazy               |
 +-----------------------+-----------------------------------------------------+
 | Correct               | Strong Static typing, equational reasoning          |
-|                       | (denotational)                                      |
+|                       | (denotational), unique testing techniques           |
 +-----------------------+-----------------------------------------------------+
-| Efficient             | Native, highly optimized code                       |
+| Efficient             | Compiled, Interesting compiler optimizations        |
 +-----------------------+-----------------------------------------------------+
 | Parallel              | Pure, Composable                                    |
 +-----------------------+-----------------------------------------------------+
@@ -28,103 +24,35 @@ TBD: add references
 Expressive Power: Abstractions & DSLs
 -------------------------------------
 
-* Expressive power comes from reuse techniques
-* Reuse by abstraction - parametric polymorphism
-* ad-hoc polymorphism
-* higher order functions
-* e.g. functor family fo abstractions allows reuse of functions in different
-  contexts in different ways.
+Expressive power is directly related to ability to reuse. Haskell has very
+powerful abstraction tools allowing maximum reuse.
 
-* Haskell can be pretty low level with unlifted types and it could as high as
-  possible with DSLs.
-* The highest level abstractions are called DSLs
+* Low level abstraction facilities
 
-+-----------------+----------------------------------+
-| Low level       | High Level                       |
-+-----------------+----------------------------------+
-| More Flexible   | Less flexible                    |
-+-----------------+----------------------------------+
-| Wider scope     | Narrower (domain specific) scope |
-+-----------------+----------------------------------+
-| Less expressive | More expressive                  |
-+-----------------+----------------------------------+
-| Verbose         | Concise                          |
-+-----------------+----------------------------------+
-| e.g. Functors   | e.g. Monads                      |
-+-----------------+----------------------------------+
-| e.g. threads    | e.g. async                       |
-+-----------------+----------------------------------+
+  * parametric polymorphism
+  * higher order functions
+  * ad-hoc polymorphism
+* Examples of some high level abstraction tools
 
-Challenges:
-
-* Proliferation of too many abstractions can overwhelm and cause confusion,
-  requires time to learn.
-* You have to fit your problem into the right set of abstractions. So you have
-  to know common abstractions and the ability to map your problem to those.
-  That is when you take the full advantage of Haskell.
-* How to find the right abstractions for your problem and how to be productive
-  with them quickly?
-* In contrast in other languages may have limited and simple abstractions and
-  you can just use ad-hoc ways to solve your problem. However, using generics
-  effectively could be as difficult as the abstractions in Haskell.
-* You have to curate and choose wisely (this is where we need automation and
-  innovation)
-
-* quicksort is an example of expressive power
-* Parallel mergesort in simon marlow's presentation is a good example of higher
-  order functions and composable parallelism together.
+  * Functors
+  * Applicatives
+  * Monads
+* Haskell provides an incremental abstraction ladder where you can keep
+  building higher level abstractions on top of lower level. You can create high
+  level domain specific langauges to suit your application.
 
 Composability
 -------------
 
-Denotations are compositional, i.e. the meaning of a program like 1+9 only
-depends on the meaning of its constituents:
-
-It is one of the key properties of purely functional languages like Haskell
-that a direct mathematical interpretation like "1+9 denotes 10" carries over to
-functions, too: in essence, the denotation of a program of type Integer ->
-Integer is a mathematical function {\displaystyle \mathbb {Z} \to \mathbb {Z} }
-{\mathbb  {Z}}\to {\mathbb  {Z}} between integers.
-
-Imperative languages are tightly tied to operational semantics which describes
-their way of execution on a machine.
-In contrast, the meaning of purely functional languages is by default
-completely independent from their way of execution. The Haskell98 standard even
-goes as far as to specify only Haskell's non-strict denotational semantics,
-leaving open how to implement them.
-
-In the end, denotational semantics enables us to develop formal proofs that
-programs indeed do what we want them to do mathematically. Ironically, for
-proving program properties in day-to-day Haskell, one can use Equational
-reasoning, which transforms programs into equivalent ones without seeing much
-of the underlying mathematical objects we are concentrating on in this chapter.
-But the denotational semantics actually show up whenever we have to reason
-about non-terminating programs, for instance in Infinite Lists.
-
-Modular code by lazy evaluation:
-minimum = head . sort
-zip [0..] xs
-prefix xs ys = and (zipWith (==) xs ys)
-
-* rpar - concurrency modularity via laziness
-
-* There is an interplay (trade-off) between modularity and efficiency in Haskell
-  too. Sometimes you have to sacrifice modularity for performance.
+TBD
 
 Correctness
 -----------
 
-* strong static typing
+* Strong static typing
 * Automatic memory management
 * Equational reasoning due to purity
-* Easier testing due to purity
-
-Downsides:
-
-* Moldable clay vs rigid blocks
-* Being always rigorously right could be taxing in rapidly changing environments
-* Better tools can help reduce the type strictness tax
-* GC pauses could be problematic in some cases (can be improved)
+* Easier testing due to purity (quickcheck)
 
 Concurrency
 -----------
@@ -184,13 +112,6 @@ Distributed
 
 * cloud-haskell
 * transient
-
-Benefits
---------
-
-Building and maintenance cost => 100 people vs 10 people. The effect is
-compounded by reduced communication overhead. A team of 10 will require a much
-less communications overhead and thereofore much more productive.
 
 References
 ----------
