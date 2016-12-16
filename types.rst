@@ -51,21 +51,6 @@ Terminology
 | Boxed                      | Physical representation wrapped with control info               |
 |                            | (trackable heap object).                                        |
 +----------------------------+-----------------------------------------------------------------+
-| Lazy value                 | All ordinary Haskell values are lazy meaning they are evaluated |
-|                            | on demand. Lazy values are also called lifted values.           |
-+----------------------------+-----------------------------------------------------------------+
-| Diverging computation      | A function or computation that does not return to the caller is |
-|                            | said to diverge. Divergence is denoted by bottom.               |
-+----------------------------+-----------------------------------------------------------------+
-|                            | In order theory, the least element (if it exists) of a          |
-|                            | partially ordered set is also called the bottom and is denoted  |
-|                            | by ⊥.                                                           |
-|                            +-----------------------------------------------------------------+
-| Bottom (_|_)               | In Haskell, bottom is the least defined value added to all      |
-|                            | types to denote, undefined, diverging and lazy values.          |
-+----------------------------+-----------------------------------------------------------------+
-| Lifting                    | Adding a `bottom` to an ordered set is called `lifting`.        |
-+----------------------------+-----------------------------------------------------------------+
 | Unlifted (type)            | Operational: Cannot be constructed lazily                       |
 |                            +-----------------------------------------------------------------+
 |                            | Denotational: Does not contain a bottom value                   |
@@ -329,21 +314,8 @@ Data Constructors
 | Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
 +-------------------+--------+-------------------------------+-------------------------------------------+
 
-Data Construction Example
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-::
-
-    l1, l2, l3 :: List Char
-
-    l3 = Cons 'b' l2     l2 = Cons 'a' l1     l1 = Empty
-
-    +--------+-------+      +--------+-------+      +--------+
-    |  'b'   |  l2   |----->|  'a'   |  l1   |----->|  Empty |
-    +--------+-------+      +--------+-------+      +--------+
-
-Terminology
-...........
+Terminology Illustrations
+.........................
 
 +-----------+---------------------------------------+-------------+
 | Sum       | data Bool = False | True              | Monomorphic |
@@ -515,7 +487,7 @@ Records
 +-----------------------------------------------------------------------------+
 | `-XDuplicateRecordFields` (8.0.1) allows using identical fields in different|
 | records even in the same module. Selector functions and updates are         |
-| disambiguated using the type of the field.                                  |
+| disambiguated using the type of the field or the record.                    |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -1095,6 +1067,23 @@ newtype
 |                                                                             |
 |  newtype List a = In (Maybe (a, List a))                                    |
 +-----------------------------------------------------------------------------+
+
++----------------------------+------------------------+-------------------------------+
+| data                       | type                   | newtype                       |
++============================+========================+===============================+
+| ``data Count = Count Int`` | ``type Count = Int``   | ``newtype Count = Count Int`` |
++----------------------------+------------------------+-------------------------------+
+| ``Count`` and ``Int``      | ``Count`` and ``Int``  | ``Count`` and ``Int`` are     |
+| are distinct               | same, albeit with      | distinct                      |
++----------------------------+ different names        +-------------------------------+
+| ``Count`` is a constructor |                        | ``Count`` is a type level     |
+| wrapping an ``Int``        |                        | wrapper wrapping an ``Int``   |
++----------------------------+                        +-------------------------------+
+| Physically ``Count`` is a  |                        | ``Count`` does not exist      |
+| closure on heap            |                        | physically it is removed after|
+| wrapping the ``Int``       |                        | type checking                 |
+| closure                    |                        |                               |
++----------------------------+------------------------+-------------------------------+
 
 Data Families
 ~~~~~~~~~~~~~
