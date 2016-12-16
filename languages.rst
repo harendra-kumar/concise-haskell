@@ -1,27 +1,33 @@
 Functionality Features
 ----------------------
 
+This needs a lot of work. The judgement here is subjective and may not be
+accurate. The parameters need to be defined more specifically and need to
+provide more details on specific features and other reasons.
+
 Statically Typed
 ~~~~~~~~~~~~~~~~
 
 +----------+----------------------+------------------------+------------------+
 | Language | Expressive           | Composable             | Correct          |
 +==========+======================+========================+==================+
-| Haskell  | Excellent (lazy)     | Excellent (lazy, pure) | Extra Safe       |
+| Haskell  | Excellent (lazy)     | Excellent (lazy, pure) | Safe             |
 +----------+----------------------+------------------------+------------------+
-| Rust     |                      | Medium?                | Safe             |
+| Rust     | ?                    | Good?                  | Safe             |
 +----------+----------------------+------------------------+------------------+
-| Swift    | Strong               | Flexible               | Safe             |
+| Swift    | Good                 | Depends                | Safe             |
+|          |                      | (OO + Functional)      |                  |
 +----------+----------------------+------------------------+------------------+
-| Scala    | Strong               | Flexible               | Safe             |
+| Scala    | Good                 | Depends                | Safe             |
+|          |                      | (OO + Functional)      |                  |
 +----------+----------------------+------------------------+------------------+
 | C        | Poor                 | Poor                   | Unsafe           |
 +----------+----------------------+------------------------+------------------+
-| C++      | Medium               | Poor                   | Unsafe           |
+| C++      | Average              | Poor                   | Unsafe           |
 +----------+----------------------+------------------------+------------------+
-| Go       | Medium?              | Poor                   | Safe             |
+| Go       | Average?             | Poor                   | Safe             |
 +----------+----------------------+------------------------+------------------+
-| Java     | Medium               | Poor                   | Safe             |
+| Java     | Average              | Poor                   | Safe             |
 +----------+----------------------+------------------------+------------------+
 
 Dynamically Typed
@@ -30,9 +36,9 @@ Dynamically Typed
 +----------+----------------------+------------------------+------------------+
 | Language | Expressive           | Composable             | Correct          |
 +==========+======================+========================+==================+
-| Clojure  |                      | Medium                 | Safe             |
+| Clojure  |                      | Good                   | Safe             |
 +----------+----------------------+------------------------+------------------+
-| Erlang   |                      | Medium                 | Safe             |
+| Erlang   |                      | Good                   | Safe             |
 +----------+----------------------+------------------------+------------------+
 | Python   |                      | Poor                   | Safe             |
 +----------+----------------------+------------------------+------------------+
@@ -41,7 +47,7 @@ Performance Features
 --------------------
 
 * Concurrency, parallelism and distributed computing features are a combination
-  of language and library features.
+  of language features and libraries.
 * Composable concurrency and parallelism?
 
 +----------+------------+------------+---------------------+------------------+

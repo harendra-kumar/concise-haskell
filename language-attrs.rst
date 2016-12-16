@@ -15,7 +15,7 @@ Product Building Phases
 +====================+============================================+
 | Survival           | Scalable Growth                            |
 +--------------------+--------------------------------------------+
-| Protoype           | Mature Product                             |
+| Prototype          | Mature Product                             |
 +--------------------+--------------------------------------------+
 | Quick & dirty      | Complex, Scalable, Performant, Sustainable |
 +--------------------+--------------------------------------------+
@@ -27,9 +27,6 @@ Important Language Features
 
 Feature Stack
 ~~~~~~~~~~~~~
-
-* ECC
-* Performance (efficiency, parallelism, distributed) (EPD)
 
 +---------------------------------------------------------------------------------------------------------+
 | Higher level qualities build upon lower level features.                                                 |
@@ -47,26 +44,26 @@ Feature Stack
 | Expressive | Composable                    | Correct         | Efficient       | Parallel & Distributed |
 +------------+-------------------------------+-----------------+-----------------+------------------------+
 
-* Expressive power comes from reuse which comes from abstractions and polymorphism
-
 Feature Rings
 ~~~~~~~~~~~~~
 
-Express this table as rings with money at the core.
+TBD - draw the table as a picture with rings
 
 Feature Flow Diagram
 ~~~~~~~~~~~~~~~~~~~~
 
-Expressive -> BUC (build, understand, change)
-Composable -> BUC, test, scale
-Correct -> test
-Efficient -> Performance
-Parallel -> performance
-Parallel -> Scale
-Distributed -> Scale
+* Expressive -> BUC (build, understand, change)
+* Composable -> BUC, test, scale
+* Correct -> test
+* Efficient -> Performance
+* Parallel -> performance
+* Parallel -> Scale
+* Distributed -> Scale
 
-BUC -> time, resources, clock time
-test -> clock time
-test -> quality
-Performance -> deployment cost
-Scale -> suitability
+----
+
+* BUC -> time, resources, clock time
+* test -> clock time
+* test -> quality
+* Performance -> deployment cost
+* Scale -> suitability
