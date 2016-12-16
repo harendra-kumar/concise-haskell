@@ -1,16 +1,26 @@
 Terminology
 -----------
 
-*  homomorphism
-*  coproduct (e.g. of two monoids)
++-------------------+---------------------------------------------------------+
+| Class             |                                                         |
++-------------------+---------------------------------------------------------+
+| Proper class      |                                                         |
++-------------------+---------------------------------------------------------+
+| Cartesian product |                                                         |
++-------------------+---------------------------------------------------------+
+| Homomorphism      |                                                         |
++-------------------+---------------------------------------------------------+
+| Coproduct         | e.g. of two monoids                                     |
++-------------------+---------------------------------------------------------+
 
 Abstract Algebra
 ----------------
 
-Abstract algebra and Category theory have similar concepts but should not be
-confused with each other. Category theory is more general and has generalized
-concepts corresponding to algebra concepts. Most interesting structures are the
-ones with associative operation.
+Abstract algebra and Category theory have similar concepts and structures but
+should not be confused with each other. Algebra deals with sets and functions
+while category theory deals with objects and morphisms among objects. Objects
+are a generalization of a set and morphisms are a genralization of functions.
+In fact `Set` is a category where objects are sets and morhisms are functions.
 
 Sets
 ----
@@ -25,12 +35,6 @@ Sets
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 f(X) = Y where X and Y are sets, X is domain and Y is codomain
-
-+---------------------------+---------------------------+
-| image                     | another                   |
-+===========================+===========================+
-| .. image:: diagr/diag.png | .. image:: diagr/diag.png |
-+---------------------------+---------------------------+
 
 +------------+------------------------------------------+---------+-----------------+
 | Type       | Property                                 | Example | Counter Example |
@@ -48,10 +52,6 @@ f(X) = Y where X and Y are sets, X is domain and Y is codomain
 +------------+------------------------------------------+---------+-----------------+
 
 -  **fixpoint** f(c) = c
-
-* injective => monomorphism
-* surjective => epimorphism
-* bijective => bimorphism
 
 Magma
 ~~~~~
