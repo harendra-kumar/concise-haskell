@@ -6,15 +6,13 @@ THIS IS A WORK IN PROGRESS.
 Table of Contents
 -----------------
 
-* Preface
+* `Preface <preface.rst>`_
 * Why Haskell
-* Haskell Overview
-* Basic Syntax
+* `Haskell Overview <haskell-overview.rst>`_
+* `Basic Syntax <syntax.rst>`_
 * Semantics
-* Functions
 * Polymorphism
-* Type Theory
-* Types
+* `Types <types.rst>`_
 * Typeclasses
 * Functor Family
 * Abstractions
