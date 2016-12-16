@@ -4,7 +4,24 @@ Category Theory
 Terminology
 -----------
 
-* classes
++------------------+----------------------------------------------------------+
+| hom-set          |                                                          |
++------------------+----------------------------------------------------------+
+| 2-category       | A category with "morphisms between morphisms"; that      |
+|                  | is, where each hom-set itself carries the structure of a |
+|                  | category.                                                |
++------------------+----------------------------------------------------------+
+| Product category | The product of two categories C and D, denoted C × D and |
+|                  | called a product category, is a straightforward extension|
+|                  | of the concept of the Cartesian product of two sets      |
++------------------+----------------------------------------------------------+
+| Bi-functor       | A functor whose domain is a product category             |
++------------------+----------------------------------------------------------+
+| Kleisli category | A category naturally associated to any monad T.          |
++------------------+----------------------------------------------------------+
+| Profunctor       | A generalization of relations and also of bimodules.     |
+|                  | They are related to the notion of correspondences.       |
++------------------+----------------------------------------------------------+
 
 Category
 --------
@@ -49,56 +66,59 @@ Categories
 +---------+--------------------------------+---------------+
 | Cat     | small categories               | functors      |
 +---------+--------------------------------+---------------+
+| Hask    | types                          | functions     |
++---------+--------------------------------+---------------+
 
-Special morphisms
------------------
+Morphisms
+~~~~~~~~~
 
-* Functor: A morphism from one (small) category to another
-* Natural Transformation: A morphism from a functor to another
+Morphisms are a more general concept than functions. For example a morphism
+could be a relation (e.g. greater than) rather than a function.
 
-Functions & Morphisms
-~~~~~~~~~~~~~~~~~~~~~
-
--  Monomorphism - Never combines with two different operations to
-   produce the same result (f where f . g1 /= f . g2). generalization of
-   injective function.
--  Epimorphism - Two different morphisms combined with this morphism can
-   never produce the same result (g where f1 . g /= f2 . g).
-   generalization of surjective function.
--  Bimorphism = Epi + Mono . generalization of bijective.
--  isomorphism - f: X -> Y, g: Y -> X such that f . g = idY and g . f =
-   idX. f and g are isomorphisms and inverses.
--  endomprhism - f: X → X is an endomorphism of X
--  Automorphism = iso + endo
++--------------+--------------+------------------+----------------------------+
+| Morphism     | Function Eq. | Rule             | Description                |
++==============+==============+==================+============================+
+| Monomorphism | Injective    | f . g1 /= f . g2 | Maps to unique results     |
+|              |              |                  +----------------------------+
+|              |              |                  | Unique right inverse exists|
++--------------+--------------+------------------+----------------------------+
+| Epimorphism  | Surjective   | g1 . f /= g2 . f | Produces unique results    |
+|              |              |                  | when mapped                |
+|              |              |                  +----------------------------+
+|              |              |                  | Unique left inverse exists |
++--------------+--------------+------------------+----------------------------+
+| Bimorphism   | Bijective    | Epi + Mono       | Both left and right        |
+|              |              |                  | inverse are unique         |
++--------------+--------------+------------------+----------------------------+
+| Isomorphism  |              | f . g = idY      | f: X -> Y, g: Y -> X       |
+|              |              |                  |                            |
+|              |              | g . f = idX      | f and g are isomorphisms   |
+|              |              |                  | and inverses               |
++--------------+--------------+------------------+----------------------------+
+| Endomprhism  |              | f: X → X         |                            |
++--------------+--------------+------------------+----------------------------+
+| Automorphism |              | Endo + Iso       |                            |
++--------------+--------------+------------------+----------------------------+
 
 Inverses
 ~~~~~~~~
 
-f . g = id
+* retraction: left inverse
+* section: right inverse
 
--  f = retraction = left inverse => Epimorphism
--  g = section = right inverse => Monomorphism
--  left = right => Bimorphism
+Special morphisms
+-----------------
 
-Terminology
------------
-
--  a **2-category** is a category with "morphisms between morphisms";
-   that is, where each hom-set itself carries the structure of a
-   category.
--  **product category** - the product of two categories C and D, denoted
-   C × D and called a product category, is a straightforward extension
-   of the concept of the Cartesian product of two sets
--  A functor whose domain is a product category is known as a
-   **bifunctor**.
--  a **Kleisli category** is a category naturally associated to any
-   monad T. It is equivalent to the category of free T-algebras.
--  **profunctors** are a generalization of relations and also of
-   bimodules. They are related to the notion of correspondences.
++------------------------+----------------------------------------------------+
+| Functor                | A morphism from one (small) category to another    |
++------------------------+----------------------------------------------------+
+| Natural Transformation | A morphism from a functor to another               |
++------------------------+----------------------------------------------------+
 
 Haskell
 ~~~~~~~
 
 - Hask is a category with Haskell types as objects and functions as morphisms.
 - For example, 'List' or '[a]' is a functor type which maps morphisms on type a to
-  morphisms on type [a] via fmap.
+  morphisms on type [a] via fmap. Type a denotes one category and type [a]
+  denotes another category.
