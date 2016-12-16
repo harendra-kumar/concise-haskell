@@ -4,49 +4,99 @@ Denotational & Operational Semantics
 Terminology
 -----------
 
-+----------------------------+------------------------------------------------+
-| Denotation                 | What an expression denotes or means            |
-+----------------------------+------------------------------------------------+
-| Bottom (_|_)               | * An undefined or non-existing value           |
-|                            | * The ``undefined`` function in Haskell        |
-+----------------------------+------------------------------------------------+
-| Expression                 | A Haskell expression is a combination of       |
-|                            | functions and values                           |
-|                            | e.g. ``(square ((1 + 2) * 3)) + 4``            |
-|                            | Note: ``+`` and ``*`` are infix functions      |
-+----------------------------+------------------------------------------------+
-| Reduction                  | Applying functions in an expression to reduce  |
-|                            | it to a shorter expression                     |
-+----------------------------+------------------------------------------------+
-| Evaluation                 | Operational term for reduction                 |
-+----------------------------+------------------------------------------------+
-| Redex                      | An expression which can be reduced further     |
-+----------------------------+------------------------------------------------+
-| Weak Head Normal Form      | An expression whose outermost part (the head)  |
-| (WHNF)                     | is not a function application (it can be a     |
-|                            | constructor though).                           |
-+----------------------------+------------------------------------------------+
-| Normal Form (NF)           | An expression without redexes                  |
-+----------------------------+------------------------------------------------+
-| Reduced Normal Form (RNF)  | Same as normal form                            |
-+----------------------------+------------------------------------------------+
-| Strict reduction           | Inside out (bottom up) reduction of an         |
-|                            | expression                                     |
-+----------------------------+------------------------------------------------+
-| Non-Strict reduction       | Outside in (top down) reduction of an          |
-|                            | expression                                     |
-+----------------------------+------------------------------------------------+
-| Lazy evaluation            | An implementation of non-strict reduction      |
-+----------------------------+------------------------------------------------+
-| Eager evaluation           | An implementation of strict reduction          |
-+----------------------------+------------------------------------------------+
-| call-by-need               | lazy evaluation                                |
-+----------------------------+------------------------------------------------+
++------------------------+----------------------------------------------------+
+| Expression             | A Haskell expression is a combination of           |
+|                        | functions and values                               |
+|                        | e.g. ``(square ((1 + 2) * 3)) + 4``                |
+|                        | Note: ``+`` and ``*`` are infix functions          |
++------------------------+----------------------------------------------------+
+| Denotation             | Meaning of a term or expression                    |
++------------------------+----------------------------------------------------+
+| Denotational semantics | Each term or expression has a well defined         |
+|                        | denotation or meaning, in some universe of         |
+|                        | mathematical meanings.                             |
++------------------------+----------------------------------------------------+
+| Side effect            | A change in environment (global state, IO)         |
+|                        | effected by a function                             |
++------------------------+----------------------------------------------------+
+| Pure function          | A function which always returns the same output    |
+|                        | for identical inputs. This implies that the        |
+|                        | function has no side effect.                       |
++------------------------+----------------------------------------------------+
+| Pure functional        | A language in which all functions are pure, not    |
+|                        | allowing mutation of data structures               |
++------------------------+----------------------------------------------------+
+| Immutability           | No data structure can ever be modified or mutated. |
++------------------------+----------------------------------------------------+
+| Referential            | any variable can be replaced with its actual value |
+| transparency           | at any point of execution (because the variable can|
+|                        | never change)                                      |
++------------------------+----------------------------------------------------+
+| Equational reasoning   | Reasoning about a program just like mathematical   |
+|                        | equations by substituting terms with their         |
+|                        | definitions.                                       |
++------------------------+----------------------------------------------------+
+| Reduction              | Applying functions in an expression to reduce      |
+|                        | it to a shorter expression                         |
++------------------------+----------------------------------------------------+
+| Evaluation             | Operational equivalent for reduction               |
++------------------------+----------------------------------------------------+
+| Redex                  | An expression which can be reduced further         |
++------------------------+----------------------------------------------------+
+| Weak Head Normal Form  | An expression whose outermost part (the head)      |
+| (WHNF)                 | is not a function application (it can be a         |
+|                        | constructor though).                               |
++------------------------+----------------------------------------------------+
+| Normal Form (NF)       | An expression without redexes                      |
++------------------------+----------------------------------------------------+
+| Reduced Normal Form    | Same as normal form                                |
+| (RNF)                  |                                                    |
++------------------------+----------------------------------------------------+
+| Strict reduction       | Inside out (bottom up) reduction of an             |
+|                        | expression                                         |
++------------------------+----------------------------------------------------+
+| Non-Strict reduction   | Outside in (top down) reduction of an              |
+|                        | expression                                         |
++------------------------+----------------------------------------------------+
+| Lazy evaluation        | An implementation of non-strict reduction          |
++------------------------+----------------------------------------------------+
+| Eager evaluation       | An implementation of strict reduction              |
++------------------------+----------------------------------------------------+
+| Call-by-need           | lazy evaluation                                    |
++------------------------+----------------------------------------------------+
+| Partially ordered set  |                                                    |
+| (poset)                |                                                    |
++------------------------+----------------------------------------------------+
+| Semantic approximation |                                                    |
+| order                  |                                                    |
++------------------------+----------------------------------------------------+
+| Lazy value             | All ordinary Haskell values are lazy meaning they  |
+|                        | are evaluated on demand. Lazy values are also      |
+|                        | called lifted values.                              |
++------------------------+----------------------------------------------------+
+| Diverging computation  | A function or computation that does not return to  |
+|                        | the caller is said to diverge. Divergence is       |
+|                        | denoted by bottom.                                 |
++------------------------+----------------------------------------------------+
+|                        | In order theory, the least element (if it exists)  |
+|                        | of a partially ordered set is also called the      |
+|                        | bottom and is denoted by ⊥.                        |
+|                        +----------------------------------------------------+
+| Bottom (_|_)           | In Haskell, bottom is the least defined value added|
+|                        | to all types to denote undefined, diverging and    |
+|                        | lazy values.                                       |
++------------------------+----------------------------------------------------+
+| Lifting                | Adding a `bottom` to an ordered set is called      |
+|                        | `lifting`.                                         |
++------------------------+----------------------------------------------------+
+
 
 Language Features
 -----------------
 
 +----------------------+--------------------------+---------------------------+
+| User level feature   | Language feature         | Underlying enabler        |
++======================+==========================+===========================+
 | Equational Reasoning | Denotational Semantics   | Referential Transparency  |
 +----------------------+--------------------------+---------------------------+
 | Expressive Power     | Infinite data structures | Non-strict semantics      |
@@ -57,13 +107,13 @@ Language Features
 Language Design Modularity
 --------------------------
 
-+----------------------------+----------------------------+
-| Pure Functional (Haskell)  | Other languages            |
-+============================+============================+
-| Denotational semantics     | Mixed semantics            |
-+----------------------------+                            |
-| Operational semantics      |                            |
-+----------------------------+----------------------------+
++------------------------------+----------------------------+
+| Haskell (or pure functional) | Other languages            |
++==============================+============================+
+| Denotational semantics       | Operational is inseparable |
++------------------------------+                            |
+| Operational semantics        |                            |
++------------------------------+----------------------------+
 
 Denotational vs Operational Semantics
 -------------------------------------
@@ -78,106 +128,52 @@ Denotational vs Operational Semantics
 | Reason about the meaning and       | Reason about performance               |
 | correctness                        |                                        |
 +------------------------------------+----------------------------------------+
-| Equational reasoning for           | Space leaks, Evaluation                |
-| correctness                        | Strategies, Garbage collection         |
+| Equational reasoning for           | Space leaks, Optimal evaluation,       |
+| correctness                        | Garbage collection                     |
 +------------------------------------+----------------------------------------+
 
-Haskell Expressions
--------------------
+Denotational Semantics
+----------------------
 
-+----------------------------------------+
-| Expression                             |
-+----------------------+-----------------+
-| Function application | Value           |
-+----------------------+------+----------+
-|                      | Data | Function |
-+----------------------+------+----------+
+Constructing mathematical objects (called denotations) that describe the
+meanings of expressions from the programming language. An important tenet of
+denotational semantics is that semantics should be compositional: the
+denotation of a program phrase should be built out of the denotations of its
+subphrases.
 
-Haskell Denotational Semantics
-------------------------------
-
-Equational Reasoning
-~~~~~~~~~~~~~~~~~~~~
-
-Referentially Transparent Expressions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Referential Transparency
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Pure functional programming has a property called referential transparency or
-immutability.
+immutability. All expressions n Haskell are referentially transparent.
 
-No value ever changes after it is born.
-Arguments to a function are effectively passed by value. A function cannot
-implicitly make any changes to any of its environment. No globals, pointers
-etc. A function does not do anything other than what is visible from its
-signature or arguments.
+No value ever changes after it is born.  Arguments to a function are
+effectively passed by value. A function is completely isolated from its
+environment i.e. it cannot implicitly make any changes to any of its
+environment. No globals, pointers etc. A function does not do anything other
+than what is visible from its signature or arguments.
+
+The only way a function is connected to the rest of the program is via its
+published interface i.e. the arguments. So a function can be plucked out of a
+place and used somewhere else.
 
 This allows us to use a function in any environment without any fear of
 changing the meaning of the program in unintended ways.
 
-The only way a function is connected to the rest of the world is via its
-published interface i.e. the arguments. So a function can be plucked out of a
-place and used somewhere else.
+Bottom & Lifting
+~~~~~~~~~~~~~~~~
 
-Special Denotations
-^^^^^^^^^^^^^^^^^^^
-
-Role of Bottom
+Bottom does not have an explicit denotation in the language but is an implicit
+concept to understand the meaning of several language constructs in
+mathematical terms:
 
 * non-termination
 * Recursion
 * Infinite data structures
 * undefined values (lazy eval)
 
-+----------------------------+------------------------------------------------+
-| f x = x * x                |                                                |
-+----------------------------+------------------------------------------------+
-| f x = f (x + 1)            | Infinite loop                                  |
-+----------------------------+------------------------------------------------+
-| let x = x in x             |                                                |
-+----------------------------+------------------------------------------------+
-
-We say that ⊥ is the completely "undefined" value or function. Every basic data
-type like Integer or () contains one ⊥ besides their usual elements. So the
-possible values of type Integer are
-{\displaystyle \bot ,0,+1,-1,+2,-2,+3,-3,\dots } \bot
-,0,+1,-1,+2,-2,+3,-3,\dots
-
-Adding ⊥ to the set of values is also called lifting.
-
-As another example, the type () with only one element actually has two
-inhabitants:
-{\displaystyle \bot ,()} \bot ,()
-
-Now, {\displaystyle \bot } \bot  (bottom type) gives us the possibility to
-denote partial functions:
-{\displaystyle f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}} f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}
-
-Partial order picture with bottom at the bottom.
-
-Reasoning By Substitution
-^^^^^^^^^^^^^^^^^^^^^^^^^
-
-Ulitmately what do we get from referential transparency (purity) and
-denotational semantics? Equational reasoning.
-
-http://www.haskellforall.com/2013/12/equational-reasoning.html
-http://neilmitchell.blogspot.in/2015/02/refactoring-with-equational-reasoning.html
-
-A Haskell program is purely a set of equations. Each function definiton is a
-set of equations and those equations then expand to another set of equations.
-
-expression A = expression B
-
-Where expression A could be a function definition or a pattern match at top
-level or in a let or where binding inside a function.
-
-Thanks to referential transparency, we can freely substitute a term by its
-equivalent equation without worrying about any side effects. This works just
-like mathematical equations. By way of substitution we can prove equivalence of
-two expressions.
-
-Non-Strict Reduction Semantics
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Non-Strict Reduction
+~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | Haskell reduces expressions in a non-strict manner                          |
@@ -201,13 +197,15 @@ fashion or in a top down fashion if the expression is represented as a tree
 with root on top. Outside-in reduction of an expression ensures that a
 subexpression will `never` be computed if it is not used in the expression.
 
-How will (A or B) where A and B are redexes and we will know whether they are
-TRUE or FALSE only after evaluating them. Which one gets evaluated first?
+How does (A OR B) get evaluated where A and B are redexes? We will know whether
+they are TRUE or FALSE only after evaluating them. Which one gets evaluated
+first?
 
 Default semantics:
 
-* pattern matching is strict by default (WHNF)
-* case expression
+* pattern matching in case (and function definitions) is strict (WHNF)
+* However pattern matching in let and where is lazy
+* strict pattern match is the only way to strictness
 
 Strict and Non-strict functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -238,56 +236,49 @@ Strict and Non-strict functions
 | ``fst (a, b) = a -- non-strict in second argument``                         |
 +-----------------------------------------------------------------------------+
 
-Haskell Operational Semantics
------------------------------
+Equational Reasoning
+~~~~~~~~~~~~~~~~~~~~
 
-Lazy evaluation
+Reasoning by substitution.
+
+Ulitmately what do we get from referential transparency (purity) and
+denotational semantics? Ability to easily reason about or understand how a
+program works. Equational reasoning.
+
+A Haskell program is nothing but a set of equations. Each function definiton is
+a set of equations which expand to other set of equations and so on.
+
+expression A = expression B
+
+Where expression A could be a function definition at top
+level or in a let or where binding inside a function.
+
+Thanks to referential transparency, we can freely substitute a term by its
+equivalent equation without worrying about any side effects. This works just
+like mathematical equations. By way of substitution we can prove equivalence of
+two expressions.
+
+Operational Semantics
+---------------------
+
+Lazy Evaluation
 ~~~~~~~~~~~~~~~
 
 Graph Reduction
 
-The value is represented by a thunk or closure, which is code which knows how
-to compute the value. When the value is needed this code is executed and the
-value is generated for the consumer.
+An unevaluated value is represented by a thunk or closure, which is code which
+knows how to compute the value. When the value is needed this code is executed
+and the value is generated for the consumer.
 
-Lazy evaluation as fine grained data flow programming
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Program execution is driven by IO, statements are not executed unless they are
+needed by a computation driven by IO. There is no sequential evaluation of all
+statements in the control flow path.
 
-Functions are low level pipes.
-
-Infinite data structures are like the indefinite data producers. Lazy
-evaluation composes multiple functions together and a data element passes
-through those functions like data passes through pipes. The usual design model
-is to let the data pass through all stages quickly and then get garbage
-collected and not hold up the data. If you hold up it turns into a space leak.
-
-Each function is a pipe connected to another function, another pipe. Lazy
-evaluation drives the data through this big chain of pipes. The pipes get
-activated when we want to draw something from the remote end. This is literally
-data driven programming.
-
-We need a picture here with functions/closures connected to each other and how
-data flows through them. How the whole evaluation machinery is cranked to
-generate output from input.
-
-Haskell lazy evaluation is fundamentally data driven or flow based programming,
-or in other words stream based programming.
-
-Stream fusion basically fuses multiple stages of lazy evaluation into one
-big imperative like loop instead of chain invocation of each stage. Same way we
-represent loops by pipes.
-
-Within a high level pipe we can use strict evaluation rather than lazy
-evaluation and fuse that whole logic together to make it more efficient.
-
-Can we automatically make everything strict rather than lazy depending on
-feasibility?
-
-Controlling Strictness
+Controlling Evaluation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The language has to respect non-strict semantics, however where it does not
-impact the behavior of the program we can choose strict evaluation.
+The language has to respect non-strict semantics, however when it does not
+impact the semantics of the program we can choose strict evaluation.
 
 * bang patterns
 * strict by default extension
@@ -295,9 +286,17 @@ impact the behavior of the program we can choose strict evaluation.
 Understanding a Haskell Program
 -------------------------------
 
-An imperative mind runs a program in the head line by line. A lazy Haskell mind
-composes a program in the head. When reading Haskell do not try to run each
-statement then and there, just think that this is being composed and then it
-will be run in the required order when needed. It might get composed further or
-transformed and then composed to create a bigger composition. Just keep your
-mind lazy!  This is perhaps the hardest part for an imperatively trained mind.
+An imperative mind runs a program in the head line by line. On the other hand,
+a lazy Haskell mind composes a program in the head. When reading Haskell do not
+try to run each statement then and there, just think that this is being
+composed and then it will be run in the required order when needed. It might
+get composed further or transformed and then composed to create a bigger
+composition. Just keep your mind lazy!  This is perhaps the hardest part for an
+imperatively trained mind.
+
+References
+----------
+
+* https://downloads.haskell.org/~ghc/7.6.1/docs/html/users_guide/informal-semantics.html
+* http://www.haskellforall.com/2013/12/equational-reasoning.html
+* http://neilmitchell.blogspot.in/2015/02/refactoring-with-equational-reasoning.html
