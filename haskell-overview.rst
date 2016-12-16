@@ -18,10 +18,6 @@ Terminology
 |                        | functions, compose them together to create a       |
 |                        | composite functions.                               |
 +------------------------+----------------------------------------------------+
-| first order function   | Arguments and return values are not functions      |
-+------------------------+----------------------------------------------------+
-| higher order functions | Arguments or return value is a function            |
-+------------------------+----------------------------------------------------+
 | Abstraction            | Opposites: Reduction, Concretization               |
 +------------------------+----------------------------------------------------+
 | Abstract, Polymorphic  | Opposites: Concrete, Monomorphic                   |
@@ -33,7 +29,26 @@ Terminology
 |                        | data in a data level program or types or type      |
 |                        | functions in a type level program.                 |
 +------------------------+----------------------------------------------------+
-| Function               |                                                    |
+| Parameters             | The free variables in a function's definition      |
++------------------------+----------------------------------------------------+
+| Arguments              | Parameter values supplied in a function call       |
++------------------------+----------------------------------------------------+
+| Arity                  | The number of parameters of a function             |
++------------------------+----------------------------------------------------+
+| Function application   | Applying a function to its argument(s)             |
++------------------------+----------------------------------------------------+
+| Application            | Function application                               |
++------------------------+----------------------------------------------------+
+| Partial application    | Function application which supplies less           |
+|                        | arguments than the parameters of a function        |
++------------------------+----------------------------------------------------+
+| Currying               | In a multi-argument function consuming one         |
+|                        | argument at a time and returning another           |
+|                        | function which consumes the rest of the arguments. |
++------------------------+----------------------------------------------------+
+| First order function   | None of the arguments is a function                |
++------------------------+----------------------------------------------------+
+| Higher order functions | One or more argument is a function                 |
 +------------------------+----------------------------------------------------+
 | Data                   | A way to represent values to be communicated across|
 |                        | functions in a data level program. Data is         |
@@ -420,17 +435,17 @@ by `algebraic data types` in Haskell.
 Composed Functions
 ~~~~~~~~~~~~~~~~~~
 
-Composed functions are pure compositions of other functions and pass down their
-arguments without having to know their values and hence without discriminating
-the logic based on them.  In other words, they treat their parameters as opaque
-data.  Such functions do not need to de-construct the algebraic structure of
-their arguments.
+Composed functions are defined purely in terms of composed applications of
+other functions. They pass on their arguments without having to know their
+values and hence do not discriminate the logic based on them.  In other words,
+they treat their parameters as opaque data.  It means that they do not need to
+de-construct the algebraic structure of their arguments.
 
 ::
 
   square x = x * x
 
-This classification is not very interesting in itself but it is a concrete
+This classification is not very interesting as such but it is a concrete
 value level equivalent of function-level parametric polymorphism. Such
 functions do not discriminate values the way parametrically polymorphic
 functions do not discriminate types. We can say that a composed function is a
