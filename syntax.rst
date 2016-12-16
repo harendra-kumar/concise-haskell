@@ -626,7 +626,7 @@ Irrefutable Pattern Matches
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
-| Irrefutable means the pattern is committed for evaluation. When multiple    |
+| Irrefutable means the pattern is bound to match. When multiple              |
 | alternatives are possible it implies that the pattern is chosen and no more |
 | alternatives will be tried.                                                 |
 +-----------------------------------------------------------------------------+
