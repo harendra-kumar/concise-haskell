@@ -54,7 +54,7 @@ Note on Jargon
 --------------
 
 This text tries to avoid the jargon where possible but many terms which allow
-you express concepts in a concise and clear manner are necessary. We define the
+you to express concepts in a concise and clear manner are necessary. We define the
 term before it is used so that you have an idea what it means.
 
 By defining all the necessary vocabulary in a succinct manner it also allows
