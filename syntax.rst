@@ -22,7 +22,12 @@ Terminology
 | built-in | Functionality provided by the language i.e. GHC, the             |
 |          | compiler                                                         |
 +----------+------------------------------------------------------------------+
-| packages | Modules (libraries) live in packages which can be installed      |
+| Module   | Haskell code is arranged in modules of related functionality.    |
+|          | Each module exports symbols (functions, types etc) which can be  |
+|          | imported by the user to make use of the functionality provided   |
+|          | by the module.                                                   |
++----------+------------------------------------------------------------------+
+| packages | A package is a collection of modules. Packages can be installed  |
 |          | independently. Some packages (e.g. base) are installed with the  |
 |          | compiler.                                                        |
 +----------+------------------------------------------------------------------+
@@ -44,6 +49,8 @@ Expressions
 ~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
+| Literals                                                                    |
++=============================================================================+
 | The basic building block of a Haskell program is an expression. The         |
 | simplest expression is a literal data value:                                |
 +-----+----+------------------------------------------------------------------+
@@ -54,16 +61,21 @@ Expressions
 +-----------------------------------------------------------------------------+
 | You can type these expressions in GHCi to evaluate and print the result.    |
 +-----------------------------------------------------------------------------+
-| A function call is an expression:                                           |
-+-----------+-----------+-----------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Function applications                                                       |
++===========+===========+=====================================================+
 | print 'a' | even 10   | subtract 0.5 10.5                                   |
 +-----------+-----------+-----------------------------------------------------+
 | These functions are called `prefix functions` since the function name comes |
 | before its arguments.                                                       |
 +-----------------------------------------------------------------------------+
-| We can also use operators in an expression. A `binary operator` is an       |
-| `infix function` as the function name is placed in the middle of its two    |
-| arguments.                                                                  |
+
++-----------------------------------------------------------------------------+
+| Operators                                                                   |
++=============================================================================+
+| A `binary operator` is an `infix function` as the function name is placed   |
+| in the middle of its two arguments.                                         |
 +---------+---------+---------------------------------------------------------+
 | 5 + 4   | 5 - 4   | 2^3                                                     |
 +---------+---------+---------------------------------------------------------+
@@ -72,6 +84,10 @@ Expressions
 +---------+---------+---------------------------------------------------------+
 | (+) 5 4 | (-) 5 4 | (^) 2 3                                                 |
 +---------+---------+---------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Composed expressions                                                        |
++=============================================================================+
 | A Haskell expression is composed using functions, operators and values.     |
 | Arguments of functions could be expressions themselves. Argument            |
 | expressions must be enclosed in parenthesis.                                |
@@ -82,8 +98,8 @@ Expressions
 Basic Data Types (Prelude)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+----------+------------------------------------------------------------------+
-| Type     | Values                                                           |
++----------+--------------------------------+---------------------------------+
+| Type     | Examples                       | Notes                           |
 +==========+==========+========+============+=================================+
 | Char     | 'a'      | 'b'    | 'c'        | Unicode character literals      |
 +----------+----------+--------+------------+---------------------------------+
@@ -135,12 +151,12 @@ Arithmetic Operations (Prelude)
 | rem       | 3 \`div\` (-2) | remainder of `quot`                            |
 +-----------+----------------+------------------------------------------------+
 
-Function Application (built-in)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Function Application
+~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| `whitespace` or `juxtaposition` is highest precedence and left associative  |
-| function application                                                        |
+| `whitespace` or `juxtaposition` is a function application operator. It has  |
+| the highest precedence and is left associative (language built-in)          |
 +-----------------------------------------------------------------------------+
 | f x                                                                         |
 +---------+-------------------------------------------------------------------+
@@ -149,12 +165,9 @@ Function Application (built-in)
 | f x y z | ((f x) y) z                                                       |
 +---------+-------------------------------------------------------------------+
 
-Function Application (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
 +-----------------------------------------------------------------------------+
 | Think evaluating everything after a `$` before applying it to the function  |
-| preceding it.                                                               |
+| preceding it (defined in Prelude).                                          |
 +-------------+---------------------------------------------------------------+
 | f $ x       | f x                                                           |
 +-------------+---------------------------------------------------------------+
@@ -165,7 +178,7 @@ Function Application (Prelude)
 
 +-----------------------------------------------------------------------------+
 | ``&`` is reverse function application i.e. argument is written before the   |
-| function.                                                                   |
+| function (defined in Prelude).                                              |
 +-----------+-----------------------------------------------------------------+
 | x & f     | f x                                                             |
 +-----------+-----------------------------------------------------------------+
@@ -173,7 +186,7 @@ Function Application (Prelude)
 +-----------+-----------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| swap the arguments before applying                                          |
+| swap the arguments before applying (defined in Prelude)                     |
 +--------------+--------------------------------------------------------------+
 | flip f $ x y | f y x                                                        |
 +--------------+--------------------------------------------------------------+
@@ -199,13 +212,13 @@ Function Composition (Prelude)
 Operators as Functions and Vice Versa (built-in)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-+-------------+---------------+
-| Prefix      | Infix         |
-+=============+===============+
-| ``div 4 3`` | ``4 `div` 3`` |
-+-------------+---------------+
-| ``(+) 4 3`` | ``4 + 3``     |
-+-------------+---------------+
++-------------------+--------------------------+
+| Prefix (function) | Infix (operator)         |
++===================+==========================+
+| ``div 4 3``       | ``4 `div` 3``            |
++-------------------+--------------------------+
+| ``(+) 4 3``       | ``4 + 3``                |
++-------------------+--------------------------+
 
 +---------------------------------------------+
 | Operator Sections                           |
@@ -220,6 +233,8 @@ Operators as Functions and Vice Versa (built-in)
 +-------------+-------------------------------+
 | ``(- 5)``   | ``-5``                        |
 +-------------+-------------------------------+
+
+TBD - tuple sections
 
 Defining Equations
 ------------------
