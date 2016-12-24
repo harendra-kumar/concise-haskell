@@ -277,7 +277,7 @@ Nested Local Definitions
 | A `let` or `where` clause defines a local scope. Variables introduced in a  |
 | local scope are not visible in parent or sibling equation scopes.           |
 +-----------------------------------------------------------------------------+
-| Bindings in a local scope will shadow bindings of the same name from parent |
+| A binding in local scope shadows a binding of the same name from the parent |
 | scopes.                                                                     |
 +-----------------------------------------------------------------------------+
 | Multiple equations can be defined in a single `let` or `where` clause just  |
@@ -293,7 +293,7 @@ Expression Local (let)
 | Since `let` is an expression it can be used wherever an expression can be   |
 | used.                                                                       |
 +-----------------------------------------------------------------------------+
-| Bindings introduced by let are visible only in the let expression.          |
+| Bindings introduced by let are visible only within the let expression.      |
 +-----------------------------------------------------------------------------+
 | ``10 + let x = 5 in x * x + 2^3``                                           |
 +-----------------------------------------------------------------------------+
@@ -311,12 +311,12 @@ Equation Local (where)
 ^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
-| A `where` clause defines one or more equations in a local scope             |
+| A `where` clause defines one or more equations within the local scope       |
 | of another equation.                                                        |
 +-----------------------------------------------------------------------------+
 | A `where` clause is not an expression in itself therefore unlike `let` it   |
-| cannot be embedded arbitrarily inside an expression. It can only be used    |
-| after as part of an equation definition.                                    |
+| cannot be embedded arbitrarily inside an expression. It is always at the end|
+| of an equation definition.                                                  |
 +-----------------------------------------------------------------------------+
 | Bindings introduced by where are visible only in the local scope of the     |
 | equation it is defined in.                                                  |
@@ -333,13 +333,14 @@ Equation Indentation Rule
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| When you are writing multiline equations or multiple equations in GHCi or in|
-| a file you need to ensure that they are `properly indented`.                |
+| When you are writing a multiline equation or multiple equations whether in  |
+| GHCi or in a file, you need to ensure that each line is `properly indented`.|
 +-----------------------------------------------------------------------------+
 | All equations at a given scope (`top level`, `let` or `where`) must start   |
 | in the same column.                                                         |
-| A multiline equation can continue in an arbitrary column as long as it is   |
-| indented at least one column beyond the start column of the equation.       |
+| An equation can continue on the next line in an arbitrary column            |
+| as long as it is indented at least one column beyond the start column of    |
+| the first line of the equation.                                             |
 +-----------------------------------------------------------------------------+
 | A `do` expression block has a few more rules described later.               |
 +-----------------------------------------------------------------------------+
@@ -369,8 +370,8 @@ Anonymous Functions
 ~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| A lambda is an expression denoting a function. It allows you to define a    |
-| function in-place inside an expression.                                     |
+| A lambda or an anonymous function is an expression denoting a function. It  |
+| allows you to define a function in-place inside an expression.              |
 +-----------------------------------------------------------------------------+
 | ``\a b c -> ...``                                                           |
 +-----------------------------------------------------------------------------+
@@ -415,7 +416,8 @@ Data Construction
 ~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| Use a data constructor function to create a data reference                  |
+| Use a data constructor function, defined by a data declaration, to create a |
+| data reference                                                              |
 +-----------------------------------------------------------------------------+
 | x = C a b c ...                                                             |
 +-----------------------------------------------------------------------------+
@@ -442,7 +444,8 @@ Case Expression
 ~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| A `case expression` is a representation of a mathematical function.         |
+| A `case expression` is a direct translation of the mathematical definition  |
+| of a function.                                                              |
 | It is a map from individual constructor patterns of an `<input expr>` to    |
 | corresponding output expressions.                                           |
 +-----------------------------------------------------------------------------+
@@ -456,20 +459,20 @@ Case Expression
 +-----------------------------------------------------------------------------+
 | `<input expr>` is called the `scrutinee` of the case expression.            |
 +-----------------------------------------------------------------------------+
-| Each line under the case statement specifies a mapping from scrutinee       |
-| constructor pattern to an output expression.                                |
+| Each line under the case statement specifies a mapping from a constructor   |
+| pattern matching the scrutinee to an output expression.                     |
 +-----------------------------------------------------------------------------+
-| C1, C2 etc. are the constructors of the type of `<input expr>`.             |
+| C1, C2 etc. are the constructors defined by the type of `<input expr>`.     |
 +-----------------------------------------------------------------------------+
-| ``a`` ``b`` ``c`` are variables representing the components of the product  |
-| type (if any) represented by the chosen constructor.                        |
+| ``a`` ``b`` ``c`` are variables corresponding to the components of the      |
+| product type (if any) represented by the chosen constructor.                |
 +-----------------------------------------------------------------------------+
 | Patterns are matched from top to bottom. First pattern that matches the     |
 | constructor of the scrutinee is chosen and the corresponding output         |
 | expression is evaluated.                                                    |
 +-----------------------------------------------------------------------------+
-| This process of selecting a constructor from a sum type and then selecting  |
-| the individual components in a product constructor is called a              |
+| This process of selecting a matching constructor of the sum type and then   |
+| breaking apart the components of a product type constructor is called a     |
 | `pattern match`.                                                            |
 +-----------------------------------------------------------------------------+
 | Patterns can be nested i.e. ``a`` ``b`` ``c`` themselves can be specified   |
@@ -480,10 +483,6 @@ Case Expression
 | while in case of a variable the input is bound to that variable.            |
 +-----------------------------------------------------------------------------+
 | The output expressions can make use of the bindings ``a``, ``b``, ``c``.    |
-+-----------------------------------------------------------------------------+
-| In general, the output expression can be another case expression to further |
-| deconstruct and map the retrieved data components or an expression to just  |
-| transform them.                                                             |
 +-----------------------------------------------------------------------------+
 | All the output expressions must be of the same type i.e. the result type of |
 | the case expression.                                                        |
@@ -498,13 +497,14 @@ Case Expression
 | understand them.                                                            |
 +-----------------------------------------------------------------------------+
 | The `scrutinee` of case is strictly evaluated to WHNF to enable the pattern |
-| match. This is the only source of all forms of strict evaluation in Haskell.|
+| match. This is the exclusive source of all forms of strict evaluation in    |
+| Haskell.                                                                    |
 +-----------------------------------------------------------------------------+
-| `case` is also the fundamental way to express branching in Haskell.         |
-| Languages need branches to map specific inputs to outputs which is done     |
-| via a case expression in Haskell. Haskell does not need and does not have   |
-| any other primitive branching constructs. All other forms of branching are  |
-| just syntactic sugar on top of case.                                        |
+| If you think about it, the fundamental purpose of branching in a            |
+| programming language is to create a mapping - a function in mathematical    |
+| sense. In Haskell, a case expression represents a function more explicitly; |
+| therefore it does not have a separate branching primitive. All forms of     |
+| branching is just syntactic sugar on top of case.                           |
 +-----------------------------------------------------------------------------+
 
 Multi Equation Function Definitions
@@ -1016,7 +1016,7 @@ Namespaces
 ----------
 
 +-----------------------------------------------------------------------------+
-| Identifiers must start with an `uppercase` letter                           |
+| Identifiers starting with an `uppercase` letter                             |
 +--------------------+-------------------+------------------------------------+
 | Module identifiers | Type constructors | Data constructors                  |
 +--------------------+-------------------+------------------------------------+
@@ -1031,7 +1031,7 @@ Namespaces
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Identifiers must start with a `lowercase` letter                            |
+| Identifiers starting with a `lowercase` letter                              |
 +------------------------------------+----------------------------------------+
 | type variables                     | term variables                         |
 +------------------------------------+----------------------------------------+

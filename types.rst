@@ -329,6 +329,10 @@ Generalized Algebraic Data Type (GADT) Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------------+
+| .. class :: center                                               |
+|                                                                  |
+|  -XGADTSyntax                                                    |
++------------------------------------------------------------------+
 | Standard algebraic data type syntax                              |
 |                                                                  |
 | * Each data constructor has the same return type which is        |
@@ -395,7 +399,7 @@ Typeclass Derivation and Constraints
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------+-------------------------------------------------------+
-| Haskell98 Syntax                                           | GADT Syntax                                           |
+| Regular ADT Syntax                                         | GADT Syntax                                           |
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class :: center                                                                                                 |
 |                                                                                                                    |
@@ -410,7 +414,21 @@ Typeclass Derivation and Constraints
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class :: center                                                                                                 |
 |                                                                                                                    |
-| Typeclass Constraint                                                                                               |
+| Typeclass Constraint (:red:`Deprecated Haskell 98 style`, -XDatatypeContexts)                                      |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         |                                                       |
+|                                                            |                                                       |
+|   data Eq a => Set a = MkSet [a]                           |                                                       |
++------------------------------------------------------------+-------------------------------------------------------+
+| * Construction `requires` ``Eq a``: makeSet :: :red:`Eq a =>` [a] -> Set a; makeSet xs = MkSet (nub xs)            |
+| * Pattern match also `requires`                                                                                    |
+|   ``Eq a``: insert :: :red:`Eq a =>` a -> Set a; insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as             |
+| * It is recommened to use the GHC style typeclass constraint which provides the constraint on pattern match        |
+|   instead of requiring it.                                                                                         |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class :: center                                                                                                 |
+|                                                                                                                    |
+| Typeclass Constraint (Available only with -XGADTs or -XExistentialQuantification)                                  |
 +------------------------------------------------------------+-------------------------------------------------------+
 | ::                                                         | ::                                                    |
 |                                                            |                                                       |
