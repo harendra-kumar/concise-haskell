@@ -1,10 +1,19 @@
-Computing
----------
+Terminology
+~~~~~~~~~~~
+
++------------------------+----------------------------------------------------+
+| DRY                    | Don't repeat yourself                              |
++------------------------+----------------------------------------------------+
+| PL                     | Programming language                               |
++------------------------+----------------------------------------------------+
+
+High Level Programming
+----------------------
 
 +------------+--------------------------------------------+-------------+
 | data input | slice, dice, transform, combine            | data output |
-+------------+--------------------------------------------+-------------+
-|            | Programming Language                       |             |
+|            +--------------------------------------------+             |
+|            | High Level Programming Language            |             |
 +------------+--------------------------------------------+-------------+
 
 Product Building Phases
@@ -22,48 +31,29 @@ Product Building Phases
 | Build with clay    | Build with blocks                          |
 +--------------------+--------------------------------------------+
 
-Important Language Features
----------------------------
+Basic Language Features
+-----------------------
 
-Feature Stack
-~~~~~~~~~~~~~
++--------------------------------------------------------------------------------+
+| The key is providing a feature without compromising on other features.         |
++--------------------------------------------------------------------------------+
 
-+---------------------------------------------------------------------------------------------------------+
-| Higher level qualities build upon lower level features.                                                 |
-+---------------------------------------------------------------------------------------------------------+
-| The key is providing a feature without compromising on other features.                                  |
-+---------------------------------------------------------------------------------------------------------+
-| Money                                                                                                   |
-+------------+------------+------------------+-----------------+-----------------+------------------------+
-| Building cost           | Opportunity cost | Sustenance cost | Deployment cost | Suitability            |
-+------------+------------+------------------+-----------------+-----------------+------------------------+
-| Total Time & Resources  | Clock time       | Quality         |                 | Scalability            |
-+------------+------------+------------------+-----------------+-----------------+------------------------+
-| Build, Understand & Change                 | Test            | Performance     |                        |
-+------------+-------------------------------+-----------------+-----------------+------------------------+
-| Expressive | Composable                    | Correct         | Efficient       | Parallel & Distributed |
-+------------+-------------------------------+-----------------+-----------------+------------------------+
++-----------+--------------------------------------------------------------+-----------------+
+|           | Development (maintenance)                                    | Deployment      |
++===========+============================================+=================+=================+
+| PL        | DRY                                        | Safe            | Efficient       |
+|           +------------+-------------------------------+-----------------+                 |
+| Feature   | Expressive | Composable                    | Correct         |                 |
++-----------+------------+-------------------------------+-----------------+-----------------+
+| Tasks     | Build, Understand & Change                 | Test            | Performance     |
++-----------+-------------------------+------------------+-----------------+                 |
+| Execution | Total Time & Resources  | Clock time       | Quality         |                 |
++-----------+-------------------------+------------------+-----------------+-----------------+
+| Cost      | Total building cost     | Opportunity cost | Sustenance cost | Deployment cost |
++-----------+-------------------------+------------------+-----------------+-----------------+
 
-Feature Rings
-~~~~~~~~~~~~~
+Scalability
+~~~~~~~~~~~
 
-TBD - draw the table as a picture with rings
-
-Feature Flow Diagram
-~~~~~~~~~~~~~~~~~~~~
-
-* Expressive -> BUC (build, understand, change)
-* Composable -> BUC, test, scale
-* Correct -> test
-* Efficient -> Performance
-* Parallel -> performance
-* Parallel -> Scale
-* Distributed -> Scale
-
-----
-
-* BUC -> time, resources, clock time
-* test -> clock time
-* test -> quality
-* Performance -> deployment cost
-* Scale -> suitability
+* Parallel
+* Distributed
