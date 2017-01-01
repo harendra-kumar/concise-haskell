@@ -30,14 +30,6 @@ Terminology
 +----------------------------+-----------------------------------------------------------------+
 | Coerce                     | Cast a type into another (compatible) type                      |
 +----------------------------+-----------------------------------------------------------------+
-| Concrete                   | Represents a real physical value (not abstract)                 |
-+----------------------------+-----------------------------------------------------------------+
-| Monomorphic                | Has only one possible concrete representation                   |
-+----------------------------+-----------------------------------------------------------------+
-| Polymorphic                | Has multiple concrete representations (abstract, not concrete)  |
-+----------------------------+-----------------------------------------------------------------+
-| Monotype                   | A monomorphic type                                              |
-+----------------------------+-----------------------------------------------------------------+
 | Unboxed                    | Bare physical representation, no wrapping or indirection layer  |
 +----------------------------+-----------------------------------------------------------------+
 | Boxed                      | Physical representation wrapped with control info               |
@@ -257,13 +249,13 @@ Data Constructors
 Terminology Illustrations
 .........................
 
-+-----------+---------------------------------------+-------------+
-| Sum       | data Bool = False | True              | Monomorphic |
-+-----------+---------------------------------------+-------------+
-| Product   | data Point = Point Int Int            | Monomorphic |
-+-----------+---------------------------------------+-------------+
-| Recursive | data List a = Empty | Cons a (List a) | Polymorphic |
-+-----------+---------------------------------------+-------------+
++-----------+---------------------------------------+
+| Sum       | data Bool = False | True              |
++-----------+---------------------------------------+
+| Product   | data Point = Point Int Int            |
++-----------+---------------------------------------+
+| Recursive | data List a = Empty | Cons a (List a) |
++-----------+---------------------------------------+
 
 Generalized Algebraic Data Type (GADT) Syntax
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

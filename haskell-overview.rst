@@ -59,6 +59,15 @@ Terminology
 | Type                   | Denotes rules that a value should conform to       |
 |                        | (e.g. Int or String)                               |
 +------------------------+----------------------------------------------------+
+| Concrete               | Represents a real physical value (not abstract)    |
++------------------------+----------------------------------------------------+
+| Monomorphic            | Has only one possible concrete representation      |
++------------------------+----------------------------------------------------+
+| Polymorphic            | Has multiple concrete representations (abstract,   |
+|                        | not concrete)                                      |
++------------------------+----------------------------------------------------+
+| Monotype               | A monomorphic type                                 |
++------------------------+----------------------------------------------------+
 | Kind                   | Type of types (e.g. a type could be lifted or      |
 |                        | unlifted)                                          |
 +------------------------+----------------------------------------------------+
@@ -881,8 +890,8 @@ Kind check
 | (->) :: Type -> Type -> Type | Int# -> Int |                                |
 +------------------------------+-------------+--------------------------------+
 
-Polymorphic Functions
----------------------
+Polymorphic Functions & Types
+-----------------------------
 
 Functions whose argument types can vary. They work for many types.
 
@@ -891,7 +900,10 @@ Functions whose argument types can vary. They work for many types.
   id :: a -> a
   id x = x
 
-`Function instances`: When we apply the identity function to a value of a
+The `a` in the signature of this function is a `type variable`. `a` can assume
+any concrete type.
+
+`Function instances`: When we apply the `id` function to a value of a
 concrete type, then we `instantiate` the type variable `a` to that concrete
 type:
 
@@ -901,11 +913,16 @@ type:
 
 This is also known as `parametric polymorphism`.
 
+Similarly, polymorphic types (type functions) also use type variables::
+
+  data Pair a = Pair a a
+
 Quantification of Type Variables
 --------------------------------
 
-The corresponding concept in the data level program is the scope of a variable
-or binding (local or global).
+A polymorphic function as well as a polymorphic type uses type variables. Like
+variables in a data level program, type variables too have scope. The scope of
+a type variable is also known as quantification.
 
 Quantification decides the `visibility scope of a type variable` to the
 typechecker. The type variable cannot be instantiated and cannot exist outside
@@ -932,16 +949,7 @@ When we say a type variable is `not quantified`, it means that it is
 universally quantified. Whereas just saying `quantified` is equivalent to
 saying `existentially quantified`.
 
-Type Level Parametric Polymorphism
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+----------------------+--------------------------------------------------------------------------------+------------------+
-| Polymorphic Type Fns | ``t :: k1 -> k2``, where k1 is a kind variable representing types of rank0     |                  |
-+----------------------+--------------------------------------------------------------------------------+------------------+
-| Type Functions       | ``t :: Type -> Type``                                                          | Polymorphic type |
-+----------------------+--------------------------------------------------------------------------------+------------------+
-| Concrete Types       | ``t :: Type``                                                                  | Monomorhic type  |
-+----------------------+--------------------------------------------------------------------------------+------------------+
+TBD: examples of existential quantification.
 
 Data Level Parametric Polymorphism
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -972,24 +980,88 @@ Data Level Parametric Polymorphism
 | Concrete Data Values          | ``f :: Int``                                                                   | Monomorphic value       |
 +-------------------------------+--------------------------------------------------------------------------------+-------------------------+
 
-Data Level & Type Level Abstraction Ladder
-------------------------------------------
+Abstraction Ladders
+-------------------
 
-+-------------------------------------+---------------------+----------------------------------+
-| Data Level                          | Connector           | Type Level                       |
-+=====================================+=====================+==================================+
-| Ad-hoc polymorphism                 | Typeclass           | Ad-hoc type polymorphism         |
-| (function families)                 |                     | (type families)                  |
-+-------------------------------------+---------------------+----------------------------------+
-| Parametrically polymorphic function |                     | Parametrically polymorphic type  |
-+-------------------------------------+                     +----------------------------------+
-| Ad-hoc functions                    | Data declaration    | Ad-hoc (user defined) types      |
-| (case analysis)                     | (Data constructors) | (Algebraic Data Types)           |
-+-------------------------------------+---------------------+----------------------------------+
-| Composed functions                  |                     | Composed type functions          |
-+-------------------------------------+                     +----------------------------------+
-| Concrete values                     | Type signature      | Concrete types                   |
-+-------------------------------------+---------------------+----------------------------------+
+Data & Type Level Bridges
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
++------------------------------+---------------------+------------------------+
+| Data Level                   | Connector           | Type Level             |
++==============================+=====================+========================+
+| Ad-hoc polymorphism          | Typeclass           | Ad-hoc type functions  |
+|                              |                     | (type families)        |
++------------------------------+---------------------+------------------------+
+| Ad-hoc functions             | Data declaration    | Algebraic Data Types   |
+| (case defined)               | (Data constructors) | (user defined)         |
++------------------------------+---------------------+------------------------+
+| Values                       | Type signature      | Concrete types         |
++------------------------------+---------------------+------------------------+
+
+Data Level Abstraction Ladder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-------------------------------------+---------------------------------------+
+| Description                         | Example                               |
++=====================================+=======================================+
+| Ad-hoc polymorphism                 |                                       |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+|                                     |  f :: a -> a                          |
+| Parametrically polymorphic functions|  f x = x                              |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+|                                     |  f :: Int -> String                   |
+| Ad-hoc functions                    |  f x = case x of                      |
+| (case defined)                      |    1 -> "one"                         |
+|                                     |    _ -> "any"                         |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+| Composed functions                  |  f x y = x + y                        |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+| Concrete values (expressions)       |  5 + 4                                |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+| Concrete values (literals)          |  'a', 5, "hello"                      |
++-------------------------------------+---------------------------------------+
+
+Type Level Abstraction Ladder
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-------------------------------------+---------------------------------------+
+| Description                         | Example                               |
++=====================================+=======================================+
+| Polymorphic Type Functions          |                                       |
+| (e.g. ``t :: k1 -> k2``)            |                                       |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+| Ad-hoc type functions               |  data family Pair                     |
+| (type families)                     |  Pair () = Pair                       |
+|                                     |  Pair Int = Pair Int Int              |
++-------------------------------------+---------------------------------------+
+| Type functions (polymorphic ADT)    | ::                                    |
+|                                     |                                       |
+|                                     |  data Pair a = Pair a a               |
++-------------------------------------+---------------------------------------+
+| Concrete/Monomorphic types          | ::                                    |
+| (Algebraic Data Types/              |                                       |
+| user defined)                       |  data Color = Red | Green | Blue      |
++-------------------------------------+---------------------------------------+
+| Concrete/Monomorphic types          | ::                                    |
+| (expressions)                       |                                       |
+|                                     |  Int -> Int, [Int] ...                |
++-------------------------------------+---------------------------------------+
+|                                     | ::                                    |
+|                                     |                                       |
+| Concrete/Monomorphic types (basic)  |  Int, Char, ...                       |
++-------------------------------------+---------------------------------------+
 
 Summary of Programming Levels
 -----------------------------
@@ -1001,9 +1073,9 @@ Summary of Programming Levels
 |              +---------------------------+-------------+----------------------------------------------------+
 |              | `Type` level programming  | Types       | Function Type Signatures                           |
 |              |                           |             +----------------------------------------------------+
-|              |                           |             | Data Constructor Signatures                        |
+|              |                           |             | Data declarations (constructor signatures)         |
 |              |                           |             +----------------------------------------------------+
-|              |                           |             | Typeclasses (Function & Data signatures)           |
+|              |                           |             | Typeclasses (Function signatures & Data decl.)     |
 +--------------+---------------------------+-------------+----------------------------------------------------+
 | Run time     | `Data` level programming  | Data        | Concrete data values, Functions, Data Constructors |
 +--------------+---------------------------+-------------+----------------------------------------------------+
@@ -1015,7 +1087,7 @@ A Haskell program is essentially a function called `main` which `maps` input
 `values` of the program to output `values` potentially via intermediate
 functions.
 
-If you flatten a Haskell program it can be thought of just as a big map, each
+If you flatten a Haskell program it can be thought of just as a big function map, each
 input decomposed and mapped to intermediate outputs which are again decomposed
 and mapped to the next outputs and so on until we get to the final
 output.
