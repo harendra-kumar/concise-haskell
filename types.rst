@@ -14,17 +14,9 @@
 Type-o-pedia
 ============
 
-Basics
-------
-
 Terminology
-~~~~~~~~~~~
+-----------
 
-+----------------------------+-----------------------------------------------------------------+
-| Type                       | Denotes rules that a value should conform to                    |
-|                            | (e.g. Int or String)                                            |
-+----------------------------+-----------------------------------------------------------------+
-| Kind                       | Type of types (e.g. a type could be lifted or unlifted)         |
 +----------------------------+-----------------------------------------------------------------+
 | Rigid type                 | Type is fixed by annotation (signature) and not determined by   |
 |                            | inference.                                                      |
@@ -69,8 +61,11 @@ Terminology
 |                            | (e.g. closed type families)                                     |
 +----------------------------+-----------------------------------------------------------------+
 
-Lifting Types with Bottom
--------------------------
+Lifted Types
+------------
+
+Semantics: Adding Bottom
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Semantically adding a bottom value to the set of values denoted by a
 type is called lifting the type.
@@ -84,15 +79,6 @@ bottom element is necessary to represent some important semantic properties of
 Haskell programs like lazy evaluation, non-termination, partial functions,
 errors and exceptions.
 
-Operationally, data constructors of a lifted type and terms with lifted types
-may be represented by closures and can be lazily evaluated.  In the context of
-lazy evaluation (graph reduction) the unevaluated expression can be thought of
-as bottom which can be evaluated on demand to determine the actual value.
-
-Terms with unlifted types must not be represented by closures, which implies
-that any unboxed value is necessarily unlifted. We distinguish between lifted
-and unlifted types by ascribing them different kinds.
-
 +-----------------------------------------------------------------------------+
 | Any value of polymorphic type `forall a. a` denotes bottom. Functions       |
 | denoting bottom can be used anywhere in an expression of any type.          |
@@ -105,73 +91,27 @@ and unlifted types by ascribing them different kinds.
 | undefined | `::` | forall a. a                                              |
 +-----------+------+----------------------------------------------------------+
 | throw     | `::` | e -> a                                                   |
-+-----------+------+-------------------------+--------------------------------+
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Expressions evaluating to bottom                                            |
++--------------------------------------------+--------------------------------+
 | non-termination                            | let x = x                      |
 +--------------------------------------------+--------------------------------+
 | partial functions                          | head []                        |
 +--------------------------------------------+--------------------------------+
 
-Kinds
------
-
 Runtime Representation
 ~~~~~~~~~~~~~~~~~~~~~~
 
-The runtime representation of lifted types is always boxed. Lifting is
-represented by a closure at runtime. A closure can represent an undefined value
-or bottom which can be refined by lazy evaluation.
+Operationally, data constructors of a lifted type and terms with lifted types
+may be represented by closures and can be lazily evaluated.  In the context of
+lazy evaluation (graph reduction) the unevaluated expression can be thought of
+as bottom which can be evaluated on demand to determine the actual value.
 
-Unlifted types always have a direct unboxed runtime representation.
-
-Kinds of Concrete Types
-~~~~~~~~~~~~~~~~~~~~~~~
-
-+-----------+------+-------------------+-------------+-----------------------+
-| Type      |      | Kind              | Runtime Rep | Remarks               |
-+===========+======+===================+=============+=======================+
-| .. class:: center                                                          |
-|                                                                            |
-| Unlifted Types                                                             |
-+-----------+------+-------------------+-------------+-----------------------+
-| Int#      | `::` | TYPE 'IntRep'     | Unboxed     | Direct Reg or Mem     |
-+-----------+------+-------------------+-------------+-----------------------+
-| Double#   | `::` | TYPE 'DoubleRep'  | Unboxed     | Direct Reg or Mem     |
-+-----------+------+-------------------+-------------+-----------------------+
-| Array#    | `::` | TYPE 'ArrayRep'   | Unboxed     | Indirect Heap Pointer |
-+-----------+------+-------------------+-------------+-----------------------+
-| .. class:: center                                                          |
-|                                                                            |
-| Lifted Types                                                               |
-+-----------+------+-------------------+-------------+-----------------------+
-| RealWorld | `::` | Type              | NA          | Compile time only     |
-+-----------+------+-------------------+-------------+-----------------------+
-| Int       | `::` | Type              | Boxed       |                       |
-+-----------+------+-------------------+-------------+-----------------------+
-| Maybe Int | `::` | Type              | Boxed       |                       |
-+-----------+------+-------------------+-------------+-----------------------+
-
-Kinds of Polymorphic Types (Type functions)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+-----------+------+----------------------+
-| Type      |      | Kind                 |
-+===========+======+======================+
-| Maybe     | `::` | Type -> Type         |
-+-----------+------+----------------------+
-| Either    | `::` | Type -> Type -> Type |
-+-----------+------+----------------------+
-| (->)      | `::` | Type -> Type -> Type |
-+-----------+------+----------------------+
-
-Kind check
-~~~~~~~~~~
-
-+-----------------------+-------------+--------------------------------------+
-| Function              | Application | Failure Reason                       |
-+-----------------------+-------------+--------------------------------------+
-| Maybe :: Type -> Type | Maybe Int#  | Wrong kind ``TYPE 'IntRep'``         |
-|                       |             | expected ``Type``                    |
-+-----------------------+-------------+--------------------------------------+
+Terms with unlifted types must not be represented by closures, which implies
+that any unboxed value is necessarily unlifted. We distinguish between lifted
+and unlifted types by ascribing them different kinds.
 
 .. _Primitive Types: https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-prim-0.5.0.0/GHC-Prim.html>
 
