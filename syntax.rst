@@ -1,3 +1,16 @@
+.. raw:: html
+
+  <style> .red {color:red} </style>
+  <style> .blk {color:black} </style>
+  <style> .center { text-align: center;} </style>
+  <style> .strike { text-decoration: line-through;} </style>
+
+.. role:: strike
+.. role:: center
+
+.. role:: red
+.. role:: blk
+
 Syntax in a Nutshell
 ====================
 
@@ -402,22 +415,28 @@ data type inputs and mapping individual input values to custom output values.
 Data Declaration
 ~~~~~~~~~~~~~~~~
 
-+-----------------------------------------------------------------------------+
-| User defined algebraic data type.                                           |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   data Pair   = Pair Int Int deriving (Show, Eq)       -- Product           |
-|   data Count  = Red Int | Green Int                    -- Sum               |
-|   data List a = Empty | Cons a (List a)                -- Recursive         |
-+-----------------------------------------------------------------------------+
++-----------------------------------------------------------------------------------------------------+
+| A data declaration essentially binds a type in type space to a data constructor in data space.      |
++-----------+-----------------+---+------------------------------+------------------------------------+
+| ADT type  | Type Identifier |   | Data Constructors' Templates | Equivalent Signatures              |
++===========+=================+===+==============================+====================================+
+| Product   |   data Pair     | = | Pair Int Int                 | Pair  :: Int -> Int -> Pair        |
++-----------+-----------------+---+------------------------------+------------------------------------+
+| Sum       |   data Count    | = | Red Int | Green Int          | Red   :: Int -> Count              |
+|           |                 |   |                              +------------------------------------+
+|           |                 |   |                              | Green :: Int -> Count              |
++-----------+-----------------+---+------------------------------+------------------------------------+
+| Recursive |   data IntList  | = | Empty | Cons Int IntList     | Empty :: IntList                   |
+|           |                 |   |                              +------------------------------------+
+|           |                 |   |                              | Cons  :: Int -> IntList -> IntList |
++-----------+-----------------+---+------------------------------+------------------------------------+
 
 Data Construction
 ~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | Use a data constructor function, defined by a data declaration, to create a |
-| data reference                                                              |
+| data reference. The data reference can be case analyzed later.              |
 +-----------------------------------------------------------------------------+
 | x = C a b c ...                                                             |
 +-----------------------------------------------------------------------------+
@@ -678,9 +697,11 @@ Basic Algebraic Data Types (Prelude)
 |          +----------+----------+------------+-------------------------------+
 |          | ""       | "a"      | "ab"       | String literals               |
 +----------+----------+----------+------------+-------------------------------+
-| ()       | ()       |          |            | Void value or empty tuple     |
+| ()       | ()       |          |            | Unit data type, empty tuple   |
 +----------+----------+----------+------------+-------------------------------+
 | (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Two Tuple                     |
++----------+----------+----------+------------+-------------------------------+
+| Ordering |  LT      | EQ       | GT         |                               |
 +----------+----------+----------+------------+-------------------------------+
 
 Boolean Conditions
