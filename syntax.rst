@@ -391,6 +391,90 @@ Anonymous Functions
 | ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
 +-----------------------------------------------------------------------------+
 
+Type Level Syntax
+-----------------
+
+Type Signatures
+~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A type signature can be associated with an identifer or an expression using |
+| the ``::`` operator which can be read as `has type`.                        |
++----------------+------------------------------------------------------------+
+| Type signature | ``<identifier or expression> :: <type>``                   |
++----------------+------------------------------------------------------------+
+| A type is a type level value which can be specified as a type               |
+| identifier or a value composed using type functions.                        |
++-----------------------------------------------------------------------------+
+
++--------------------+--------------------------------------------------------+
+| Identifier         | ::                                                     |
+|                    |                                                        |
+|                    |   v :: Int                                             |
+|                    |   v = 10                                               |
++--------------------+--------------------------------------------------------+
+| Expression         | ::                                                     |
+|                    |                                                        |
+|                    |   v = 10 :: Int                                        |
++--------------------+--------------------------------------------------------+
+| Typed Holes (GHC 7.8.1)                                                     |
++-----------------------------------------------------------------------------+
+| Use ``_`` wildcard in place of a value to indicate a type hole. GHC         |
+| will report the inferred type of the value to be used in place of the hole. |
++--------------------+--------------------------------------------------------+
+| Typed hole         | ::                                                     |
+|                    |                                                        |
+|                    |  v :: Int                                              |
+|                    |  v = _ + 10                                            |
++--------------------+--------------------------------------------------------+
+
+Type Operators
+~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| ``->`` is a right associative type operator which is used to generate type  |
+| signatures of functions. It takes a function's `argument type` and          |
+| `return type` as operands and generates a function type.                    |
++-----------------------------------------------------------------------------+
+| A function taking an `Int` argument `x` and returning an `Int`:             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  inc :: (->) Int Int    -- function form                                    |
+|  inc :: Int -> Int      -- operator form                                    |
+|  inc x = x + 1                                                              |
++-----------------------------------------------------------------------------+
+| A multi argument function is really a single argument function returning    |
+| another function which consumes the rest of the arguments.                  |
+| A function taking two `Int` arguments `x` and `y` and returning an `Int`:   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  add :: (->) Int ((->) Int Int)  -- function form                           |
+|  add :: Int -> (Int -> Int)      -- explicit right associative form         |
+|  add :: Int -> Int -> Int        -- commonly used infix form                |
+|  add x y = x + y                                                            |
++-----------------------------------------------------------------------------+
+
+Variable Namespaces
+-------------------
+
++-----------------------------------------------------------------------------+
+| Identifiers starting with a `lowercase` letter                              |
++------------------------------------+----------------------------------------+
+| type variables                     | term variables                         |
++------------------------------------+----------------------------------------+
+| These two namespaces can use the same identifier names without conflict.    |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- identifier 'play' refers to three distinct objects                      |
+|  play ::               -- function name                                     |
+|       play -> play     -- type variable                                     |
+|  play play = play      -- function name (global scoped)                     |
+|                        -- parameter name (local scoped)                     |
++-----------------------------------------------------------------------------+
+
 Ad-hoc Functions
 ----------------
 
@@ -778,41 +862,8 @@ Branching on Booleans
 |    Green i -> "G " ++ show i         |                                      |
 +--------------------------------------+--------------------------------------+
 
-Filenames
----------
-
-+-----------+------------------+
-| Extension | Meaning          |
-+-----------+------------------+
-| .hs       | Haskell          |
-+-----------+------------------+
-| .lhs      | Literate Haskell |
-+-----------+------------------+
-
-Importing Modules
------------------
-
-+---------------------------------------------------------------------------------------+
-| Assume you want to import the function ``take`` from module ``Data.List``             |
-+---------------------------------+--------------------------------+--------------------+
-| import directive                | Description                    | Using ``take``     |
-+=================================+================================+====================+
-| import Data.List                | imports everything             | ``take``           |
-+---------------------------------+--------------------------------+--------------------+
-| import Data.List (take)         | import only ``take``           | ``take``           |
-+---------------------------------+--------------------------------+--------------------+
-| import qualified Data.List      | All qualified by ``Data.List`` | ``Data.List.take`` |
-+---------------------------------+--------------------------------+--------------------+
-| import qualified Data.List as L | All qualified by ``L``         | ``L.take``         |
-+---------------------------------+--------------------------------+--------------------+
-
-Defining Modules
-----------------
-
-TBD - module declaration: module X where ...
-
 Lists
-~~~~~
+-----
 
 ::
 
@@ -826,8 +877,11 @@ convenient way [1, 2] is equivalent to 1 : 2 : [].
 * List comprehensions
 * See prelude for list functions
 
+Monads
+------
+
 Do Expression
--------------
+~~~~~~~~~~~~~
 
 * TBD
 * let in a do block
@@ -968,70 +1022,38 @@ Fixity of common operators
 |                                  | same precedence                          |
 +----------------------------------+------------------------------------------+
 
-Type Level Syntax
+Filenames
+---------
+
++-----------+------------------+
+| Extension | Meaning          |
++-----------+------------------+
+| .hs       | Haskell          |
++-----------+------------------+
+| .lhs      | Literate Haskell |
++-----------+------------------+
+
+Importing Modules
 -----------------
 
-Type Signatures
-~~~~~~~~~~~~~~~
++---------------------------------------------------------------------------------------+
+| Assume you want to import the function ``take`` from module ``Data.List``             |
++---------------------------------+--------------------------------+--------------------+
+| import directive                | Description                    | Using ``take``     |
++=================================+================================+====================+
+| import Data.List                | imports everything             | ``take``           |
++---------------------------------+--------------------------------+--------------------+
+| import Data.List (take)         | import only ``take``           | ``take``           |
++---------------------------------+--------------------------------+--------------------+
+| import qualified Data.List      | All qualified by ``Data.List`` | ``Data.List.take`` |
++---------------------------------+--------------------------------+--------------------+
+| import qualified Data.List as L | All qualified by ``L``         | ``L.take``         |
++---------------------------------+--------------------------------+--------------------+
 
-+-----------------------------------------------------------------------------+
-| A type signature can be associated with an identifer or an expression using |
-| the ``::`` operator which can be read as `has type`.                        |
-+----------------+------------------------------------------------------------+
-| Type signature | ``<identifier or expression> :: <type>``                   |
-+----------------+------------------------------------------------------------+
-| A type is a type level value which can be specified as a type               |
-| identifier or a value composed using type functions.                        |
-+-----------------------------------------------------------------------------+
+Defining Modules
+----------------
 
-+--------------------+--------------------------------------------------------+
-| Identifier         | ::                                                     |
-|                    |                                                        |
-|                    |   v :: Int                                             |
-|                    |   v = 10                                               |
-+--------------------+--------------------------------------------------------+
-| Expression         | ::                                                     |
-|                    |                                                        |
-|                    |   v = 10 :: Int                                        |
-+--------------------+--------------------------------------------------------+
-| Typed Holes (GHC 7.8.1)                                                     |
-+-----------------------------------------------------------------------------+
-| Use ``_`` wildcard in place of a value to indicate a type hole. GHC         |
-| will report the inferred type of the value to be used in place of the hole. |
-+--------------------+--------------------------------------------------------+
-| Typed hole         | ::                                                     |
-|                    |                                                        |
-|                    |  v :: Int                                              |
-|                    |  v = _ + 10                                            |
-+--------------------+--------------------------------------------------------+
-
-Type Operators
-~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| ``->`` is a right associative type operator which is used to generate type  |
-| signatures of functions. It takes a function's `argument type` and          |
-| `return type` as operands and generates a function type.                    |
-+-----------------------------------------------------------------------------+
-| A function taking an `Int` argument `x` and returning an `Int`:             |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  inc :: (->) Int Int    -- function form                                    |
-|  inc :: Int -> Int      -- operator form                                    |
-|  inc x = x + 1                                                              |
-+-----------------------------------------------------------------------------+
-| A multi argument function is really a single argument function returning    |
-| another function which consumes the rest of the arguments.                  |
-| A function taking two `Int` arguments `x` and `y` and returning an `Int`:   |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  add :: (->) Int ((->) Int Int)  -- function form                           |
-|  add :: Int -> (Int -> Int)      -- explicit right associative form         |
-|  add :: Int -> Int -> Int        -- commonly used infix form                |
-|  add x y = x + y                                                            |
-+-----------------------------------------------------------------------------+
+TBD - module declaration: module X where ...
 
 Namespaces
 ----------
@@ -1039,32 +1061,18 @@ Namespaces
 +-----------------------------------------------------------------------------+
 | Identifiers starting with an `uppercase` letter                             |
 +--------------------+-------------------+------------------------------------+
-| Module identifiers | Type constructors | Data constructors                  |
+| Module identifiers | Types             | Data constructors                  |
 +--------------------+-------------------+------------------------------------+
 | These three namespaces can use the same identifier names without conflict.  |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
 |  -- 'Play' refers to three distinct objects in three distinct namespace     |
-|  module Play where         -- module name                                   |
-|  data Play a =             -- type constructor                              |
-|       Play a               -- data constructor                              |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Identifiers starting with a `lowercase` letter                              |
-+------------------------------------+----------------------------------------+
-| type variables                     | term variables                         |
-+------------------------------------+----------------------------------------+
-| These two namespaces can use the same identifier names without conflict.    |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
+|  module Play where       -- module name                                     |
+|  data Play =             -- type                                            |
+|       Play Int           -- data constructor                                |
 |                                                                             |
-|  -- identifier 'play' refers to three distinct objects                      |
-|  play ::               -- function name                                     |
-|       play -> play     -- type variable                                     |
-|  play play = play      -- function name (global scoped)                     |
-|                        -- parameter name (local scoped)                     |
+|  class Clay where ...    -- type (typeclass)                                |
 +-----------------------------------------------------------------------------+
 
 References
