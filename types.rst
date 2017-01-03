@@ -176,57 +176,8 @@ Basic Haskell Types
 | newtype IO a  | = | IO (State# RealWorld -> (# State# RealWorld, a #)) | IO action                  |
 +---------------+---+----------------------------------------------------+----------------------------+
 
-Polymorphic Algebraic Data Types
---------------------------------
-
-+------------------------------------------------+-----+-------------------------------------------------------------------+
-| .. class:: center                              |     | .. class:: center                                                 |
-|                                                |     |                                                                   |
-| Type Level Function                            |     | Data Constructor Templates                                        |
-+=========+=====================+================+=====+=====================+=======+=====================================+
-|         | Type Constructor    |      Parameter |     | Data Constructor    |       | Data Constructor                    |
-+---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
-| data    | :red:`L`:blk:`ist`  | `a`            |  =  | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
-+---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
-
-Type Constructor
-~~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------------------+
-| A type function to instantiate a new type                                               |
-+----------------------+--------+------------------+--------------------------------------+
-| Type                 |        | Kind             | Description                          |
-+======================+========+==================+======================================+
-| List                 | ``::`` | ``Type -> Type`` | Polymorphic type or type constructor |
-+----------------------+--------+------------------+--------------------------------------+
-| The signature implies that the parameter `a` must be a concrete type of kind ``Type``   |
-+-----------------------------------------------------------------------------------------+
-| .. class:: center                                                                       |
-|                                                                                         |
-| Instances                                                                               |
-+----------------------+--------+------------------+--------------------------------------+
-| List Int             | ``::`` | ``Type``         | Concrete type (list of Ints)         |
-+----------------------+--------+------------------+--------------------------------------+
-| List (Maybe Int)     | ``::`` | ``Type``         | Concrete type (list of Maybe Ints)   |
-+----------------------+--------+------------------+--------------------------------------+
-| :strike:`List Maybe` |        |                  | Kind mismatch                        |
-+----------------------+--------+------------------+--------------------------------------+
-
-Data Constructors
-~~~~~~~~~~~~~~~~~
-
-+-------------------+--------+-------------------------------+-------------------------------------------+
-| Data Constructor  |        | Type                          | Description                               |
-+===================+========+===============================+===========================================+
-| Empty             | ``::`` | List a                        | Create a new value (empty list)           |
-+-------------------+--------+-------------------------------+-------------------------------------------+
-| Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
-+-------------------+--------+-------------------------------+-------------------------------------------+
-| The signatures imply that the arguments of contructors must be concrete types of kind ``Type``         |
-+--------------------------------------------------------------------------------------------------------+
-
 Generalized Algebraic Data Type (GADT) Syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+---------------------------------------------
 
 +------------------------------------------------------------------+
 | .. class :: center                                               |
@@ -295,22 +246,61 @@ Generalized Algebraic Data Type (GADT) Syntax
 |  3) Bar a (b :: Type -> Type)                                    |
 +------------------------------------------------------------------+
 
-Typeclass Derivation and Constraints
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Polymorphic Algebraic Data Types
+--------------------------------
 
-+------------------------------------------------------------+-------------------------------------------------------+
-| Regular ADT Syntax                                         | GADT Syntax                                           |
-+------------------------------------------------------------+-------------------------------------------------------+
-| .. class :: center                                                                                                 |
-|                                                                                                                    |
-| Typeclass Derivation                                                                                               |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data Maybe a = Nothing | Just a                           |    data Maybe a where                                 |
-|      deriving (Eq, Ord)                                    |        Nothing :: Maybe a                             |
-|                                                            |        Just    :: a -> Maybe a                        |
-|                                                            |        deriving (Eq, Ord)                             |
+Data Type Declaration
+~~~~~~~~~~~~~~~~~~~~~
+
++------------------------------------------------+-----+-------------------------------------------------------------------+
+| .. class:: center                              |     | .. class:: center                                                 |
+|                                                |     |                                                                   |
+| Type Level Function                            |     | Data Constructor Templates                                        |
++=========+=====================+================+=====+=====================+=======+=====================================+
+|         | Type Constructor    |      Parameter |     | Data Constructor    |       | Data Constructor                    |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+| data    | :red:`L`:blk:`ist`  | `a`            |  =  | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+
+Type Constructor
+^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------------------+
+| A type function to instantiate a new type                                               |
++----------------------+--------+------------------+--------------------------------------+
+| Type                 |        | Kind             | Description                          |
++======================+========+==================+======================================+
+| List                 | ``::`` | ``Type -> Type`` | Polymorphic type or type constructor |
++----------------------+--------+------------------+--------------------------------------+
+| The signature implies that the parameter `a` must be a concrete type of kind ``Type``   |
++-----------------------------------------------------------------------------------------+
+| .. class:: center                                                                       |
+|                                                                                         |
+| Instances                                                                               |
++----------------------+--------+------------------+--------------------------------------+
+| List Int             | ``::`` | ``Type``         | Concrete type (list of Ints)         |
++----------------------+--------+------------------+--------------------------------------+
+| List (Maybe Int)     | ``::`` | ``Type``         | Concrete type (list of Maybe Ints)   |
++----------------------+--------+------------------+--------------------------------------+
+| :strike:`List Maybe` |        |                  | Kind mismatch                        |
++----------------------+--------+------------------+--------------------------------------+
+
+Data Constructors
+^^^^^^^^^^^^^^^^^
+
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Data Constructor  |        | Type                          | Description                               |
++===================+========+===============================+===========================================+
+| Empty             | ``::`` | List a                        | Create a new value (empty list)           |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| The signatures imply that the arguments of contructors must be concrete types of kind ``Type``         |
++--------------------------------------------------------------------------------------------------------+
+
+Typeclass Constraints
+~~~~~~~~~~~~~~~~~~~~~
+
 +------------------------------------------------------------+-------------------------------------------------------+
 | .. class :: center                                                                                                 |
 |                                                                                                                    |
@@ -340,10 +330,63 @@ Typeclass Derivation and Constraints
 | * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
 +--------------------------------------------------------------------------------------------------------------------+
 
-Misc Data Construction Syntax
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Quantification
+~~~~~~~~~~~~~~
 
 +--------------------------------------------------------------------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| -XExistentialQuantification                                                                                        |
++--------------------------------------------------------------------------------------------------------------------+
+| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
+| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
+| They will typecheck with other instances only within this local scope.                                             |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Foo = forall a.                                     |   data Foo where                                      |
+|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
+|                                                            |                                                       |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Counter a = forall self.                            |   data Counter a where                                |
+|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
+|     { _this    :: self                                     |     { _this    :: self                                |
+|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
+|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
+|     , tag      :: a                                        |     , tag      :: a                                   |
+|     }                                                      |     } -> Counter a                                    |
++------------------------------------------------------------+-------------------------------------------------------+
+| The type of an existential variable is fixed during construction based on the type used in the constructor call.   |
++--------------------------------------------------------------------------------------------------------------------+
+| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
+| `where` bindings.                                                                                                  |
++--------------------------------------------------------------------------------------------------------------------+
+| The extracted value can be consumed by any functions in the scope of the existential.                              |
+| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
+| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
++--------------------------------------------------------------------------------------------------------------------+
+| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
+| example, all fields prefixed with ``_`` in the above example are private.                                          |
++--------------------------------------------------------------------------------------------------------------------+
+
+Misc Data Construction Syntax
+-----------------------------
+
++------------------------------------------------------------+-------------------------------------------------------+
+| Regular ADT Syntax                                         | GADT Syntax                                           |
++------------------------------------------------------------+-------------------------------------------------------+
+| .. class :: center                                                                                                 |
+|                                                                                                                    |
+| Typeclass Derivation                                                                                               |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data Maybe a = Nothing | Just a                           |    data Maybe a where                                 |
+|      deriving (Eq, Ord)                                    |        Nothing :: Maybe a                             |
+|                                                            |        Just    :: a -> Maybe a                        |
+|                                                            |        deriving (Eq, Ord)                             |
++------------------------------------------------------------+-------------------------------------------------------+
 | .. class:: center                                                                                                  |
 |                                                                                                                    |
 | All data constructors are lazy by default. You can add strictness annotations to make them strict.                 |
@@ -379,7 +422,7 @@ Misc Data Construction Syntax
 +--------------------------------------------------------------------------------------------------------------------+
 
 Records
-~~~~~~~
+-------
 
 +-----------------------------------------------------------------------------+
 | `-XNoTraditionalRecordSyntax` (7.4.1) -- to disable the record syntax       |
@@ -525,48 +568,8 @@ Records
 |                             | ``bad s = s {x = 5} -- Ambiguous``            |
 +-----------------------------+-----------------------------------------------+
 
-Existential Quantification
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+--------------------------------------------------------------------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| -XExistentialQuantification                                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+
-| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
-| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
-| They will typecheck with other instances only within this local scope.                                             |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|   data Foo = forall a.                                     |   data Foo where                                      |
-|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
-|                                                            |                                                       |
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|   data Counter a = forall self.                            |   data Counter a where                                |
-|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
-|     { _this    :: self                                     |     { _this    :: self                                |
-|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
-|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
-|     , tag      :: a                                        |     , tag      :: a                                   |
-|     }                                                      |     } -> Counter a                                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| The type of an existential variable is fixed during construction based on the type used in the constructor call.   |
-+--------------------------------------------------------------------------------------------------------------------+
-| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
-| `where` bindings.                                                                                                  |
-+--------------------------------------------------------------------------------------------------------------------+
-| The extracted value can be consumed by any functions in the scope of the existential.                              |
-| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
-| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
-+--------------------------------------------------------------------------------------------------------------------+
-| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
-| example, all fields prefixed with ``_`` in the above example are private.                                          |
-+--------------------------------------------------------------------------------------------------------------------+
-
 GADT (Aggregated Type)
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
 * http://www.cs.ox.ac.uk/ralf.hinze/publications/With.pdf Fun with phantom
   types.
@@ -1004,7 +1007,7 @@ newtype
 +----------------------------+------------------------+-------------------------------+
 
 Data Families
-~~~~~~~~~~~~~
+-------------
 
 +----------------------------------------------------------------------+
 | A polymorphic type is a type function, it is a `total function`      |
@@ -1074,7 +1077,7 @@ Data Families
 +----------------------------------------------------------------------+
 
 Type Synonym Families
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 +-------------------------------------------------------------------------------------+
 | Open families (open to extension by adding instances)                               |
