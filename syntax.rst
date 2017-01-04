@@ -563,8 +563,8 @@ Case Expression
 +-----------------------------------------------------------------------------+
 | `<input expr>` is called the `scrutinee` of the case expression.            |
 +-----------------------------------------------------------------------------+
-| Each line under the case statement specifies a mapping from a constructor   |
-| pattern matching the scrutinee to an output expression.                     |
+| Each line under the case statement specifies a mapping, from a constructor  |
+| pattern - matching the scrutinee - to an output expression.                 |
 +-----------------------------------------------------------------------------+
 | C1, C2 etc. are the constructors defined by the type of `<input expr>`.     |
 +-----------------------------------------------------------------------------+
@@ -656,9 +656,6 @@ Deconstructing a Product
 ^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
-| A product is deconstructed by specifying a variable for each component of   |
-| the product.                                                                |
-+-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
 |   let pair = Pair 10 20                                                     |
@@ -687,12 +684,6 @@ Selecting Alternatives of a Sum
 |  let count = Red 5                                                          |
 +-----------------------------------------------------------------------------+
 
-+-----------------------------------------------------------------------------+
-| Pattern match on a multi-constructor (sum) type may fail at                 |
-| run time with a `non-exhaustive pattern match` error if it does not cover   |
-| all constructors.                                                           |
-+-----------------------------------------------------------------------------+
-| Patterns are matched from top to bottom in sequence.                        |
 +--------------------------------------+--------------------------------------+
 | Case                                 | Function                             |
 +--------------------------------------+--------------------------------------+
@@ -702,11 +693,12 @@ Selecting Alternatives of a Sum
 |    Red   i -> "R " ++ show i         |  name Green i = "G " ++ show i       |
 |    Green i -> "G " ++ show i         |                                      |
 +--------------------------------------+--------------------------------------+
-
+| Pattern match on sum type may fail at run time with a `non-exhaustive       |
+| pattern match` error if it does not cover all constructors.                 |
 +-----------------------------------------------------------------------------+
-| Pattern matches in `let` and `where` are lazy or irrefutable. We can match  |
-| any or all constructors but it may fail when we use the value belonging to  |
-| a non-matching constructor.                                                 |
+| Patterns are matched from top to bottom in sequence.                        |
++-----------------------------------------------------------------------------+
+
 +--------------------------------------+--------------------------------------+
 | Let                                  | Where                                |
 +--------------------------------------+--------------------------------------+
@@ -719,6 +711,10 @@ Selecting Alternatives of a Sum
 |  let Green i = count                 |  greens = "G " ++ show i             |
 |  in "G " ++ show i                   |    where Green i = count             |
 +--------------------------------------+--------------------------------------+
+| Pattern matches in `let` and `where` are lazy or irrefutable. We can match  |
+| any or all constructors but it may fail when we use the value belonging to  |
+| a non-matching constructor.                                                 |
++-----------------------------------------------------------------------------+
 
 More on Pattern Matches
 ^^^^^^^^^^^^^^^^^^^^^^^
