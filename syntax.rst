@@ -55,11 +55,14 @@ Terminology
 |          | matching.                                                        |
 +----------+------------------------------------------------------------------+
 
+Expressions, Equations & Functions
+----------------------------------
+
 Composing Expressions
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Expressions
-~~~~~~~~~~~
+^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | Literals                                                                    |
@@ -109,7 +112,7 @@ Expressions
 +---------------+-------------------------------------------------------------+
 
 Basic Data Types (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +----------+--------------------------------+---------------------------------+
 | Type     | Examples                       | Notes                           |
@@ -130,7 +133,7 @@ Basic Data Types (Prelude)
 * other ways to write literals e.g. 1.0e7
 
 Arithmetic Operations (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 * Defined in base
 * TODO: point to prelude itself
@@ -165,7 +168,7 @@ Arithmetic Operations (Prelude)
 +-----------+----------------+------------------------------------------------+
 
 Function Application
-~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | `whitespace` or `juxtaposition` is a function application operator. It has  |
@@ -205,7 +208,7 @@ Function Application
 +--------------+--------------------------------------------------------------+
 
 Function Composition (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | * ``.`` is composition, lower precedence than function application and      |
@@ -223,7 +226,7 @@ Function Composition (Prelude)
 +-------------------+---------------------------------------------------------+
 
 Operators as Functions and Vice Versa (built-in)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-------------------+--------------------------+
 | Prefix (function) | Infix (operator)         |
@@ -247,10 +250,8 @@ Operators as Functions and Vice Versa (built-in)
 | ``(- 5)``   | ``-5``                        |
 +-------------+-------------------------------+
 
-TBD - tuple sections
-
 Defining Equations
-------------------
+~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | A definition equation gives a name to an expression:                        |
@@ -268,7 +269,7 @@ Definitions allow you to:
 * define reusable expressions
 
 Top level Definitions
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | Definitions which are not nested inside any other definition are called     |
@@ -284,7 +285,7 @@ Top level Definitions
 +-----------------------------------------------------------------------------+
 
 Nested Local Definitions
-~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | A `let` or `where` clause defines a local scope. Variables introduced in a  |
@@ -298,7 +299,7 @@ Nested Local Definitions
 +-----------------------------------------------------------------------------+
 
 Expression Local (let)
-^^^^^^^^^^^^^^^^^^^^^^
+......................
 
 +-----------------------------------------------------------------------------+
 | A `let` clause is an expression with one or more local definitions.         |
@@ -321,7 +322,7 @@ Expression Local (let)
 +-----------------------------------------------------------------------------+
 
 Equation Local (where)
-^^^^^^^^^^^^^^^^^^^^^^
+......................
 
 +-----------------------------------------------------------------------------+
 | A `where` clause defines one or more equations within the local scope       |
@@ -343,7 +344,7 @@ Equation Local (where)
 +-------------------------+---------------------------------------------------+
 
 Equation Indentation Rule
-~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | When you are writing a multiline equation or multiple equations whether in  |
@@ -359,7 +360,7 @@ Equation Indentation Rule
 +-----------------------------------------------------------------------------+
 
 Defining Functions
-------------------
+~~~~~~~~~~~~~~~~~~
 
 +--------------+---------------+
 | Application  | Definition    |
@@ -380,7 +381,7 @@ Defining Functions
 +-----------------------------------------------------------------------------+
 
 Anonymous Functions
-~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | A lambda or an anonymous function is an expression denoting a function. It  |
@@ -392,10 +393,10 @@ Anonymous Functions
 +-----------------------------------------------------------------------------+
 
 Type Level Syntax
------------------
+~~~~~~~~~~~~~~~~~
 
 Type Signatures
-~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | A type signature can be associated with an identifer or an expression using |
@@ -428,8 +429,8 @@ Type Signatures
 |                    |  v = _ + 10                                            |
 +--------------------+--------------------------------------------------------+
 
-Type Operators
-~~~~~~~~~~~~~~
+Type Operator ``->``
+^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | ``->`` is a right associative type operator which is used to generate type  |
@@ -457,7 +458,7 @@ Type Operators
 +-----------------------------------------------------------------------------+
 
 Variable Namespaces
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | Identifiers starting with a `lowercase` letter                              |
@@ -788,11 +789,11 @@ Basic Algebraic Data Types (Prelude)
 | Ordering |  LT      | EQ       | GT         |                               |
 +----------+----------+----------+------------+-------------------------------+
 
-Boolean Conditions
-------------------
+Bool
+~~~~
 
 Comparisons resulting in Booleans (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------+-------------+-------------------------+
 | ==        | 3 == 2      |  Equals                 |
@@ -809,7 +810,7 @@ Comparisons resulting in Booleans (Prelude)
 +-----------+-------------+-------------------------+
 
 Operations on Booleans (Prelude)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 +-----------+---------------+-------------------------+
 | Operation | Example       | Remarks                 |
@@ -826,7 +827,7 @@ Operations on Booleans (Prelude)
 +-----------+---------------+-------------------------+
 
 Branching on Booleans
-~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
 | `if` statement is just a syntactic sugar on top of a `case` scrutiny on     |
@@ -863,7 +864,7 @@ Branching on Booleans
 +--------------------------------------+--------------------------------------+
 
 Lists
------
+~~~~~
 
 ::
 
@@ -877,6 +878,13 @@ convenient way [1, 2] is equivalent to 1 : 2 : [].
 * List comprehensions
 * See prelude for list functions
 
+Tuples
+~~~~~~
+
+* TBD
+* TBD - tuple sections
+
+
 Monads
 ------
 
@@ -884,6 +892,7 @@ Do Expression
 ~~~~~~~~~~~~~
 
 * TBD
+* desugaring
 * let in a do block
 * where in a do block - cannot refer to bindings extracted from a monad
 
@@ -1022,8 +1031,11 @@ Fixity of common operators
 |                                  | same precedence                          |
 +----------------------------------+------------------------------------------+
 
+Files & Modules
+---------------
+
 Filenames
----------
+~~~~~~~~~
 
 +-----------+------------------+
 | Extension | Meaning          |
@@ -1034,7 +1046,7 @@ Filenames
 +-----------+------------------+
 
 Importing Modules
------------------
+~~~~~~~~~~~~~~~~~
 
 +---------------------------------------------------------------------------------------+
 | Assume you want to import the function ``take`` from module ``Data.List``             |
@@ -1051,12 +1063,12 @@ Importing Modules
 +---------------------------------+--------------------------------+--------------------+
 
 Defining Modules
-----------------
+~~~~~~~~~~~~~~~~
 
 TBD - module declaration: module X where ...
 
 Namespaces
-----------
+~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | Identifiers starting with an `uppercase` letter                             |
