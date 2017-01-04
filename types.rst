@@ -958,8 +958,9 @@ newtype
 +-----------------------------------------------------------------------------+
 | newtype N = W (original type) deriving ...                                  |
 +-----------------------------------------------------------------------------+
-| `W is not a data constructor`, it does not construct data, it is just a type|
-| level (compile time) wrapper to wrap the original type into a new type N.   |
+| `W is not a data constructor`, it does not construct algebraic data, it is  |
+| just a type level (compile time) wrapper to wrap the original type into a   |
+| new type N.                                                                 |
 | Since W is a type wrapper and not a data constructor:                       |
 |                                                                             |
 | * you cannot provide multiple arguments to W.                               |
@@ -995,9 +996,9 @@ newtype
 | ``data Count = Count Int`` | ``type Count = Int``   | ``newtype Count = Count Int`` |
 +----------------------------+------------------------+-------------------------------+
 | ``Count`` and ``Int``      | ``Count`` and ``Int``  | ``Count`` and ``Int`` are     |
-| are distinct               | same, albeit with      | distinct                      |
-+----------------------------+ different names        +-------------------------------+
-| ``Count`` is a constructor |                        | ``Count`` is a type level     |
+| are distinct types         | refer to exactly the   | distinct types                |
++----------------------------+ same type and can be   +-------------------------------+
+| ``Count`` is a constructor | used interchangeably   | ``Count`` is a type level     |
 | wrapping an ``Int``        |                        | wrapper wrapping an ``Int``   |
 +----------------------------+                        +-------------------------------+
 | Physically ``Count`` is a  |                        | ``Count`` does not exist      |
