@@ -1,5 +1,5 @@
-Overview
---------
+Abstraction & Composition
+=========================
 
 The two fundamental operations in computing are `transform` and `combine`.  All
 computing tasks are performed by a combination of some form of transform and
@@ -49,9 +49,11 @@ family) whereas functions are composed using categorical structures:
 * Composing functions - Category (semigroupoid, category)
 
 Composing Concrete Objects
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+--------------------------
 
-A set of data objects are composed using algebraic structures. The most important
+The most basic composition technique is a function. A function composes its
+input arguments into output. A set of data objects can be composed using
+algebraic structures which utilize a function to compose. The most important
 algebraic structures for composing data are semigroup and monoid. Semigroup
 allows combining two or more objects whereas a monoid allows folding zero or
 more objects.
@@ -69,14 +71,19 @@ mathematics called `modern algebra`. For detailed description of these
 composition facilities see TBD.
 
 Composing Functions
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
-While data objects are combined using algebraic structures, function
-applications on the other hand are combined using categorical structures.  The
-way a semigroup allows us to only combine two objects, similarly a semigroupoid
-allows us to only combine two or more functions. A category on the other hand,
-like a monoid, allows us to fold zero or more functions with the help of an
-identity function.
+The most basic composition technique for abstract objects (i.e. function
+applications) is function composition. Function composition is defined by the
+category, and is therefore fixed to `.` if you are working in the `Hask`
+category.
+
+While a set of data objects are combined using algebraic structures, a set of
+function applications on the other hand are combined using categorical
+structures.  The way a semigroup allows us to only combine two or more objects,
+similarly a semigroupoid allows us to only combine two or more functions. A
+category on the other hand, like a monoid, allows us to fold zero or more
+functions with the help of an identity function.
 
 +-----------------------------------------------------------------------------+
 | Categorical structures to compose multiple functions using a binary         |
@@ -89,3 +96,51 @@ identity function.
 
 Categories are studied in a branch of mathematics called `category theory`.
 For detailed description of these composition facilities see TBD.
+
+Composing Functors
+------------------
+
+Functors are abstractions on categories like functions are abstractions on
+concrete objects. They are transformations on categories. Therefore functors can
+also be composed together similar to functions. The three well known techniques
+to compose functors are `Applicative`, `Monad` and `Arrow` typeclasses. They are
+in fact pretty similar to Monoid compositions.
+
+
+Summary
+-------
+
+Every programming tool in Haskell is a combination of abstraction and
+composition. The basic abstraction as well as composition technique is a
+function. Every abstraction technique is some form of function which is the
+basic composition tool as well. When we are composing a set of objects our basic
+tool is a monoid or some form of monoid.
+
+Parametric polymorphism and ad-hoc polymorphism are abstraction tools in the
+type space. They should be thought about separately.
+
+Basic, function like abstraction and composition tools:
+
++----------+----------------------------+
+| Tool     | operates on                |
++==========+============================+
+| function | concrete objects           |
++----------+----------------------------+
+| Functor  | categories of objects      |
++----------+----------------------------+
+
+Monoid like set composition tools:
+
++-------------+--------------------------------------+------------------------+
+| Tool        | Operates on a set of                 | Binary composition tool|
++=============+===============+======================+========================+
+| Monoid      | Haskell types | concrete objects     | functions              |
++-------------+---------------+----------------------+------------------------+
+| Category    | functions     | abstract objects     | function composition   |
++-------------+---------------+----------------------+------------------------+
+| Applicative | Functors      | Endofunctors         | Day convolution        |
++-------------+               +----------------------+------------------------+
+| Monad       |               | Endofunctors         | function composition   |
++-------------+               +----------------------+------------------------+
+| Arrow       |               | Profunctors          | function composition   |
++-------------+---------------+----------------------+------------------------+
