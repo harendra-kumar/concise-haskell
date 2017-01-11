@@ -1,16 +1,17 @@
-Abstraction & Composition
-=========================
+Abstraction, Composition & Polymorphism
+=======================================
 
 The two fundamental operations in computing are `transform` and `combine`.  All
-computing tasks are performed by a combination of some form of transform and
-combine primitives.  More generally, transform and combine can also be
-represented by the terms `abstraction` and `composition`.
+computing tasks are ultimately performed by a combination of some form of
+transform and combine primitives.  More generally, transform and combine can
+also be represented by the terms `abstraction` and `composition`.
 
-Abstraction is really a transformation technique. For example a function is an
-abstraction of a concrete value. Polymorphic functions are further abstraction
-of functions themselves. Composition is a combining technique, it combines
-multiple objects together. A binary function combines two values together. A
-monoid allows us to combine multiple objects together. For example, a repeated
+Abstraction is really a transformation technique. For example, a function, a
+transformation tool, is an abstraction of concrete values.
+
+Composition is a combining technique, it combines multiple objects together. A
+binary function, the basic composition tool, combines two values together. A
+monoid allows us to combine a set of objects together. For example, a repeated
 addition can fold a list of integers into a sum of all its elements.
 Composition can be applied to functions as well, we can combine multiple
 functions together to create one combined function.
@@ -18,7 +19,13 @@ functions together to create one combined function.
 Abstraction and composition are the two fundamental and orthogonal tools of
 functional computing. All functional computing is a combination of these two.
 We abstract and compose at different levels to create even higher level
-abstractions. It may be noteworthy that both of these are `reuse` techniques.
+abstractions.
+
+Abstraction at type level is called polymorphism. In contrast to the
+abstraction at the data level, the type level abstraction is concretized at the
+compile time rather than runtime.
+
+It may be noteworthy that all the three are `reuse` techniques.
 
 Abstraction
 -----------
@@ -49,7 +56,7 @@ family) whereas functions are composed using categorical structures:
 * Composing functions - Category (semigroupoid, category)
 
 Composing Concrete Objects
---------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The most basic composition technique is a function. A function composes its
 input arguments into output. A set of data objects can be composed using
@@ -71,7 +78,7 @@ mathematics called `modern algebra`. For detailed description of these
 composition facilities see TBD.
 
 Composing Functions
--------------------
+~~~~~~~~~~~~~~~~~~~
 
 The most basic composition technique for abstract objects (i.e. function
 applications) is function composition. Function composition is defined by the
@@ -98,7 +105,7 @@ Categories are studied in a branch of mathematics called `category theory`.
 For detailed description of these composition facilities see TBD.
 
 Composing Functors
-------------------
+~~~~~~~~~~~~~~~~~~
 
 Functors are abstractions on categories like functions are abstractions on
 concrete objects. They are transformations on categories. Therefore functors can
@@ -106,6 +113,20 @@ also be composed together similar to functions. The three well known techniques
 to compose functors are `Applicative`, `Monad` and `Arrow` typeclasses. They are
 in fact pretty similar to Monoid compositions.
 
+
+Polymorphism
+------------
+
+Polymorphism is abstraction in the type space. Function is the basic
+abstraction tool even in the type space. Type functions come in different
+flavors:
+
+* polymorphic type - explicit type function
+* type families - pattern matched definition of type functions - partial
+* parametrically polymorphic functions - functions of types, ultimately
+  instantiated to a specific type
+* typeclasses - ad-hoc polymorphism - functions are decides based on types -
+  partial
 
 Summary
 -------
@@ -115,9 +136,6 @@ composition. The basic abstraction as well as composition technique is a
 function. Every abstraction technique is some form of function which is the
 basic composition tool as well. When we are composing a set of objects our basic
 tool is a monoid or some form of monoid.
-
-Parametric polymorphism and ad-hoc polymorphism are abstraction tools in the
-type space. They should be thought about separately.
 
 Basic, function like abstraction and composition tools:
 
