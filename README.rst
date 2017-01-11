@@ -8,19 +8,19 @@ Table of Contents
 
 * `Preface <preface.rst>`_
 * Why Haskell
-* `Haskell Overview <haskell-overview.rst>`_
+* `Sets & Functions <sets-and-functions.rst>`_
+* `Abstraction, Polymorphism & Composition <abstraction-and-composition.rst>`_
+* `Abstraction (Functions) <haskell-overview.rst>`_
+* Polymorphism (Type Functions)
 * `Basic Syntax <syntax.rst>`_
 * Semantics
-* Polymorphism
-* `Types <types.rst>`_
+* `Advanced Types <types.rst>`_
 * Typeclasses
-* Functor Family
-* Abstractions
-
-  * Algebra
-  * Category Theory
-* Basic Abstractions
-* Advanced Abstractions
+* Algebraic (Concrete) Composition
+* Categorical (Abstract) Composition
+* Functor Abstractions
+* Computational Composition
+* Container Abstractions
 * Basic Data Structures
 * Advanced Data Structures
 * Packages
