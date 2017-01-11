@@ -6,21 +6,11 @@ Terminology
 +-------------------+---------------------------------------------------------+
 | Proper class      |                                                         |
 +-------------------+---------------------------------------------------------+
-| Cartesian product |                                                         |
+| Cartesian product | For sets A and B, the Cartesian product A × B is the    |
+|                   | set of all ordered pairs (a, b) where a ∈ A and b ∈ B.  |
 +-------------------+---------------------------------------------------------+
 | Homomorphism      |                                                         |
 +-------------------+---------------------------------------------------------+
-| Coproduct         | e.g. of two monoids                                     |
-+-------------------+---------------------------------------------------------+
-
-Abstract Algebra
-----------------
-
-Abstract algebra and Category theory have similar concepts and structures but
-should not be confused with each other. Algebra deals with sets and functions
-while category theory deals with objects and morphisms among objects. Objects
-are a generalization of a set and morphisms are a genralization of functions.
-In fact `Set` is a category where objects are sets and morhisms are functions.
 
 Sets
 ----
@@ -31,10 +21,51 @@ Sets
 | `Set <https://en.wikipedia.org/wiki/Set_(mathematics)>`_ | A collection of distinct objects.                        | {1, 2, 3, 4, ...} |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
 
-`Functions <https://en.wikipedia.org/wiki/Function_(mathematics)>`_
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+A data type in Haskell represents a set. For example an `Int` type represents
+{..., -3, -2, -1, 0, 1, 2, 3, ...}
 
-f(X) = Y where X and Y are sets, X is domain and Y is codomain
+Cartesian Product
+~~~~~~~~~~~~~~~~~
+
+Given two sets X and Y, X × Y is the cartesian product. It represents all
+tuples (a,b) where a is from set X and b is from set Y. If X has m elements and
+Y has n elements then X × Y will have m × n  elements.
+
+In Haskell a product of two sets can be represented as::
+
+  data (a, b) = (a, b)
+
+A cartesian product `Int × Int` i.e. `(Int, Int)` type can have values like::
+
+  (0,0)
+  (0,1)
+  (0,-1)
+  (1,0)
+  (1,-1)
+  ...
+
+(Binary) Relations
+------------------
+
+A relation "maps" elements of one set to another set.  A binary relation
+between two sets is represented by a set of pairs of related elements of the
+two sets.  In other words, a relation from set `X` to set `Y` is a subset of
+their Cartesian product `X × Y`. `X` is called the domain of the relation and
+`Y` is called codomain or range. Relations are also called `correspondences`.
+
+Relations are a generalization of functions. For example, `greater than` is a
+relation but not a valid function because it can map one element in a domain to
+more than one element in codomain.
+
+`Functions <https://en.wikipedia.org/wiki/Function_(mathematics)>`_
+-------------------------------------------------------------------
+
+A function is a binary relation where the first value of every tuple is unique
+through the set. That is one element in the domain maps to at most one element
+in the range.
+
+A function `f` that maps values from a set `X` to another set `Y` is denoted as
+`f: X → Y`.  `X` is called the domain and `Y` the codomain of `f`.
 
 +------------+------------------------------------------+---------+-----------------+
 | Type       | Property                                 | Example | Counter Example |
@@ -51,26 +82,50 @@ f(X) = Y where X and Y are sets, X is domain and Y is codomain
 |            | one-to-one from whole X to whole Y       |         |                 |
 +------------+------------------------------------------+---------+-----------------+
 
--  **fixpoint** f(c) = c
+Unary Operation - Transform
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Magma
-~~~~~
+A unary operation is a pure transformation which transforms its argument to
+another object::
 
-+----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
-| Structure                                                | Definition                                               | Example                             |
-+==========================================================+==========================================================+=====================================+
-| `Magma <https://en.wikipedia.org/wiki/Magma_(algebra)>`_ | A set with a single binary operation (closed, M × M → M) | {1, 2, 3, ...}                      |
-|                                                          |                                                          |                                     |
-|                                                          |                                                          | ``x1 + x2 = x3``                    |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
-| `Semigroup <https://en.wikipedia.org/wiki/Semigroup>`_   | A magma having associative binary operation              | ``(x1 + x2) + x3 = x1 + (x2 + x3)`` |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
-| `Monoid <https://en.wikipedia.org/wiki/Monoid>`_         | A semigroup with an identity element                     | {0, 1, 2, 3, ...}                   |
-|                                                          |                                                          |                                     |
-|                                                          |                                                          | ``x + 0 = x = 0 + x``               |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
-| `Group                                                   | A monoid with an invertible operation                    |                                     |
-| <https://en.wikipedia.org/wiki/Group_(mathematics)>`_    |                                                          |                                     |
-|                                                          |                                                          | ``x * y = id = y * x``              |
-+----------------------------------------------------------+----------------------------------------------------------+-------------------------------------+
+  f: X → Y
 
+In Haskell::
+
+  f :: x -> y
+
+Binary Operation - Combine
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A function on two objects. A binary operation combines two objects into a
+single objects in some way.
+
+Binary operation is the most basic combining operations. All other functions
+with multiple arguments can be represented in terms of binary operations.
+
+A function from cartesian product `X × Y` to `X` is mathematically denoted as `f: X × Y → X`.
+
+In Haskell the function can be represented as::
+
+  f :: (x, y) -> x -- tuple form
+  f :: x -> y -> x -- curried form
+  f :: x -> (y -> x) -- A chain of two functions
+
+Where type `x` represents set `X` and type `y` represents set `Y`.
+
+Summary
+-------
+
++-------------------+----------------+-------------------------------+--------------------+
+| Algebra           | Notation       | Haskell                       | Notation           |
++===================+================+===============================+====================+
+| Set               | `X`            | Type                          | `x`                |
++-------------------+----------------+-------------------------------+--------------------+
+| Cartesian Product | `X × Y`        | Tuple                         | `(x, y)`           |
++-------------------+----------------+-------------------------------+--------------------+
+| Unary operation   | `f: X → Y`     | Single argument function      | `f :: x -> y`      |
++-------------------+----------------+-------------------------------+--------------------+
+| Binary Operation  | `f: X × Y → X` | Uncurried form                | `f :: (x, y) -> x` |
+|                   |                +-------------------------------+--------------------+
+|                   |                | Curried form                  | `f :: x -> y -> x` |
++-------------------+----------------+-------------------------------+--------------------+
