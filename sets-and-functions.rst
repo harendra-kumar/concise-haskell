@@ -11,6 +11,12 @@ Terminology
 +-------------------+---------------------------------------------------------+
 | Homomorphism      |                                                         |
 +-------------------+---------------------------------------------------------+
+| Partial function  | A function that is not defined for some values          |
+|                   | of its parameters                                       |
++-------------------+---------------------------------------------------------+
+| Total function    | A function which is defined for all values              |
+|                   | of its parameters.                                      |
++-------------------+---------------------------------------------------------+
 
 Sets
 ----
@@ -112,6 +118,13 @@ In Haskell the function can be represented as::
   f :: x -> (y -> x) -- A chain of two functions
 
 Where type `x` represents set `X` and type `y` represents set `Y`.
+
+Fixpoint
+--------
+
+::
+
+  f(c) = c
 
 Summary
 -------
