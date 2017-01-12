@@ -20,7 +20,7 @@ Table of Contents
 * Categorical (Abstract) Composition
 * Functor Abstractions
 * Computational Composition
-* Container Abstractions
+* `Container Abstractions <container-abstractions.rst>`_
 * Basic Data Structures
 * Advanced Data Structures
 * Packages
