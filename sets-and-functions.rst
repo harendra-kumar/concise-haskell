@@ -9,7 +9,9 @@ Terminology
 | Cartesian product | For sets A and B, the Cartesian product A × B is the    |
 |                   | set of all ordered pairs (a, b) where a ∈ A and b ∈ B.  |
 +-------------------+---------------------------------------------------------+
-| Homomorphism      |                                                         |
+| Homomorphism      | A homomorphism is a structure-preserving map between    |
+|                   | two algebraic structures of the same type.              |
+|                   | Literally meaning same shape.                           |
 +-------------------+---------------------------------------------------------+
 | Partial function  | A function that is not defined for some values          |
 |                   | of its parameters                                       |
