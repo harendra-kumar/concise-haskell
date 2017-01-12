@@ -14,7 +14,7 @@ Typeclass Functions
 | monoids              |                                                      |
 +----------------------+------------------------------------------------------+
 | map elements to      | foldMap :: Monoid m => (a -> m) -> t a -> m          |
-| monoid & fold        |                                                      |
+| monoids then fold    |                                                      |
 +----------------------+------------------------------------------------------+
 | Right fold           | foldr :: (a -> b -> b) -> b -> t a -> b              |
 +----------------------+------------------------------------------------------+
@@ -67,23 +67,23 @@ Traversable and Distributive are duals of each other
 +---------------------------------------------------------------------------------+
 | sequence and distribute are duals of each other.                                |
 +------------+----------------------------------+---------------------------------+
-| sequence   | Collect the outputs of producers | ``sequence [print 1, print 2]`` |
-|            | in a container to produce a      |                                 |
-|            | single output                    |                                 |
+| sequence   | Collect the outputs of,          | ``sequence [print 1, print 2]`` |
+|            | producers in the container, to   |                                 |
+|            | produce a single output          |                                 |
 +------------+----------------------------------+---------------------------------+
 | distribute | Consume a single input and       |                                 |
-|            | distribute it to consumers in a  | ``distribute [(+1), (+2)] 1``   |
-|            | container                        |                                 |
+|            | distribute it to the consumers   | ``distribute [(+1), (+2)] 1``   |
+|            | in the container                 |                                 |
 +------------+----------------------------------+---------------------------------+
 
 +-----------------------------------------------------------------------------------+
 | traverse and cotraverse are duals of each other.                                  |
 +------------+----------------------------------+-----------------------------------+
-| traverse   | maps a function to the members   |                                   |
-|            | of container before sequence     | ``traverse print [1,2]``          |
+| traverse   | maps a function over the members |                                   |
+|            | of container before `sequence`   | ``traverse print [1,2]``          |
 +------------+----------------------------------+-----------------------------------+
 | cotraverse | applies a function to the        |                                   |
-|            | container after distribute       | ``cotraverse sum [(+1), (+2)] 1`` |
+|            | container after `distribute`     | ``cotraverse sum [(+1), (+2)] 1`` |
 +------------+----------------------------------+-----------------------------------+
 
 Traversable
