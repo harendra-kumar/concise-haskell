@@ -59,16 +59,3 @@ term before it is used so that you have an idea what it means.
 
 By defining all the necessary vocabulary in a succinct manner it also allows
 you to read any other documentation on Haskell (e.g. GHC manual) with ease.
-
-Format
-------
-
-We roughly describe the following for each concept:
-
-* Name & link to details
-* GHC extension & version where the feature is available (optional)
-* Concise description (cheat sheet)
-* Description
-* Examples
-* Important points to note (optional)
-* External references
