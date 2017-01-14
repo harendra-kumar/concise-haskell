@@ -219,6 +219,10 @@ being filled, completing the value, when an argument is applied:
      +----------+
        Arity 3
 
+The input positions of a function are also called, holes or negative
+positions. The output position of a function is also called a positive
+position.
+
 Reduction of Abstract values
 ----------------------------
 
