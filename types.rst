@@ -733,8 +733,8 @@ GADT (Aggregated Type)
 | signature must be supplied with the unknowns at the right places.           |
 +-----------------------------------------------------------------------------+
 
-Deconstruction (Pattern Matching)
----------------------------------
+Pattern Matching
+----------------
 
 Refer to the `Basic Syntax` chapter for basic pattern matching.
 
@@ -812,32 +812,37 @@ Pattern Synonyms
 +-----------------------------------------------------------------------------+
 | `-XPatternSynonyms` (7.8.1)                                                 |
 +=============================================================================+
-| A pattern synonym is a function that can be instantiated to a pattern or    |
-| constructor                                                                 |
+| A pattern synonym is a function that generates a pattern or a constructor   |
 +---------------------+-------------------------------------------------------+
-| Match only          | ``pattern HeadP x <- x : xs                           |
-|                     | -- match the head of a list``                         |
+| Match only          | ::                                                    |
+|                     |                                                       |
+|                     |  -- match the head of a list                          |
+|                     |                                                       |
+|                     |  pattern HeadP x <- x : xs  -- define                 |
+|                     |  let HeadP x = [1..]        -- match                  |
 +---------------------+-------------------------------------------------------+
-| For `match and construct` pattern synonyms all the variables of the         |
-| right-hand side must also occur on the left-hand side; also, wildcard       |
-| patterns and view patterns are not allowed.                                 |
-+---------------------+-------------------------------------------------------+
-| Match and construct | ``pattern Singleton x  =  [x]                         |
-| (Symmetric          | -- match or construct a singleton list``              |
-| bidirectional)      |                                                       |
+| Match and construct or `bidirectional` pattern synonyms:                    |
+|                                                                             |
+| * all the variables on the right-hand side must also occur on the left-hand |
+|   side                                                                      |
+| * wildcard patterns and view patterns are not allowed                       |
 +---------------------+-------------------------------------------------------+
 | Match and construct | ::                                                    |
-| (Assymetric         |                                                       |
-| bidirectional)      |  pattern Head x <- x:xs where   -- match              |
-|                     |      Head x = [x]               -- construct          |
+| (Symmetric)         |                                                       |
+|                     |  -- match or construct a singleton list               |
+|                     |  pattern Singleton x  =  [x]  -- define               |
+|                     |                                                       |
+|                     |  let single = Singleton 'a'   -- construct            |
+|                     |  let Singleton x = [1]        -- match                |
 +---------------------+-------------------------------------------------------+
-| Example                                                                     |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   let list = Head "a"                                                       |
-|   let Head x = [1..]                                                        |
-+-----------------------------------------------------------------------------+
+| Match and construct | ::                                                    |
+| (Asymmetric)        |                                                       |
+|                     |  pattern Head x <- x:xs where   -- define match       |
+|                     |      Head x = [x]               -- define construct   |
+|                     |                                                       |
+|                     |  let list = Head 'a'            -- construct          |
+|                     |  let Head x = [1..]             -- match              |
++---------------------+-------------------------------------------------------+
 | A pattern synonym:                                                          |
 |                                                                             |
 | * starts with an uppercase letter just like a constructor.                  |
@@ -851,9 +856,9 @@ Pattern Synonyms
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  module M (pattern Head) where ... -- export only the pattern               |
-|  import M (pattern Head)           -- import only the pattern               |
-|  import Data.Maybe (pattern Just)  -- import only data constructor 'Just'   |
+|  module M (pattern Head) where ... -- export, only the pattern              |
+|  import M (pattern Head)           -- import, only the pattern              |
+|  import Data.Maybe (pattern Just)  -- import, only data constructor 'Just'  |
 |                                    -- but not the type constructor 'Maybe'  |
 +-----------------------------------------------------------------------------+
 | Bundled with type constructor                                               |
@@ -865,26 +870,31 @@ Pattern Synonyms
 |  module M (List(.., Head)) where ... -- append to all currently bundled     |
 |                                      -- constructors                        |
 +-----------------------------------------------------------------------------+
-| Types                                                                       |
+| Expressing the types of pattern synonyms                                    |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
+|  -- General type signature                                                  |
 |  pattern P ::                                                               |
-|            CReq          -- required to match the pattern                   |
-|         => CProv         -- provided on pattern match                       |
-|         => t1 -> t2 -> ... -> tN -> t                                       |
-|  pattern P var1  var2  ...    varN <- pat                                   |
+|            CReq                 -- constraint required to match the pattern |
+|         => CProv                -- constraint provided on pattern match     |
+|         => t1 -> t2 -> ...      -- parameters                               |
+|  pattern P var1  var2  ... <- pat                                           |
 |                                                                             |
-|  pattern P :: CReq => ...        -- CProv is omitted                        |
-|  pattern P :: () => CProv => ... -- CReq is omitted                         |
+|  -- Type signature with CProv omitted                                       |
+|  pattern P :: CReq => ...                                                   |
 |                                                                             |
-|  Use of a bidirectional pattern synonym as an expression has the type:      |
-|  (CReq, CProv) => t1 -> t2 -> ... -> tN -> t                                |
+|  -- Type signature with Creq omitted                                        |
+|  pattern P :: () => CProv => ...                                            |
+|                                                                             |
+|  -- When using a bidirectional pattern synonym as an expression,            |
+|  -- it has the following type:                                              |
+|  (CReq, CProv) => t1 -> t2 -> ...                                           |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
 | A record pattern synonym behaves just like a record.                        |
-| Does not seem to work before 8.0.1                                          |
+| (Does not seem to work before 8.0.1)                                        |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -927,7 +937,8 @@ Type Synonyms
 -------------
 
 +-----------------------------------------------------------------------------+
-| A type synonym is a function that expands to a type                         |
+| A type synonym is a function that generates a synonym of an existing type   |
+| or its specialization.                                                      |
 +-----------------------------------------------------------------------------+
 |  ``type ThisOrThat a b = Either a b``                                       |
 |                                                                             |
@@ -1170,56 +1181,6 @@ Type Synonym Families
 | Creating an instance of a closed family will result in an error             |
 +-----------------------------------------------------------------------------+
 
--XUndeciableInstances: allow undecidable type synonym instances.
-
-Fun With Types
---------------
-
-Specializing Polymorphic Types
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Smart Constructors
-~~~~~~~~~~~~~~~~~~
-
-* Type system is limited in expressing restrictions on types
-* For example how do you represent a positive number less than 10?
-* To overcome the limitation we wrap the type constructors in "smart
-  constructors" which are nothing but functions with additional checks on the
-  constructed value. The original type constructors are not exported so the
-  only way to construct is via smart constructors which check additional rules.
-
-For example::
-
-    data LessThanTen = LTT Int
-    mkLTT n = if n < 0 || n >= 10
-      then error "Invalid value"
-      else LTT n
-
-Phantom Types
-~~~~~~~~~~~~~
-
-::
-
-  data T = TI Int | TS String
-  plus :: T -> T -> T
-  concat :: T -> T -> T
-
-  data T a = TI Int | TS String
-  plus :: T Int -> T Int -> T Int
-  concat :: T String -> T String -> T String
-
-Dictionary Reification
-~~~~~~~~~~~~~~~~~~~~~~
-
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data NumInst a = Num a => MkNumInst                       |   data NumInst a where                                |
-|                                                            |    MkNumInst :: Num a => NumInst a                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| We can pattern match on ``MkNumInst`` instead of using a ``Num`` constraint on ``a``::                             |
-|                                                                                                                    |
-|  plus :: NumInst a -> a -> a -> a                                                                                  |
-|  plus MkNumInst p q = p + q                                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+
-
++-----------------------------------------------------------------------------+
+| `-XUndeciableInstances`: allow undecidable type synonym instances.          |
++-----------------------------------------------------------------------------+
