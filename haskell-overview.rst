@@ -4,10 +4,11 @@
 
 .. role:: blue
 
-Haskell: A pure functional language
-===================================
+Data Abstraction: Functions
+===========================
 
-A functional language with denotational semantics.
+.. contents:: Table of Contents
+   :depth: 1
 
 Terminology
 -----------
@@ -24,14 +25,14 @@ Terminology
 +------------------------+----------------------------------------------------+
 | Instantiation          | Creating a concrete instance of an abstract thing  |
 +------------------------+----------------------------------------------------+
-| Value                  | A generic term for anything that can accepted as   |
+| Value                  | A generic term for anything that can be accepted as|
 |                        | arguments by a function. It could be a function or |
-|                        | data in a data level program or types or type      |
+|                        | data in a data level program, or types or type     |
 |                        | functions in a type level program.                 |
 +------------------------+----------------------------------------------------+
-| Parameters             | The free variables in a function's definition      |
+| Parameters             | The variables denoting arguments of a function     |
 +------------------------+----------------------------------------------------+
-| Arguments              | Parameter values supplied in a function call       |
+| Arguments              | Actual parameter values supplied in a function call|
 +------------------------+----------------------------------------------------+
 | Arity                  | The number of parameters of a function             |
 +------------------------+----------------------------------------------------+
@@ -83,10 +84,10 @@ Terminology
 +------------------------+----------------------------------------------------+
 
 
-Abstraction & Polymorphism
---------------------------
+Abstraction
+-----------
 
-`Abstraction` or `polymorphism` is a powerful tool to `reuse` code and remove
+`Abstraction` is a powerful tool to `reuse` code and remove
 duplication or redundancy. When we have  multiple `concrete` objects which
 have a common structure but differ only slightly in some parts then we can
 create an abstract form of the object by retaining the common parts and
@@ -94,9 +95,10 @@ abstracting the varying parts by replacing them with variable parameters.  This
 form is called an `abstraction` or a `polymorphic form` since it is an abstract
 representation of many different concrete forms.
 
-The variable parameters of a polymorphic or abstract form can be replaced with
+The variable parameters of an abstract form can be replaced with
 specific values to recover a concrete form. By using different values of the
-parameters we can recover all possible concrete forms.
+parameters we can recover all possible concrete forms represented by the
+abstract form.
 
 There are different levels of abstractions. Even an abstract form can be
 further abstracted creating higher level abstractions. The first level of
@@ -231,6 +233,9 @@ Reduction of Abstract values
 | application` concretizes or reduces the abstract value represented by a     |
 | function by `combining` the function with concrete values corresponding to  |
 | the abstracted parameters.                                                  |
++-----------------------------------------------------------------------------+
+| Reduction can be viewed as a `transformation` of a single value or          |
+| `composition` of multiple values.                                           |
 +-----------------------------------------------------------------------------+
 | When we say `value` in general we mean anything that a function can accept  |
 | as its arguments. It could be a `concrete value` or a `function`.           |
