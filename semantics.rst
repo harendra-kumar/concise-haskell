@@ -1,5 +1,8 @@
-Denotational & Operational Semantics
-====================================
+Haskell Semantics
+=================
+
+.. contents:: Table of Contents
+   :depth: 1
 
 Terminology
 -----------
@@ -89,31 +92,24 @@ Terminology
 | Lifting                | Adding a `bottom` to an ordered set is called      |
 |                        | `lifting`.                                         |
 +------------------------+----------------------------------------------------+
+| Free variable          | x is a free variable in g                          |
+|                        | ``f = \x -> let g = \y -> x + y in g x``           |
++------------------------+----------------------------------------------------+
 
+Concepts and Implementations
+----------------------------
 
-Language Features
------------------
-
-+----------------------+--------------------------+---------------------------+
-| User level feature   | Language feature         | Underlying enabler        |
-+======================+==========================+===========================+
-| Equational Reasoning | Denotational Semantics   | Referential Transparency  |
-+----------------------+--------------------------+---------------------------+
-| Expressive Power     | Infinite data structures | Non-strict semantics      |
-+----------------------+                          |                           |
-| Modularity           |                          |                           |
-+----------------------+--------------------------+---------------------------+
-
-Language Design Modularity
---------------------------
-
-+------------------------------+----------------------------+
-| Haskell (or pure functional) | Other languages            |
-+==============================+============================+
-| Denotational semantics       | Operational is inseparable |
-+------------------------------+                            |
-| Operational semantics        |                            |
-+------------------------------+----------------------------+
++-------------------------------------+---------------------------------------+
+| Concept                             | Implementation                        |
++=====================================+=======================================+
+| Reduction                           | Evaluation                            |
++-------------------------------------+---------------------------------------+
+| Non-strict Reduction                | Lazy Evaluation                       |
++-------------------------------------+---------------------------------------+
+| Strict Reduction                    | Eager Evaluation                      |
++-------------------------------------+---------------------------------------+
+| Abstraction                         | Programming                           |
++-------------------------------------+---------------------------------------+
 
 Denotational vs Operational Semantics
 -------------------------------------
@@ -132,14 +128,41 @@ Denotational vs Operational Semantics
 | correctness                        | Garbage collection                     |
 +------------------------------------+----------------------------------------+
 
-Denotational Semantics
-----------------------
+Pure Functional vs Imperative
+-----------------------------
 
-Constructing mathematical objects (called denotations) that describe the
-meanings of expressions from the programming language. An important tenet of
-denotational semantics is that semantics should be compositional: the
-denotation of a program phrase should be built out of the denotations of its
-subphrases.
++------------------------------+----------------------------+
+| Haskell (or pure functional) | Imperative languages       |
++==============================+============================+
+| Denotational first           | Operational first          |
++------------------------------+----------------------------+
+
+Pure functional and imperative language designs are duals of each other.
+Therefore, where they excel and where they lack is opposite of each other.
+Functional design is strong in denotational aspects whereas the imperative
+design is strong in operational aspects:
+
+* Haskell enforces referential transparency but adds manual (by discipline)
+  control over some operational semantics by using strictness annotations, for
+  example.
+* Imperative languages have better control over operational semantics by
+  default but allow referential transparency by discipline.
+
+Haskell Semantic Features
+-------------------------
+
++----------------------+--------------------------+---------------------------+
+| User level feature   | Language feature         | Underlying enabler        |
++======================+==========================+===========================+
+| Equational Reasoning | Denotational Semantics   | Referential Transparency  |
++----------------------+--------------------------+---------------------------+
+| Expressive Power     | Infinite data structures | Non-strict semantics      |
++----------------------+                          |                           |
+| Modularity           |                          |                           |
++----------------------+--------------------------+---------------------------+
+
+Denotational Aspects
+--------------------
 
 Referential Transparency
 ~~~~~~~~~~~~~~~~~~~~~~~~
@@ -160,17 +183,36 @@ place and used somewhere else.
 This allows us to use a function in any environment without any fear of
 changing the meaning of the program in unintended ways.
 
-Bottom & Lifting
-~~~~~~~~~~~~~~~~
+Denotational Semantics
+~~~~~~~~~~~~~~~~~~~~~~
 
-Bottom does not have an explicit denotation in the language but is an implicit
-concept to understand the meaning of several language constructs in
-mathematical terms:
+Constructing mathematical objects (called denotations) that describe the
+meanings of expressions from the programming language. An important tenet of
+denotational semantics is that semantics should be compositional: the
+denotation of a program phrase should be built out of the denotations of its
+subphrases.
 
-* non-termination
-* Recursion
-* Infinite data structures
-* undefined values (lazy eval)
+Equational Reasoning
+~~~~~~~~~~~~~~~~~~~~
+
+Reasoning by substitution.
+
+Ulitmately what do we get from referential transparency (purity) and
+denotational semantics? Ability to easily reason about or understand how a
+program works. Equational reasoning.
+
+A Haskell program is nothing but a set of equations. Each function definiton is
+a set of equations which expand to other set of equations and so on.
+
+expression A = expression B
+
+Where expression A could be a function definition at top
+level or in a let or where binding inside a function.
+
+Thanks to referential transparency, we can freely substitute a term by its
+equivalent equation without worrying about any side effects. This works just
+like mathematical equations. By way of substitution we can prove equivalence of
+two expressions.
 
 Non-Strict Reduction
 ~~~~~~~~~~~~~~~~~~~~
@@ -214,13 +256,10 @@ Strict and Non-strict functions
 | A function which always needs an argument (technically in WHNF) is called   |
 | strict in that argument.                                                    |
 +-----------------------------------------------------------------------------+
-| Compiler has an option to use eager instead of lazy evaluation when it      |
-| knows the function is strict in a certain argument.                         |
-| Notice that `non-strict does not necessarily mean lazy` in this case. GHC   |
-| performs a strictness analysis to detect this and may deploy eager          |
-| evaluation.                                                                 |
+| GHC performs a strictness analysis to detect whether a function is always   |
+| strict and may deploy eager evaluation when it is strict.                   |
 +-----------------------------------------------------------------------------+
-| Strictness condition                                                        |
+| Strictness check                                                            |
 +-----------------------------------+-----------------------------------------+
 | f is strict in first argument iff | ``f _|_ a = _|_``                       |
 +-----------------------------------+-----------------------------------------+
@@ -236,52 +275,165 @@ Strict and Non-strict functions
 | ``fst (a, b) = a -- non-strict in second argument``                         |
 +-----------------------------------------------------------------------------+
 
-Equational Reasoning
+* A constructor is always lazy
+* A single argument function is either lazy or strict in its argument.
+* A multiple argument function is lazy or strict in an argument conditional on
+  the values of other arguments. For example::
+
+    f x y = if y > 10 then x + 1 else 1
+    f x 1  -- does not need x
+    f x 11 -- needs x
+
+Bottom
+~~~~~~
+
+Bottom does not have an explicit denotation in the language but is an implicit
+concept to understand the meaning of several language constructs in
+mathematical terms:
+
+* non-termination
+* Recursion
+* Infinite data structures
+* undefined values (lazy eval)
+
+Operational Aspects
+-------------------
+
+Dependency driven execution
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A Haskell program is a specification of data relationships, it is a dependency
+graph.  There is no sequential execution of statements in the program instead
+it is dependency or need based execution.  The starting point of the graph is
+the output data we are interested in.  This data depends on other data and so
+on. When we need the top level data we walk through the graph and we evaluate a
+dependency which in turn will evaluate its dependency and so on. This way we
+reduce the dependency graph.
+
+Expressions and Data
 ~~~~~~~~~~~~~~~~~~~~
 
-Reasoning by substitution.
+From program evaluation perspective, there are two important types of entities
+in a program, expressions and data.  Expressions are unevaluated values, data
+is always represented by a data constructor, however the constructor might be
+holding data in the form of unevaluated expressions (WHNF).
 
-Ulitmately what do we get from referential transparency (purity) and
-denotational semantics? Ability to easily reason about or understand how a
-program works. Equational reasoning.
+Expressions consist of constructors or function applications. An expression in
+general may represent a concrete data value or an abstract value of some arity
+(a function).
 
-A Haskell program is nothing but a set of equations. Each function definiton is
-a set of equations which expand to other set of equations and so on.
+Data specification consists of data constructors. Constructors are like slots
+or labeled boxes or wrappers holding data.  The data they are holding could be
+anything, an unevaluated expression or data.  We don't know what it is until we
+open the box. The box is opened by doing a pattern match.
 
-expression A = expression B
+Expressions are reduced or evaluated to data constructors.  A data constructor
+itself cannot be reduced or evaluated. However, the contents inside the data
+constructor can again be expressions which can be evaluated.
 
-Where expression A could be a function definition at top
-level or in a let or where binding inside a function.
++------------+-------------+----------------+-----------------------------------+
+| Expression | Reduce      | case scrutinee | constructors and functions        |
++------------+-------------+----------------+-----------------------------------+
+| Data       | Deconstruct | pattern match  | constructors                      |
++------------+-------------+----------------+-----------------------------------+
 
-Thanks to referential transparency, we can freely substitute a term by its
-equivalent equation without worrying about any side effects. This works just
-like mathematical equations. By way of substitution we can prove equivalence of
-two expressions.
+Evaluation
+~~~~~~~~~~
 
-Operational Semantics
----------------------
+Graph Reduction or lazy evaluation
 
-Lazy Evaluation
-~~~~~~~~~~~~~~~
+A pattern match triggers evaluation of the expression we are matching on,
+because it needs a constructor to pattern match on. That is as lazy as we can
+get we can no longer procrastinate. Without the constructor there is no way we
+can proceed.
 
-Graph Reduction
+Evaluation of an expression proceeds until it hits a constructor i.e. we are
+looking at a box of data also called WHNF. Anyway we cannot evaluate further
+until we pattern match and know what is inside the box. The box is then pried
+open by pattern matching on the constructors and the constituents taken apart.
+The case analysis then proceeds to perform the next pattern match which will
+trigger another evaluation if we have an unevaluated expression inside the box.
 
-An unevaluated value is represented by a thunk or closure, which is code which
-knows how to compute the value. When the value is needed this code is executed
-and the value is generated for the consumer.
+In essence the whole evaluation process is just a series of pattern matches and
+we need to evaluate expressions to enable the pattern matches.  Thus, it is
+a series of alternating pattern match and function applications i.e.
+(pat+)(apply+).
 
-Program execution is driven by IO, statements are not executed unless they are
-needed by a computation driven by IO. There is no sequential evaluation of all
-statements in the control flow path.
+Closures
+^^^^^^^^
+
+All heap objects are represented by a closure. A closure could be a `data
+constructor`, a `function` or a `thunk`. A closure has a header and a payload.
+The header has an info table and an entry code.
+
+The entry code for the closure is usually the code that will evaluate the
+closure. There is one exception: for functions, the entry code will apply the
+function to the arguments given in registers or on the stack, according to the
+calling convention. The entry code assumes all the arguments are present - to
+apply a function to fewer arguments or to apply an unknown function, the
+generic apply functions are used.
+
+`Constructors`: The entry code for a constructor returns immediately to the
+topmost stack frame, because the data constructor is already in WHNF. The
+payload consists of the data constituents of the constructor.
+
+`Functions:` Top level functions are represented by a static function closure
+and the rest by a dynamic function closure. The payload of the function closure
+contains the free variables of the function. A static closure has no payload,
+because there are no free variables of a top-level function.
+
+`Concrete values:` A thunk is a closure that represents an expression for a
+concrete value. Top level expressions (not functions) are represented by static
+thunks and rest by dynamic thunks. A static thunk is also known as a constant
+applicative form, or CAF. A dynamic thunk payload contains the
+free variables of the expression. A thunk differs from a function closure in
+that it can be updated.
+
+Closure Evaluation
+^^^^^^^^^^^^^^^^^^
+
+An expression's closure is entered when a pattern match wants to evaluate the
+expression. The closure could be a function or a thunk, constructors require no
+evaluation.
+
+We are always in the context of some closure. The closure may save its
+registers on the stack before it calls another closure. Because it needs to
+pass parameters and the return address in registers.
+
+In case of a top level function application the parameters are passed (in
+registers), the return address in the parent closure is passed, and a call to
+the closure to be evaluated is made. Once the evaluation to WHNF is done the
+called closure makes a call to the return address. The called closure will
+create a new closure for the return value which will be a constructor (WHNF).
+The components of the constructor may be unevaluated closures.
+
+In case of a dynamic function closure or thunk the free variables of the
+expression are part of the closure structure. A thunk or dynamic function
+closure is created by its parent closure. The parent closure inserts the
+references to the closures of the free variables (evaluated or not) at the time
+of its creation.
 
 Controlling Evaluation
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
-The language has to respect non-strict semantics, however when it does not
-impact the semantics of the program we can choose strict evaluation.
+Fundamentally, the language has to respect non-strict semantics, however when
+it does not impact the semantics of the program strict evaluation can be
+employed.
 
 * bang patterns
 * strict by default extension
+
+Strict vs Lazy Evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Comparison of strict evaluation and lazy evaluation. Closures vs stack based
+evaluation.
+
+Garbage Collection
+~~~~~~~~~~~~~~~~~~
+
+Explain how garbage collection works. For example, if we have to update the
+last node of a list, what all will get garbage collected. Draw a picture.
 
 Understanding a Haskell Program
 -------------------------------
@@ -293,6 +445,9 @@ composed and then it will be run in the required order when needed. It might
 get composed further or transformed and then composed to create a bigger
 composition. Just keep your mind lazy!  This is perhaps the hardest part for an
 imperatively trained mind.
+
+We need to understand the dependency relationships among the components of a
+program.
 
 References
 ----------
