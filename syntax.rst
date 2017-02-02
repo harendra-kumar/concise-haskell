@@ -11,8 +11,11 @@
 .. role:: red
 .. role:: blk
 
-Syntax in a Nutshell
-====================
+Basic Syntax
+============
+
+.. contents:: Table of Contents
+   :depth: 1
 
 +-----------------------------------------------------------------------------+
 | This is arranged in a strict dependency based sequence as much as possible, |
@@ -393,10 +396,10 @@ Anonymous Functions
 +-----------------------------------------------------------------------------+
 
 Type Level Syntax
-~~~~~~~~~~~~~~~~~
+-----------------
 
 Type Signatures
-^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | A type signature can be associated with an identifer or an expression using |
@@ -430,7 +433,7 @@ Type Signatures
 +--------------------+--------------------------------------------------------+
 
 Type Operator ``->``
-^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | ``->`` is a right associative type operator which is used to generate type  |
@@ -457,24 +460,30 @@ Type Operator ``->``
 |  add x y = x + y                                                            |
 +-----------------------------------------------------------------------------+
 
-Variable Namespaces
-~~~~~~~~~~~~~~~~~~~
+Type & Data Variable Namespaces
+-------------------------------
 
 +-----------------------------------------------------------------------------+
 | Identifiers starting with a `lowercase` letter                              |
 +------------------------------------+----------------------------------------+
-| type variables                     | term variables                         |
+| type variables (type namespace)    | term variables (data namespace)        |
 +------------------------------------+----------------------------------------+
 | These two namespaces can use the same identifier names without conflict.    |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-|  -- identifier 'play' refers to three distinct objects                      |
-|  play ::               -- function name                                     |
-|       play -> play     -- type variable                                     |
-|  play play = play      -- function name (global scoped)                     |
-|                        -- parameter name (local scoped)                     |
+|  -- The following is a valid Haskell code where the identifier 'play'       |
+|  -- refers to multiple distinct objects in two independent namespaces       |
+|  play ::            -- 'play' refers to a function name defined in data     |
+|                     -- namespace                                            |
+|       play -> play  -- play is a type variable in type namespace            |
+|  play play = ...    -- both 'play' are term variables in data namespace     |
+|                     -- first one refers to function name and second one to  |
+|                     -- a parameter of the function                          |
 +-----------------------------------------------------------------------------+
+
+Scopes
+------
 
 Ad-hoc Functions
 ----------------
@@ -1084,6 +1093,9 @@ Namespaces
 |                                                                             |
 |  class Clay where ...    -- type (typeclass)                                |
 +-----------------------------------------------------------------------------+
+
+Pragmas
+~~~~~~~
 
 References
 ----------
