@@ -24,7 +24,10 @@ Terminology
 | Rigid type variable        | The scope (quantification) of the type variable is fixed by     |
 | (skolem)                   | annotation.                                                     |
 +----------------------------+-----------------------------------------------------------------+
-| Unify                      | A type variable can be `unified` with other type variable of    |
+| Unification                | algorithmic process of solving equations between symbolic       |
+|                            | expressions.                                                    |
++----------------------------+-----------------------------------------------------------------+
+| Unification of type vars   | A type variable can be `unified` with other type variable of    |
 |                            | the same name if both are in the same quantification scope and  |
 |                            | therefore are referring to one and the same thing.              |
 +----------------------------+-----------------------------------------------------------------+
@@ -843,12 +846,15 @@ Pattern Synonyms
 |                     |  let list = Head 'a'            -- construct          |
 |                     |  let Head x = [1..]             -- match              |
 +---------------------+-------------------------------------------------------+
+| * Bidirectional patterns can be used as expressions                         |
+| * You can use view patterns in pattern synonyms                             |
++---------------------+-------------------------------------------------------+
 | A pattern synonym:                                                          |
 |                                                                             |
 | * starts with an uppercase letter just like a constructor.                  |
 | * can be defined only at top level and not as a local definition.           |
 | * can be defined as infix as well.                                          |
-| * cannot be defined recursively.                                            |
+| * can be used in another pattern synonym or recursively                     |
 +-----------------------------------------------------------------------------+
 | Import and export                                                           |
 +-----------------------------------------------------------------------------+
