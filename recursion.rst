@@ -86,7 +86,7 @@ An expression can be defined recursively by referring to the value being
 defined within the definition.  Any recursive definition can be reduced to the
 following normalized version::
 
-  x = f x
+  x = f x -- implies f :: a -> a
 
 We can see `x` unfold clearly by repeatedly substituting the term `x` in the
 expression for its own definition::
@@ -99,19 +99,21 @@ expression for its own definition::
 This is in fact how we defined iteration earlier i.e. applying a function
 repeatedly on the previous result. Though we do not have much control over it.
 
+In the following discussion we assume that `f` is strict in `x`. If `f`
+discards `x` then the definition just reduces to a trival non-recursive one.
+For example::
+
+    x = f x where f = const 10 -- x = 10
+
 Recursive Concrete Values
 -------------------------
 
-Note that in general `x` could be any type of value, a concrete value or a
-function. But in this section we are talking about only concrete values. Later,
-in the following sections, we will generalize this discussion to functions as
-well. For concrete values we can easily deduce the following results:
+When `x` is of concrete type and not a function, we can easily deduce the
+following results for `x = f x`:
 
 +----------------------+------------------------------------------------------+
 | When                 | What happens?                                        |
 +======================+======================================================+
-| `f` does not use `x` | `x` reduces to a non-recursive definition            |
-+----------------------+------------------------------------------------------+
 | `f` scrutinizes `x`  | evaluation of `x` results in an infinite loop.       |
 | (recursion)          | Any side effects before the scrutiny are produced    |
 |                      | in the loop.                                         |
@@ -123,12 +125,11 @@ well. For concrete values we can easily deduce the following results:
 |                      | as original `x` and can be pattern matched again.    |
 +----------------------+------------------------------------------------------+
 
-Let us now see examples of each case described above:
+A recursive definition can be constructed but does not make sense for concrete
+values, it just results in an infinite loop, whereas corecursion can be used in
+a fruitful manner to generate infinite data structures.
 
-* `f` discards its argument::
-
-    -- non-recursive definition
-    x = f x where f = const 10 -- x = 10
+Let us see some examples:
 
 * `f` scrutinizes `x`::
 
@@ -171,76 +172,22 @@ point of `sqrt`::
   >> fixSqrt 256
   1.0
 
-When we evaluate `fixSqrt 256`, for example, it results in a call to `fixSqrt
-16` in the first step and then `fixSqrt 4` in the next step, and so on. Finally
-when the argument `x` passed to the next call becomes very close to 1 then we
-hit the `True` case and the value gets evaluated to `x` i.e. 1.0.
+When we evaluate `fixSqrt 256`, it results in a call to `fixSqrt 16` in the
+first step and then `fixSqrt 4` in the next step, and so on. Finally when the
+argument `x` passed to `fixSqrt` becomes very close to 1 then we hit the `True`
+case and the value gets evaluated to `x` i.e. 1.0.
 
-Functions as values
--------------------
+For termination, a recursive function must have a case where it does not
+recurse further. Even then it is possible that it never hits the termination
+condition.
 
-A function is a layer of indirection. Recursion at the function level does not
-translate to recursion at concrete level because, unlike in the case of
-concrete-value recursion where a value is defined in terms of itself, each
-function call is a different concrete value.  When we unfold the recursion at
-the function level it results in a flat concrete-value level space::
-
-  fixSqrt 256 => fixSqrt 16 => fixSqrt 4 ... 1.0
-
-When thinking in terms of concrete values, each function call can be treated as
-a new anonymous concrete value (just like anonymous functions) the value of
-which is uniquely determined by the combination of the function and the
-argument values. We can imagine a new name for each function call i.e.
-dynamically generated value instances::
-
-  y1 => y2 => y3 ... yn (1.0)
-
-In case of concrete values, when they are defined recursively they result in
-infinite loop or infinite data structures because you cannot define a concrete
-value in terms of itself, that means you will have to know the value to
-determine itself, resulting in a paradox.
-
-In function level recursion the termination problem too gets abstracted to the
-function level. When recursing at the function level i.e. repeatedly `applying
-a function` to previously generated concrete values. If the function i.e. the
-abstract level value is not defined to converge we will continue applying it
-forever. In that case the function application can be thought of as resulting
-in a `bottom` value.
-
-Notice `applying a function` which is different from evaluating a concrete
-value.
-
-A function represents a set of concrete values. A recursive function represents
-a series (iterative) of concrete values.
-
-Recursion as Iteration
-----------------------
-
-We will study how to iterate using recursion and lazy evaluation. We will also
-understand how we can lazily build and evaluate a function on the fly
-representing the logic for each step of the iteration.
-
-As we saw in the previous section, iterating a function forever over an
-eternally undefined value is not much interesting. But if that undefined value
-is a function and we iterate a higher order function on top we can build a
-function out of nothing on the fly.
-
-What if the `x` in `x = f x` is a function instead? Let's call it `g`, and give
-it the type `g :: a -> b`. Then f must be of type `f :: (a -> b) -> (a -> b)`;
-that makes `f` a higher order function, and our iteration now becomes::
-
-  g = f g
-  g x = f g x
-
-The value of this expression is a lazy infinite function `g` that represents an
-infinite series of iterations of `f`.  `g` is created lazily by iterations of
-`f` on the fly as it is evaluated.
-
-Modifying fixSqrt
+Iterative Wrapper
 ~~~~~~~~~~~~~~~~~
 
 If we look carefully the body of `fixSqrt` is a function of `fixSqrt` and `x`
-the argument::
+the argument, we can write it explicitly in terms of a function `f` that is a
+function of `fixSqrt` and `x` the argument of `fixSqrt`. If we rename `fixSqrt`
+to `g` instead, we can write it as::
 
   g = f g
     where
@@ -249,98 +196,51 @@ the argument::
             True -> x
             False -> g (sqrt x)
 
-From this definition, it is obvious that `f` not only uses `g` but also the
-argument of the output function `f g`, which is `x`, in its definition. When we
-pass `g` to `f` it will return us a function which takes one argument `x` and
-is defined in terms of that argument.
+Notice this is exactly the same as the general recursive expression `x = f x`
+that we discussed earlier.  In fact, any recursive function can be expressed in
+this form.
 
-Termination
-~~~~~~~~~~~
+Also notice that `f` is not a recursive function.  We can read `f` as "check if
+x is the same as `sqrt x`, if not call the function `g` on on `sqrt x` i.e.
+perform the next iteration", there is no recursion.  `f` just represents one
+step or a single iteration in the recursion process.
 
-The iterations over the higher order function `f` are non-terminating and
-infinite but we do not need them all if the evaluation of the function that
-they are creating terminates.  Consider the following definition of `f`::
+The explicit recursion is limited to the expression `g = f g`. As we saw
+earlier this expression is equivalent to applying `f` iteratively over `g`.
+However unlike concrete values the result of every iteration is a function
+which may terminate when applied.
 
-  f g = h
-    where
-      h x -> case (sqrt x == x) of
-        True -> x
-        False -> g (sqrt x)
+As a note, just like recursion did not make sense in case of concrete values,
+corecursion does not make sense for functions as cannot be constructed using
+data constructors.
 
-In each iteration, `f` accepts a function `g`, and builds the function `h` which
-is part of `g`. `h` terminates if a condition is met otherwise performs the
-next iteration by calling `g` again.
+Fix - Recursion by Iteration
+----------------------------
 
-`f` is a wrapper function which wraps `g` to take `sqrt` of its argument and
-terminate if it is the same as the argument else pass it on to the next
-iteration.
-
-Now we can try evaluating `g`::
-
-  >> g 10
-  1.0
-
-Note that we could determine the value of expression `g = f g` here because it
-not only depends on `g` but also on the argument that is passed to the
-resulting function, `f g`, produced by the iteration. As we can see, `f` is
-defined in terms of the function `g` as well as the argument of `f g`. In other
-words, `f` is conditionally strict on `g`, when the condition is met the self
-dependency is broken and the iteration stops.
-
-Each lazy evaluation step of `g` either generates a new application of `f` or
-terminates.
-
-
-There is no difference between a concrete value and a function when the
-function is agnostic of its parameters that is it is not defined in terms of
-its parameters.
-
-If we consider g as just a value, it is easier to understand this. f is
-modifying the value g by iterating on it. The value g is a collection of all
-those iterations. When g happens to be a function we evaluate the value by
-passing it parameters and each iteration built by f gets evaluated. Notice
-there is no recursion in g. f is the one which is controlling the recursion
-here. f is manually building the recursion. f knows whether to call g again or
-not. We are iterating f building an infinite value g. That is a different way
-of understanding higher order functions, we can think of lower order functions
-just as plain values in the context of higher order functions.
-
-Note that depending on how `f` is defined in terms of `g` and `x`, the
-stop condition may never be met and the iteration may never stop.
-
-Iteration Equivalent
-~~~~~~~~~~~~~~~~~~~~
-
-* We can think of this as an imperative for loop
-* Stop condition `sqrt x == x`
-* Step `sqrt x`
-
-Fix
----
-
-If we generalize the type of `f` so that we can include functions having any number
-of parameters then we get::
-
-  f :: (a -> a)
-
-We can write a utility function to iterate on a higher order function `f`, we
-will call it `fix`::
+We can write a utility function to iterate with a function `f`, we will call it
+`fix`::
 
   fix :: (a -> a) -> a
   fix f = let x = f x in x
 
-Note that this is generally useful only when `a` is a function type as we
-discussed previously. Therefore, `f` is usually a higher order function and
-`fix f` returns a function.
+Examples
+~~~~~~~~
 
-This really generates an iterative version of a recursive function using lazy
-evaluation. Each iteration generates a closure on the heap rather than a stack
-frame on the stack as in the case of recursion. We can, in fact, write a
-recursive version of the function we wrote in the previous section::
+::
 
-  sqrtFix x = if sqrt x == x then x else sqrtFix (sqrt x)
+  -- corecursion
+  f x = 1 : 1 : zipWith (+) x (tail x)
+  take 10 (fix f)
 
-TBD: Compare stack and heap for recursion and iteration cases graphically.
+  -- recursion
+  f g x =
+      case (sqrt x == x) of
+        True -> x
+        False -> g (sqrt x)
+  fix f 10
+
+Notice that if you simply remove the `f` from the definitions above you will
+get the recursive definitions.
 
 The Y-Combinator
 ~~~~~~~~~~~~~~~~
@@ -350,40 +250,6 @@ calculus discovered by Haskell B. Curry::
 
   fix f = f (fix f)                -- Lambda lifted
   fix f = let x = f x in x         -- Lambda dropped
-
-A Generic Fixer
-~~~~~~~~~~~~~~~
-
-We can write a generic wrapper function to find the fixed point of any single
-argument function::
-
-  fixer g h x =
-      case (g x == x) of
-        True -> x
-        False -> h (g x)
-
-  >> fix (fixer sqrt) 2
-  1.0
-  >> fix (fixer cos) 2
-  0.7390851332151607
-
-The function `fix` is a misnomer, it does not really find a fixed point of a
-function it really only iterates, and you could have any condition to stop the
-iteration not just the fixed point of a function. A more apt name for it will
-perhaps be iterate. The function `fixer` is the one which finds the fixed point
-of a function by iterating.
-
-Using direct recursion::
-
-  fixit g x =
-      case (g x == x) of
-        True -> x
-        False -> fixit g (g x)
-
-  >> fixit sqrt 2
-  1.0
-  >> fixit cos 2
-  0.7390851332151607
 
 Recursion Schemes
 -----------------
