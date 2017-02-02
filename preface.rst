@@ -53,7 +53,11 @@ intuitive understanding of the concepts.
 Note on Jargon
 --------------
 
-This text tries to avoid the jargon where possible but many terms which allow
+Haskell provides several dimensions of abstraction. To think about the concepts
+systematically it is important to get familiarised with the vocabulary and know
+the precise meanings of the terms involved.
+
+This text tries to avoid jargon where possible but many terms which allow
 you to express concepts in a concise and clear manner are necessary. We define the
 term before it is used so that you have an idea what it means.
 
