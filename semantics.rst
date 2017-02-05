@@ -299,28 +299,77 @@ mathematical terms:
 Operational Aspects
 -------------------
 
-Dependency driven execution
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Data Dependencies - Lazy vs Eager Evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-A Haskell program is a specification of data relationships, it is a dependency
-graph.  There is no sequential execution of statements in the program instead
-it is dependency or need based execution.  The starting point of the graph is
-the output data we are interested in.  This data depends on other data and so
-on. When we need the top level data we walk through the graph and we evaluate a
-dependency which in turn will evaluate its dependency and so on. This way we
-reduce the dependency graph.
+The high level difference in lazy evaluation and eager evaluation is that the
+latter puts the burden of specifying data dependencies on the programmer while
+the former infers it automatically.
+
+In imperative languages dependencies among computations are specified by the
+sequence of statements in the program.  The programmer has to think about
+dependencies and encode them in the sequence of statements.  A statement
+computing a data element must come before another statement using the data
+element.  If the sequence of statements changes, the dependencies will change
+and the meaning of the program will change.
+
+A Haskell program figures out the dependencies among program elements
+automatically, and the program execution is driven by these implicit dependency
+relationships rather than the sequence of statements as written in the program.
+The sequence of statements in the program is irrelevant.  However, the
+dependencies and therefore the execution sequence can be explicitly controlled
+when desired (e.g. IO Monad).
+
+Eager Evaluation
+~~~~~~~~~~~~~~~~
+
+In eager evaluation strategy, everything is evaluated in the specified sequence
+including the arguments of a function. The expressions representing the
+arguments of a function are completely evaluated before the function call
+proceeds.  This strategy means that the evaluation of an argument happens
+irrespective of whether the argument will be actually used inside the function
+or not. The evaluation is based on the `static structure of the expression`.
+Therefore, the decision can be easily made at compile time.
+
+Lazy Evaluation
+~~~~~~~~~~~~~~~
+
+A function may or may not need its arguments at run-time, depending on its
+implementation. However, we may not be able to determine that fact at compile
+time.
+
+In a lazy evaluation strategy, the evaluation decision is deferred to the
+actual site where an argument is used inside the function and therefore it
+happens at run time. The compiler must generate code in such a way that the
+evaluation is triggered at run-time at the site where the argument is actually
+used. If the argument is used at more than one places the compiler needs to
+make sure that the evaluation happens once and then reused at other places.
+This evaluation is based on the `run-time data dependencies` and not based on
+the static structure of the expression.
+
+For example, the `expression graph` of `fst (1, 2 + 3)` has `fst` depending on
+both the arguments, whereas in the `real dependency graph`, `fst` has a
+dependency only on the first argument and therefore we do not need to evaluate
+`2 + 3`. But, in general, we can decide this only after we start evaluating
+`fst`. So we need to generate the code such that we trigger the evaluation of
+`2 + 3` at the place where it is used. However, in many cases, including `fst`
+it can be determined at the compile time and GHC actually does that using
+`strictness analysis` and no runtime mechanism is needed in those cases.
+
+* Graph Reduction or lazy evaluation
+* Need a picture showing bottom up and top down reduction paths in a tree
 
 Expressions and Data
 ~~~~~~~~~~~~~~~~~~~~
 
 From program evaluation perspective, there are two important types of entities
-in a program, expressions and data.  Expressions are unevaluated values, data
-is always represented by a data constructor, however the constructor might be
-holding data in the form of unevaluated expressions (WHNF).
+in a Haskell program, expressions and data.  Expressions are unevaluated values
+which eventually evaluate to a data constructor, data is represented by a data
+constructor holding another data constructor or unevaluated expressions (WHNF).
 
-Expressions consist of constructors or function applications. An expression in
-general may represent a concrete data value or an abstract value of some arity
-(a function).
+Expressions may consist of data constructors or function applications. An
+expression in general may represent a concrete data data type or an abstract
+data type of some arity (a function).
 
 Data specification consists of data constructors. Constructors are like slots
 or labeled boxes or wrappers holding data.  The data they are holding could be
@@ -328,19 +377,31 @@ anything, an unevaluated expression or data.  We don't know what it is until we
 open the box. The box is opened by doing a pattern match.
 
 Expressions are reduced or evaluated to data constructors.  A data constructor
-itself cannot be reduced or evaluated. However, the contents inside the data
-constructor can again be expressions which can be evaluated.
+itself cannot be reduced or evaluated, it creates a data element on the heap.
+However, the contents inside the data constructor can again be referring to
+expressions which can be evaluated.
 
-+------------+-------------+----------------+-----------------------------------+
-| Expression | Reduce      | case scrutinee | constructors and functions        |
-+------------+-------------+----------------+-----------------------------------+
-| Data       | Deconstruct | pattern match  | constructors                      |
-+------------+-------------+----------------+-----------------------------------+
+Operations on Expressions and Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are mainly three types of operations during program execution. A pattern
+match deconstructs data, a function application reduces an expression, a
+constructor application creates new data.
+
++------------+-------------+----------------+---------------------------------+
+| Entity     | Operation   | Trigger        | Output                          |
++============+=============+================+=================================+
+| Expression | Function    | case scrutinee | Constructor                     |
+|            | Application |                |                                 |
++------------+-------------+----------------+---------------------------------+
+| Expression | Constructor | case scrutinee | Constructor                     |
+|            | Application |                |                                 |
++------------+-------------+----------------+---------------------------------+
+| Data       | Deconstruct | pattern match  | Expression or Constructor       |
++------------+-------------+----------------+---------------------------------+
 
 Evaluation
 ~~~~~~~~~~
-
-Graph Reduction or lazy evaluation
 
 A pattern match triggers evaluation of the expression we are matching on,
 because it needs a constructor to pattern match on. That is as lazy as we can
@@ -348,16 +409,32 @@ get we can no longer procrastinate. Without the constructor there is no way we
 can proceed.
 
 Evaluation of an expression proceeds until it hits a constructor i.e. we are
-looking at a box of data also called WHNF. Anyway we cannot evaluate further
-until we pattern match and know what is inside the box. The box is then pried
-open by pattern matching on the constructors and the constituents taken apart.
-The case analysis then proceeds to perform the next pattern match which will
-trigger another evaluation if we have an unevaluated expression inside the box.
+looking at a box of data also called WHNF (Anyway its not possible to evaluate
+further until we pattern match and know what is inside the box). The box is
+then pried open by pattern matching on the constructors and the constituents
+taken apart.  The case analysis then proceeds to perform the next pattern match
+which will trigger another evaluation if we have an unevaluated expression
+inside the box.
 
 In essence the whole evaluation process is just a series of pattern matches and
 we need to evaluate expressions to enable the pattern matches.  Thus, it is
 a series of alternating pattern match and function applications i.e.
 (pat+)(apply+).
+
+This is how an evaluation of a case expression (`case analysis`) looks like in
+general::
+
+  expr =
+    case (scrutinee expression) of
+      pattern1 -> (output expression1)
+      pattern2 -> (output expression2)
+      ...
+
+When we need `expr` in WHNF, its evaluation is started. The case statement
+`scrutinizes` the expression which triggers its evaluation to WHNF.  Once we
+have reach the outermost constructor we can pattern match. The pattern match
+decides the path to take and then we need to evaluate the corresponding
+`output expression` in WHNF.
 
 Closures
 ^^^^^^^^
