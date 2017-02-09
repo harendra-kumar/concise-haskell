@@ -8,6 +8,8 @@ Terminology
 -----------
 
 +-------------------+---------------------------------------------------------+
+| Dual              | An opposite and complementary concept.                  |
++-------------------+---------------------------------------------------------+
 | Cartesian product | For sets A and B, the Cartesian product A × B is the    |
 |                   | set of all ordered pairs (a, b) where a ∈ A and b ∈ B.  |
 +-------------------+---------------------------------------------------------+
@@ -21,14 +23,14 @@ Terminology
 | Total function    | A function which is defined for all values              |
 |                   | of its parameters.                                      |
 +-------------------+---------------------------------------------------------+
-| Dual              |                                                         |
-+-------------------+---------------------------------------------------------+
 
 Algebra
 -------
 
-An algebra is defined as a set along with the operations on the set. In Haskell
-sets are types and the operations are functions on those types.
+A set along with a set of  operations on the set is also called an algbera of
+the set. In Haskell, sets are `types` and operations are `functions` on those
+types.  Therefore, a type and a set of functions on that type taken together
+form an algebra of the type.
 
 Sets
 ----
@@ -39,8 +41,8 @@ Sets
 | `Set <https://en.wikipedia.org/wiki/Set_(mathematics)>`_ | A collection of distinct objects.                        | {1, 2, 3, 4, ...} |
 +----------------------------------------------------------+----------------------------------------------------------+-------------------+
 
-In Haskell, a data types are sets. For example the basic type `Int` represents
-the following set of values::
+In Haskell, data types correspond to the sets in mathematics. For example the
+type `Int` represents the following set of values::
 
   {..., -3, -2, -1, 0, 1, 2, 3, ...}
 
@@ -57,9 +59,9 @@ basic data types.
 Cartesian Product
 ~~~~~~~~~~~~~~~~~
 
-Given two sets `X` and `Y`, `X × Y` is the cartesian product. It represents all
-tuples `(a,b)` where `a` is from set `X` and `b` is from set `Y`. If `X` has m
-elements and `Y` has `n` elements then `X × Y` will have `m × n`  elements.
+Given two sets `A` and `B`, `A × B` is the cartesian product. It represents all
+tuples `(a,b)` where `a` is from set `A` and `b` is from set `B`. If `A` has
+`m` elements and `B` has `n` elements then `A × B` will have `m × n`  elements.
 
 In Haskell a product of two sets (or types) can be represented as a two tuple::
 
