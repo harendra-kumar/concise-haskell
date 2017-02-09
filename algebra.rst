@@ -126,20 +126,24 @@ in the range.
 A function `f` that maps values from a set `X` to another set `Y` is denoted as
 `f: X → Y`.  `X` is called the domain and `Y` the codomain of `f`.
 
-+------------+------------------------------------------+---------+-----------------+
-| Type       | Property                                 | Example | Counter Example |
-+============+==========================================+=========+=================+
-| Valid      | f(X) maps to only one element in Y       |         |                 |
-+------------+------------------------------------------+---------+-----------------+
-| Total      | f(X) is defined for all elements in X    |         |                 |
-+------------+------------------------------------------+---------+-----------------+
-| Injective  | one-to-one i.e. f(x1) /= f(x2)           |         |                 |
-+------------+------------------------------------------+---------+-----------------+
-| Surjective | onto i.e. each element in Y is mapped to |         |                 |
-+------------+------------------------------------------+---------+-----------------+
-| bijective  | Injective & surjective i.e.              |         |                 |
-|            | one-to-one from whole X to whole Y       |         |                 |
-+------------+------------------------------------------+---------+-----------------+
+.. |invalid| image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/algebra/invalid.png
+.. |total| image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/algebra/total.png
+.. |partial| image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/algebra/partial.png
+
++------------+------------------------------------------+---------------------------+
+| Type       | Property                                 | Examples                  |
++============+==========================================+===========================+
+| Valid      | f(X) maps to only one element in Y       | |invalid|                 |
++------------+------------------------------------------+-------------+-------------+
+| Total      | f(X) is defined for all elements in X    | |total|     | |partial|   |
++------------+------------------------------------------+-------------+-------------+
+| Injective  | one-to-one i.e. f(x1) /= f(x2)           |             |             |
++------------+------------------------------------------+-------------+-------------+
+| Surjective | onto i.e. each element in Y is mapped to |             |             |
++------------+------------------------------------------+-------------+-------------+
+| bijective  | Injective & surjective i.e.              |             |             |
+|            | one-to-one from whole X to whole Y       |             |             |
++------------+------------------------------------------+-------------+-------------+
 
 Relations are a generalization of functions. For example, `greater than` is a
 relation but not a valid function because it can map one element in a domain to
