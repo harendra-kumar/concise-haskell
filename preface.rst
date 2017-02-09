@@ -30,7 +30,7 @@ GHC Haskell including all GHC extensions. This is different from the GHC manual
 in conciseness and presentation. The GHC manual only describes the GHC specific
 language extensions. They are described mostly from the GHC developer's
 perspective and in the sequence they were developed rather than in a holistic
-view of the language which makes it hard to find relevant things and build a
+view of the language which makes it hard to find relevant material and build a
 consistent picture quickly.
 
 The goal of this text is to build one holistic view of all available language
@@ -47,19 +47,20 @@ quickly and needs a handy reference to be able to search useful stuff quickly
 when he needs it.  It tries to present the minimal concepts which are relevant
 to a user of the language and avoids explaining detailed rationale, theoretical
 underpinnings, background or pedagogic material unless when necessary.
-The descriptions of concepts are not formal in any sense, they are only for an
-intuitive understanding of the concepts.
+Essential concepts are separated from deeper treatments where necessary.  The
+descriptions of concepts are not formal or rigorous in any sense, they are only
+for an intuitive understanding of the concepts.
 
 Note on Jargon
 --------------
 
-Haskell provides several dimensions of abstraction. To think about the concepts
+Haskell provides several dimensions of abstraction and beautiful mathematical
+concepts that fit together elegantly. To think about the concepts
 systematically it is important to get familiarised with the vocabulary and know
 the precise meanings of the terms involved.
 
-This text tries to avoid jargon where possible but many terms which allow
-you to express concepts in a concise and clear manner are necessary. We define the
-term before it is used so that you have an idea what it means.
-
-By defining all the necessary vocabulary in a succinct manner it also allows
-you to read any other documentation on Haskell (e.g. GHC manual) with ease.
+This text tries to avoid jargon where possible but many terms that allow you to
+express concepts in a concise and clear manner are necessary. We define the
+terminology succinctly in each chapter. Sometimes terms are included just so
+that the reader is able to understand other material on the topic, e.g. the GHC
+manual.
