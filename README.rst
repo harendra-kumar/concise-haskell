@@ -10,7 +10,7 @@ Table of Contents
 * Why Haskell
 * `Abstraction, Polymorphism & Composition <abstraction-and-composition.rst>`_
 * `Algebra <algebra/algebra.rst>`_
-* `Data Abstraction: Functions <haskell-overview.rst>`_
+* `Data Abstraction: Functions <abstraction/abstraction.rst>`_
 * `Basic Syntax <syntax.rst>`_
 * Denotational & Operational Semantics
 * Polymorphism
