@@ -428,7 +428,7 @@ with the type level program. Some fundamental checks:
   expression. All the values `mapped from` must have one type and all the
   values `mapped to` must have one type.
 
-* `Equations`: When two values can be substitued in place of each other then
+* `Equations`: When two values can be substituted in place of each other then
   they must have the same type.
 
 Data Level Program
@@ -479,9 +479,7 @@ Higher-order functions
 ~~~~~~~~~~~~~~~~~~~~~~
 
 A function which takes another function as an argument is a higher order
-function. Higher order functions could be of different ranks depending on
-whether the function passed as argument also takes another function as argument
-and so on.
+function.
 
 Ad-hoc Functions
 ~~~~~~~~~~~~~~~~
@@ -592,7 +590,7 @@ values.  The total choices represented by `Object` is a product of the choices
 represented by `Color` and `Size` i.e. 3x2. That's why it is called a product
 type. An `Object` therefore is a product of two sum types.
 
-Let us now build a `Shape` data type. A shape could be a triangle or a sqaure.
+Let us now build a `Shape` data type. A shape could be a triangle or a square.
 For each shape we also describe its color and size.
 
 ::
@@ -960,6 +958,12 @@ saying `existentially quantified`.
 
 TBD: examples of existential quantification.
 
+Parametric Polymorphism Ranks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Higher order functions could be of different ranks depending on whether the
+function passed as argument also takes another function as argument and so on.
+
 Data Level Parametric Polymorphism
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1125,6 +1129,20 @@ output.
 +------------+--------------+-------------------------------------------------+
 
 Mathematical substitution of terms in the equations.
+
+Bindings
+--------
+
+A binding is a name given to an entity (e.g. variable, parameter,
+function). When we refer to that name in an expression we are always
+referring to the same entity at all places. However, not all entities
+may have a name, for example an anonymous function does not have a
+name. Some examples of bindings are:
+
+* A binding for an expression referring to a concrete data value
+* A binding for a function i.e. an expression referring to an abstract value
+* A binding for the parameters of a function
+* A binding created by a pattern match
 
 Tips: Understanding a Haskell Program
 -------------------------------------
