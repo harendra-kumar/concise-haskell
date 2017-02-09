@@ -13,9 +13,9 @@ Terminology
 | Cartesian product | For sets A and B, the Cartesian product A × B is the    |
 |                   | set of all ordered pairs (a, b) where a ∈ A and b ∈ B.  |
 +-------------------+---------------------------------------------------------+
-| Homomorphism      | A homomorphism is a structure-preserving map between    |
-|                   | two algebraic structures of the same type.              |
-|                   | Literally meaning, having same shape.                   |
+| Relation          | A mapping from elements of one set to another           |
++-------------------+---------------------------------------------------------+
+| Function          | A relation where one source maps to only one target     |
 +-------------------+---------------------------------------------------------+
 | Partial function  | A function that is not defined for some values          |
 |                   | of its parameters                                       |
@@ -23,14 +23,10 @@ Terminology
 | Total function    | A function which is defined for all values              |
 |                   | of its parameters.                                      |
 +-------------------+---------------------------------------------------------+
-
-Algebra
--------
-
-A set along with a set of  operations on the set is also called an algbera of
-the set. In Haskell, sets are `types` and operations are `functions` on those
-types.  Therefore, a type and a set of functions on that type taken together
-form an algebra of the type.
+| Homomorphism      | A homomorphism is a structure-preserving map between    |
+|                   | two algebraic structures of the same type.              |
+|                   | Literally meaning, having same shape.                   |
++-------------------+---------------------------------------------------------+
 
 Sets
 ----
@@ -182,6 +178,17 @@ In Haskell, assuming type `x` represents set `X` and type `y` represents set
   f :: x -> y -> x   -- curried form
   f :: x -> (y -> x) -- two chained functions
 
+
+Algebraic Structure
+-------------------
+
+An algebraic structure is a set (called `carrier set` or underlying set) with
+one or more operations defined on it that satisfies a list of axioms. Some
+examples of algebraic structures of programming importance are semigroups and
+monoids.
+
+In Haskell, a set is represented by a `type` and operations are `functions` on
+the type.
 
 Summary
 -------
