@@ -509,21 +509,22 @@ data type inputs and mapping individual input values to custom output values.
 Data Declaration
 ~~~~~~~~~~~~~~~~
 
-+-----------------------------------------------------------------------------------------------------+
-| A data declaration essentially binds a type in type space to a data constructor in data space.      |
-+-----------+-----------------+---+------------------------------+------------------------------------+
-| ADT type  | Type Identifier |   | Data Constructors' Templates | Equivalent Signatures              |
-+===========+=================+===+==============================+====================================+
-| Product   |   data Pair     | = | Pair Int Int                 | Pair  :: Int -> Int -> Pair        |
-+-----------+-----------------+---+------------------------------+------------------------------------+
-| Sum       |   data Count    | = | Red Int | Green Int          | Red   :: Int -> Count              |
-|           |                 |   |                              +------------------------------------+
-|           |                 |   |                              | Green :: Int -> Count              |
-+-----------+-----------------+---+------------------------------+------------------------------------+
-| Recursive |   data IntList  | = | Empty | Cons Int IntList     | Empty :: IntList                   |
-|           |                 |   |                              +------------------------------------+
-|           |                 |   |                              | Cons  :: Int -> IntList -> IntList |
-+-----------+-----------------+---+------------------------------+------------------------------------+
++------------------------------------------------------------------------------------------------------+
+| A data declaration essentially binds a type in the type space to a data constructor in the data      |
+| space.                                                                                               |
++------------+-----------------+---+------------------------------+------------------------------------+
+| ADT type   | Type Identifier |   | Data Constructors' Templates | Equivalent Constructor Signatures  |
++============+=================+===+==============================+====================================+
+| Product    |   data Pair     | = | Pair Int Int                 | Pair  :: Int -> Int -> Pair        |
++------------+-----------------+---+------------------------------+------------------------------------+
+| Sum        |   data Count    | = | Red Int | Green Int          | Red   :: Int -> Count              |
+|            |                 |   |                              +------------------------------------+
+|            |                 |   |                              | Green :: Int -> Count              |
++------------+-----------------+---+------------------------------+------------------------------------+
+| Recursive  |   data IntList  | = | Empty | Cons Int IntList     | Empty :: IntList                   |
+| (Inductive)|                 |   |                              +------------------------------------+
+|            |                 |   |                              | Cons  :: Int -> IntList -> IntList |
++------------+-----------------+---+------------------------------+------------------------------------+
 
 Data Construction
 ~~~~~~~~~~~~~~~~~
