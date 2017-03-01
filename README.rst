@@ -33,4 +33,7 @@ Table of Contents
 Contributions
 -------------
 
-Contributions are welcome!
+Contributions are welcome! You can also contribute by raising issues including
+specific questions or areas which are difficult or mind twisting to understand
+in Haskell. This will help us improve the coverage of those areas or addressing
+those questions in a better way with graphics, examples or better explanation.
