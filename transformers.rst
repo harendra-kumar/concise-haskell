@@ -205,7 +205,9 @@ returned by `RunInBase`::
   type RunInBase m b = forall a. m a -> b (StM m a)
 
 This mechanism allows us to lift arguments of functions and not just the
-results, for example we can lift `catch` using this::
+results, for example we can lift `catch` using this. Notice that the arguments
+too are actions and have a generic `m a` type. `control` is a convenience
+function which calls `restoreM` after `liftBaseWith`::
 
   catch :: (MonadBaseControl IO m, Exception e)
         => m a        -- ^ The computation to run
