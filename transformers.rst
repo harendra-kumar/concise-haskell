@@ -1,26 +1,248 @@
-Standard Monads
----------------
+Transformers
+============
 
-* A monad is said to be strict if its >>= operation is strict in its first
-  argument. The base monads Maybe, [] and IO are strict:
+Transformer Stack
+-----------------
+
+A transformer monad is created by wrapping a monad inside a newtype wrapper and
+by deriving an instance of Monad.  For example::
+
+  -- newtype TransformerT m a = TransformerT {runTransformerT :: ...         }
+     newtype MaybeT       m a = MaybeT       { runMaybeT      :: m (Maybe a) }
+
+The type constructor `TransformerT`, in short represented by `t`, is the
+transformer monad and `m` is an arbitrary monad wrapped in `t`. `m a` is the
+wrapped type, `TransformerT` is the type wrapper, `runTransformerT` is the
+unwrapping function, which yields the type `m a` when run on a `t` value.
+
+This combined type can be wrapped again inside another type  and so on, forming
+a stack of monads. This stacking allows us to combine multiple monads together
+and use the functionality of all of them together.  The innermost monad in the
+whole stack, which does not wrap any other monad, is called the `base monad`.
+
+[TBD] circular rings picture here.
+
+MonadTrans (lift)
+~~~~~~~~~~~~~~~~~
+
+When we run a computation in `m` we get a result of type `m a`. To be able to
+use the result in `t` we need to know how to wrap that into our type wrapper to
+construct a `t m a` type from that.
+
+The `MonadTrans` class allows us to do the wrapping generically for any
+transformer. Every transformer `t` provides an instance of MonadTrans.
+MonadTrans provides a `lift` operation which knows how to wrap a value `m a`
+from an arbitrary monad `m` into the `t` monad::
+
+   -----------------
+  |  t (MonadTrans) |  ^
+   -----------------   | lift :: m a -> t m a
+  |  m              |
+   -----------------
+
+`lift` is nothing but applying the wrapper function `TransformerT` to the type
+`m a` in a manner appropriate for the given transformer type `t`::
+
+  -- lifting an 'm a' into 'MaybeT m a'
+  instance MonadTrans MaybeT where
+      lift = MaybeT . liftM Just
+
+By applying lift multiple times we can wrap a value from a monad lower down in
+the stack to the desired level.  The `transformers` package provides monad
+transformer types and MonadTrans instances for all the standard monads (IO,
+Maybe, Either, [], (->), Identity).
+
+MonadBase (liftBase)
+~~~~~~~~~~~~~~~~~~~~
+
+The innermost monad in a stack, the one not wrapped by any other monad, is
+called the base monad. For the common case of lifting from the base monad, the
+`MonadBase b m` typeclass provides a `liftBase` operation to lift from `b` to
+`m`::
+
+   --------------------
+  |  n (MonadBase b n) |
+   --------------------    ^
+  |  m (MonadBase b m) |   |
+   --------------------  ^ |
+                         | | liftBase :: b a -> m a
+                         | |
+   --------------------  - -
+  |  b (MonadBase b b) |
+   --------------------
+
+For a base monad (instance `MonadBase b b`), `liftBase` is usually just `id`
+since we are lifting to the same monad.  For a transformer it is `lift .
+liftBase`. The MonadTrans class has already provided us the necessary lift
+operation to implement liftBase.
+
+The `transformers-base` package provides MonadBase instances for base as well
+as transformer versions of all the standard monads. For user defined
+transformers the MonadBase instance can be derived automatically::
+
+  deriving instance (MonadBase b m) => MonadBase b (TransformerT m)
+
+For example::
+
+  f :: (MonadBase m) => ...
+  res <- liftBase baseOperation
+
+MonadIO (liftIO)
+~~~~~~~~~~~~~~~~
+
+For lifting from IO to any monad we have a special `MonadIO` typeclass that
+provides us the `liftIO` operation::
+
+   --------------
+  |  n (MonadIO) |
+   --------------    ^
+  |  m (MonadIO) |   |
+   --------------  ^ |
+                   | |
+                   | | liftIO :: IO a -> m a
+   --------------  - -
+  |  IO          |
+   --------------
+
+For example::
+
+  f :: (MonadIO m) => ...
+  res <- liftIO getLine
+
+MonadTransControl (liftWith)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`MonadTransControl` provided by the `monad-control` package is a more flexible
+and powerful version of MonadTrans.
+
+`liftWith` is a more powerful `lift`. lift allowed us to run an action in the
+wrapped monad `m` and then bring in the result value from `m` to the
+transformer monad `t`.  `liftWith` provides a `Run` function that allows
+running `t` computations embedded inside the `m` computations being lifted.
+This enables us to capture bindings of `t` computations inside the `m`
+computations and run them using `Run`.  `restoreT` allows constructing a `t`
+computation from the result of a `Run t` function, therefore bringing the
+results of `t` computations from `m` back into `t`. This allows interleaving of
+`m` and `t` computations freely and generically.
+
+::
+
+   ------------------------
+  |  t (MonadTransControl) |  ^
+   ------------------------   | liftWith :: (Run t -> m a) -> t m a
+   ------------------------   | restoreT :: m (StT t a)    -> t m a
+  |  m                     |
+   ------------------------
+
+`MonadTransControl` class essentially lets us specify the structure of a
+transformer generically to be able to wrap (construct) and unwrap (run) the
+type using generic functions. The wrapped type is specified using the
+associated type `StT t a`, the run (unwrap) function type is derived from this.
+The constructor for the type is specified using `restoreT`.  Let's take the
+example of ``MaybeT`` instance and see how this works::
+
+  newtype MaybeT m a = MaybeT { runMaybeT :: m (Maybe a) }
+
+  instance MonadTransControl MaybeT where
+   -- the type that is wrapped inside m (i.e. Maybe a)
+   -- type StT t      a  :: *
+      type StT MaybeT a  =  Maybe a
+
+   -- Using this associated type we can construct
+   -- the type of the run function for MaybeT (i.e. runMaybeT)
+   -- type Run t      = t      n b -> n (StT t b)
+   -- type Run MaybeT = MaybeT n b -> n (Maybe b)
+
+   -- the function 'f' composes an action in the 'm' monad.
+   -- liftWith executes that action and lifts the result back into 'MaybeT'.
+   -- 'f' is passed the run function of MaybeT (i.e. runMaybeT) that
+   -- allows us to run 'MaybeT n' computations inside 'f'.
+
+   -- liftWith   :: (Run t -> m a) -> t m a
+      liftWith f = MaybeT (liftM return (f runMaybeT))
+
+   -- For example:
+   -- f :: Run t -> m a
+   -- f run = return ()
+   -- f run = return . g . run
+   -- f run = run t
+
+   -- We can also extract the run function and apply it later
+   -- f r = return r
+   -- run <- liftWith f
+
+   -- Constructing a MaybeT. This can be used to reconstruct a
+   -- MaybeT from a value returned by 'liftWith'
+   -- restoreT :: m (StT t a) -> t m a
+   -- restoreT :: m (Maybe a) -> t m a
+      restoreT  a = MaybeT a
+
+Instances for standard monads are provided by the monad-control package.
+
+MonadBaseControl (liftBaseWith)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`MonadBaseControl` is a more flexible and powerful version of `MonadBase`.
+
+`liftBaseWith` provides a `RunInBase` function to the `b` computation being
+lifted. `RunInBase` is a runner function for the `m` monad and allows us to run
+`m` computations embedded inside the `b` computations. This allows us to
+capture bindings from `m` inside the `b` computations and run them while
+lifting `b`. `restoreM` allows constructing a `m` value back from the results
+returned by `RunInBase`::
+
+   ------------------------
+  |  n (MonadBaseControl)  |    ^
+   ------------------------     |
+  |  m (MonadBaseControl)  |  ^ |
+   ------------------------   | |
+                              | |
+                              | | liftBaseWith :: (RunInBase m b -> b a) -> m a
+   ------------------------   _ _ restoreM :: StM m a -> m a
+  |  b (MonadBaseControl)  |
+   ------------------------
+
+  type RunInBase m b = forall a. m a -> b (StM m a)
+
+This mechanism allows us to lift arguments of functions and not just the
+results, for example we can lift `catch` using this::
+
+  catch :: (MonadBaseControl IO m, Exception e)
+        => m a        -- ^ The computation to run
+        -> (e -> m a) -- ^ Handler to invoke if an exception is raised
+        -> m a
+  catch a handler = control $ \runInIO ->
+                      E.catch (runInIO a)
+                              (\e -> runInIO $ handler e)
+
+Instances for standard monads are provided by the monad-control package.
+
+Summary
+~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| Basic monads defined in the `base` package                                  |
-+----------+---------+--------------------------------------------------------+
-| Name     | Strict? | Semantics                                              |
-+----------+---------+--------------------------------------------------------+
-| Identity |         |                                                        |
-+----------+---------+--------------------------------------------------------+
-| []       | Strict  | perform actions for all elements of list               |
-+----------+---------+--------------------------------------------------------+
-| Maybe    | Strict  | Stop performing actions when an action                 |
-|          |         | returns `Nothing`.                                     |
-+----------+---------+--------------------------------------------------------+
-| IO       | Strict  | Do not allow extraction from IO type.                  |
-+----------+---------+--------------------------------------------------------+
-| ST       | Strict/ | Embed an opaque mutable data                           |
-|          | Lazy    | Do not allow extraction of the data                    |
-+----------+---------+--------------------------------------------------------+
+| Summary of lifting operations in a transformer stack                        |
++--------------------+--------------+-----------------------------------------+
+| Typeclass          | Operations   | Description                             |
+| (package)          |              |                                         |
++====================+==============+=========================================+
+| MonadIO (base)     | liftIO       | lift a computation from the IO monad    |
++--------------------+--------------+-----------------------------------------+
+| MonadTrans         | lift         | lift from the argument monad to the     |
+| (transformers)     |              | result monad                            |
++--------------------+--------------+-----------------------------------------+
+| MonadBase          | liftBase     | lift a computation from the base monad  |
+| (transformers-base)|              |                                         |
++--------------------+--------------+-----------------------------------------+
+| MonadTransControl  | liftWith,    | lift carrying the state of current monad|
+| (monad-control)    | restoreT     | restoreT can restore the state.         |
++--------------------+--------------+-----------------------------------------+
+| MonadBaseControl   | liftBaseWith,| lift base with state                    |
+| (monad-control)    | restoreM     |                                         |
++--------------------+--------------+-----------------------------------------+
+
+State Sharing Monads
+--------------------
 
 +-------------------------------------------------------------------------------------------------+
 | State sharing monads (defined in `transformers` package)                                        |
@@ -30,10 +252,10 @@ Standard Monads
 +--------+-------------+---------------+-----------------------------+----------------------------+
 | Monad  | Transformer | mtl typeclass | Description                 | Typeclass operations       |
 |        | Monad       |               |                             |                            |
++========+=============+===============+=============================+============================+
+| Reader | ReaderT     | MonadReader   | Read shared state           | ask, reader, local         |
 +--------+-------------+---------------+-----------------------------+----------------------------+
-| Reader | ReaderT     | MonadReader   | Read shared state           | ask, local, reader         |
-+--------+-------------+---------------+-----------------------------+----------------------------+
-| Writer | WriterT     | MonadWriter   | Write to shared state       | tell, pass, writer, listen |
+| Writer | WriterT     | MonadWriter   | Write to shared state       | tell, writer, pass, listen |
 +--------+-------------+---------------+-----------------------------+----------------------------+
 | State  | StateT      | MonadState    | Read and write shared state | get, put, state            |
 +--------+-------------+---------------+-----------------------------+----------------------------+
@@ -41,7 +263,7 @@ Standard Monads
 +--------+-------------+---------------+-----------------------------+----------------------------+
 
 +---------------------------------------+
-| Operations on monadic actions         |
+| Operations on a monadic value         |
 +---------------------------------------+
 | For example `runReader`, `evalState`  |
 +========+=====+=====+===========+======+
@@ -54,124 +276,6 @@ Standard Monads
 
 State, Reader, Writer are defined in terms of Identity and the monad
 transformer.
-
-Examples::
-
-  StateT String []
-
-  StateT is the outer monad and [] is the inner monad.
-
-
-Transformers
-------------
-
-A monad can be wrapped inside another, which can in turn be wrapped inside
-another forming a stack of monads. When we are in a current monad `m` we can
-apply an adaptor called `lift` to adapt operations from a monad lower in the
-stack to run in the current monad. A monad which can apply such an adaptation
-via `lift` is called a monad transformer. This stack of monads each of which is
-a transformer is called a monad transformer stack.
-
-IO Monad has a special treatment and its own `MonadIO` typeclass for any monad
-to lift operations from the IO monad. `MonadBase` typeclass generalizes that
-and allows lifting operations from a base monad `b` to the current monad.
-`MonadTrans` typeclass provides the ability to lift from one to monad to
-another. `MonadBase` uses `MonadTrans` to apply multiple lifts throught the
-transformer stack to lift from the base monad.
-
-+-----------------------------------------------------------------------------+
-| Summary of lifting operations in a transformer stack                        |
-+-------------------+--------------+------------------------------------------+
-| Typeclass         | Operations   | Description                              |
-+===================+==============+==========================================+
-| MonadIO           | liftIO       | lift a computation from the IO monad     |
-+-------------------+--------------+------------------------------------------+
-| MonadBase         | liftBase     | lift a computation from the base monad   |
-+-------------------+--------------+------------------------------------------+
-| MonadTrans        | lift         | lift from the argument monad to the      |
-|                   |              | result monad                             |
-+-------------------+--------------+------------------------------------------+
-| MonadTransControl | liftWith,    | lift carrying the state of current monad |
-|                   | restoreT     | restoreT can restore the state.          |
-+-------------------+--------------+------------------------------------------+
-| MonadBaseControl  | liftBaseWith,| lift base with state                     |
-|                   | restoreM     |                                          |
-+-------------------+--------------+------------------------------------------+
-
-::
-
-   --------------
-  |  n (MonadIO) |
-   --------------    ^
-  |  m (MonadIO) |   |
-   --------------  ^ |
-                   | |
-                   | | liftIO
-   --------------  - -
-  |  IO          |
-   --------------
-
-`lift` lifts operations in one monad to another. Note that the implementation
-of `lift` is specfic to the two monads::
-
-   -----------------
-  |  t (MonadTrans) |  ^
-   -----------------   | lift
-  |  m              |
-   -----------------
-
-`liftBase` applies the necessary lifts through the stack to lift the base monad
-to the current monad::
-
-   ----------------
-  |  n (MonadBase) |
-   ----------------    ^
-  |  m (MonadBase) |   |
-   ----------------  ^ |
-                     | |
-                     | | liftBase (lift . lift ...)
-   ----------------  - -
-  |  b             |
-   ----------------
-
-`liftWith` captures the state of the current monad `t` before lifting.  It then
-provides the m computation with a `Run` function that allows running `t n`
-computations in `n` (for all `n`) on the captured state.  `restoreT` constructs
-a `t` computation from the monadic state of `t` that is returned from a `Run`
-function::
-
-   ------------------------
-  |  t (MonadTransControl) |  ^
-   ------------------------   | liftWith (run m with captured state of t)
-   ------------------------   | restoreT (restore the captured state of t)
-  |  m                     |
-   ------------------------
-
-liftBaseWith is similar to liftBase but with captured state. restoreM restores
-the state returned after running the computation in base::
-
-   ------------------------
-  |  n (MonadBaseControl)  |    ^
-   ------------------------     |
-  |  m (MonadBaseControl)  |  ^ |
-   ------------------------   | |
-                              | |
-                              | | liftBaseWith (run b with captured state of m)
-   ------------------------   _ _ restoreM (restore the captured state of m)
-  |  b                     |
-   ------------------------
-
-Examples::
-
-  f :: (MonadIO m) => ...
-  res <- liftIO putStrLn "Hello"
-
-  f :: (MonadBase m) => ...
-  res <- liftBase baseOperation
-
-  f :: (MonadBaseControl m) => ...
-  runInBase <- liftBaseWith $ \run -> return (void . run)
-  runInBase $ baseOperation
 
 mtl
 ---
@@ -205,9 +309,21 @@ Extensible Exceptions
 Safe Exceptions
 ---------------
 
+Packages
+--------
+
+* base
+* transformers
+* transformers-base
+* monad-control
+* lifted-base
+* lifted-async
+
 References
 -----------
 
 * https://hackage.haskell.org/package/transformers-0.5.4.0/docs/Control-Monad-Trans-Class.html
+* https://www.schoolofhaskell.com/user/jwiegley/monad-control
+* http://www.yesodweb.com/book/monad-control
 * https://hackage.haskell.org/package/safe-exceptions
 * https://github.com/fpco/safe-exceptions/blob/master/COOKBOOK.md
