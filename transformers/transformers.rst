@@ -57,13 +57,15 @@ We are using the `TransT` definition as a generic definition just for
 illustration. In the text below, we represent the outer transformer monad by
 the variable `t` and the inner monad by the variable `m`.
 
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer.png
+
 This combined type can be wrapped again inside another transformer  and so on,
 forming a stack of monads. Stacking monads in this way allows us to combine
 multiple monads together and use the functionality of all of them together.
 The innermost monad in the whole stack, which does not wrap any other monad, is
 called the `base monad`.
 
-[TBD] circular rings picture here.
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-stack2.png
 
 MonadTrans (lift)
 ~~~~~~~~~~~~~~~~~
