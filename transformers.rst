@@ -1,24 +1,67 @@
 Transformers
 ============
 
+State Sharing Monads
+--------------------
+
++-------------------------------------------------------------------------------------------------+
+| State sharing monads (defined in `transformers` package)                                        |
++-------------------------------------------------------------------------------------------------+
+| The core semantics of the bind operation is to pass a shared state from one                     |
+| operation to the next.                                                                          |
++--------+-------------+---------------+-----------------------------+----------------------------+
+| Monad  | Transformer | mtl typeclass | Description                 | Typeclass operations       |
+|        | Monad       |               |                             |                            |
++========+=============+===============+=============================+============================+
+| Reader | ReaderT     | MonadReader   | Read shared state           | ask, reader, local         |
++--------+-------------+---------------+-----------------------------+----------------------------+
+| Writer | WriterT     | MonadWriter   | Write to shared state       | tell, writer, pass, listen |
++--------+-------------+---------------+-----------------------------+----------------------------+
+| State  | StateT      | MonadState    | Read and write shared state | get, put, state            |
++--------+-------------+---------------+-----------------------------+----------------------------+
+| RWS    | RWST        | MonadRWS      | All of the above            | All of the above           |
++--------+-------------+---------------+-----------------------------+----------------------------+
+
++---------------------------------------+
+| Operations on a monadic value         |
++---------------------------------------+
+| For example `runReader`, `evalState`  |
++========+=====+=====+===========+======+
+| reader | run | map | with      |      |
++--------+     |     +-----------+------+
+| write  |     |     | exec      |      |
++--------+     |     +-----------+------+
+| state  |     |     | with/exec | eval |
++--------+-----+-----+-----------+------+
+
+State, Reader, Writer monads are defined in terms of Identity monad and the
+corresponding monad transformer.
+
 Transformer Stack
 -----------------
 
-A transformer monad is created by wrapping a monad inside a newtype wrapper and
-by deriving an instance of Monad.  For example::
+A transformer monad (`TransT`) embeds its state (`StateT`) inside some `inner`
+monad `m`.  The inner monad is wrapped inside the transformer monad using a
+newtype wrapper::
 
-  -- newtype TransformerT m a = TransformerT {runTransformerT :: ...         }
-     newtype MaybeT       m a = MaybeT       { runMaybeT      :: m (Maybe a) }
+  newtype TransT m a = TransT {runTransT :: m (StateT a)} deriving Monad
+  newtype MaybeT m a = MaybeT {runMaybeT :: m (Maybe a) } deriving Monad
 
-The type constructor `TransformerT`, in short represented by `t`, is the
-transformer monad and `m` is an arbitrary monad wrapped in `t`. `m a` is the
-wrapped type, `TransformerT` is the type wrapper, `runTransformerT` is the
-unwrapping function, which yields the type `m a` when run on a `t` value.
+The run function `runTransT` runs or unwraps the outer transformer monad,
+yielding a value of type `m (StateT a)`::
 
-This combined type can be wrapped again inside another type  and so on, forming
-a stack of monads. This stacking allows us to combine multiple monads together
-and use the functionality of all of them together.  The innermost monad in the
-whole stack, which does not wrap any other monad, is called the `base monad`.
+  runTransT :: TransT m a -> m (StateT a)
+  runMaybeT :: MaybeT m a -> m (Maybe a)
+
+We are using the `TransT` definition as a generic definition just for
+illustration. In the text below, we represent the outer transformer monad by
+the variable `t` and the inner monad by the variable `m`.
+
+This combined type can be wrapped again inside another transformer  and so on,
+forming a stack of monads. Stacking monads in this way allows us to combine
+multiple monads together and use the functionality of all of them together.
+The innermost monad in the whole stack, which does not wrap any other monad, is
+called the `base monad`.
 
 [TBD] circular rings picture here.
 
@@ -219,65 +262,40 @@ function which calls `restoreM` after `liftBaseWith`::
 
 Instances for standard monads are provided by the monad-control package.
 
+MonadTransUnlift
+~~~~~~~~~~~~~~~~
+
+MonadBaseUnlift
+~~~~~~~~~~~~~~~
+
 Summary
 ~~~~~~~
 
-+-----------------------------------------------------------------------------+
-| Summary of lifting operations in a transformer stack                        |
-+--------------------+--------------+-----------------------------------------+
-| Typeclass          | Operations   | Description                             |
-| (package)          |              |                                         |
-+====================+==============+=========================================+
-| MonadIO (base)     | liftIO       | lift a computation from the IO monad    |
-+--------------------+--------------+-----------------------------------------+
-| MonadTrans         | lift         | lift from the argument monad to the     |
-| (transformers)     |              | result monad                            |
-+--------------------+--------------+-----------------------------------------+
-| MonadBase          | liftBase     | lift a computation from the base monad  |
-| (transformers-base)|              |                                         |
-+--------------------+--------------+-----------------------------------------+
-| MonadTransControl  | liftWith,    | lift carrying the state of current monad|
-| (monad-control)    | restoreT     | restoreT can restore the state.         |
-+--------------------+--------------+-----------------------------------------+
-| MonadBaseControl   | liftBaseWith,| lift base with state                    |
-| (monad-control)    | restoreM     |                                         |
-+--------------------+--------------+-----------------------------------------+
-
-State Sharing Monads
---------------------
-
-+-------------------------------------------------------------------------------------------------+
-| State sharing monads (defined in `transformers` package)                                        |
-+-------------------------------------------------------------------------------------------------+
-| The core semantics of the bind operation is to pass a shared state from one                     |
-| operation to the next.                                                                          |
-+--------+-------------+---------------+-----------------------------+----------------------------+
-| Monad  | Transformer | mtl typeclass | Description                 | Typeclass operations       |
-|        | Monad       |               |                             |                            |
-+========+=============+===============+=============================+============================+
-| Reader | ReaderT     | MonadReader   | Read shared state           | ask, reader, local         |
-+--------+-------------+---------------+-----------------------------+----------------------------+
-| Writer | WriterT     | MonadWriter   | Write to shared state       | tell, writer, pass, listen |
-+--------+-------------+---------------+-----------------------------+----------------------------+
-| State  | StateT      | MonadState    | Read and write shared state | get, put, state            |
-+--------+-------------+---------------+-----------------------------+----------------------------+
-| RWS    | RWST        | MonadRWS      | All of the above            | All of the above           |
-+--------+-------------+---------------+-----------------------------+----------------------------+
-
-+---------------------------------------+
-| Operations on a monadic value         |
-+---------------------------------------+
-| For example `runReader`, `evalState`  |
-+========+=====+=====+===========+======+
-| reader | run | map | with      |      |
-+--------+     |     +-----------+------+
-| write  |     |     | exec      |      |
-+--------+     |     +-----------+------+
-| state  |     |     | with/exec | eval |
-+--------+-----+-----+-----------+------+
-
-State, Reader, Writer are defined in terms of Identity and the monad
-transformer.
++--------------------------------------------------------------------------------------------+
+| Summary of lifting operations in a transformer stack                                       |
++--------------+-------------------+---------------+-----------------------------------------+
+| Package      | Typeclass         | Operations    | Description                             |
++==============+===================+===============+=========================================+
+| base         | MonadIO           | liftIO        | lift a computation from the IO monad    |
++--------------+-------------------+---------------+-----------------------------------------+
+| transformers | MonadTrans        | lift          | lift from the argument monad to the     |
+|              |                   |               | result monad                            |
++--------------+-------------------+---------------+-----------------------------------------+
+| transformers-| MonadBase         | liftBase      | lift a computation from the base monad  |
+| base         |                   |               |                                         |
++--------------+-------------------+---------------+-----------------------------------------+
+| monad-control| MonadTransControl | liftWith,     | lift carrying the state of current monad|
+|              |                   | restoreT      | restoreT can restore the state.         |
+|              +-------------------+---------------+-----------------------------------------+
+|              | MonadBaseControl  | liftBaseWith, | lift base with state                    |
+|              |                   | restoreM      |                                         |
++--------------+-------------------+---------------+-----------------------------------------+
+| monad-unlift | MonadTransUnlift  | askUnlift,    |                                         |
+|              |                   | askRun        |                                         |
+|              +-------------------+---------------+-----------------------------------------+
+|              | MonadBaseUnlift   | askUnliftBase,|                                         |
+|              |                   | askRunBase    |                                         |
++--------------+-------------------+---------------+-----------------------------------------+
 
 mtl
 ---
@@ -320,6 +338,7 @@ Packages
 * monad-control
 * lifted-base
 * lifted-async
+* monad-unlift
 
 References
 -----------
