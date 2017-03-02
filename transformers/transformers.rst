@@ -1,6 +1,9 @@
 Transformers
 ============
 
+.. contents:: Table of Contents
+   :depth: 1
+
 State Sharing Monads
 --------------------
 
