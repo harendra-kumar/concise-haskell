@@ -131,18 +131,12 @@ MonadIO (liftIO)
 ~~~~~~~~~~~~~~~~
 
 For lifting from IO to any monad we have a special `MonadIO` typeclass that
-provides us the `liftIO` operation::
+provides us the `liftIO` operation. Though the same job can be done by the
+MonadBase typeclass as well::
 
-   --------------
-  |  n (MonadIO) |
-   --------------    ^
-  |  m (MonadIO) |   |
-   --------------  ^ |
-                   | |
-                   | | liftIO :: IO a -> m a
-   --------------  - -
-  |  IO          |
-   --------------
+    liftIO :: IO a -> t a
+
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-io-lift2.png
 
 For example::
 

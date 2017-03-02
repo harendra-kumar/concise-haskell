@@ -21,10 +21,11 @@ main = mainWith $ map (second (frame 0.2))
     [ ("monad"                  , monad "m")
     , ("transformer"            , transformer)
     , ("transformer-stack2"     , transformerStack2)
-    , ("transformer-base2"      , transformerBase2)
-    , ("transformer-base-lift2" , transformerBaseLift2)
     , ("transformer-lift"       , transformerLift)
     , ("transformer-lift2"      , transformerLift2)
+    , ("transformer-base2"      , transformerBase2)
+    , ("transformer-base-lift2" , transformerBaseLift2)
+    , ("transformer-io-lift2"   , transformerIOLift2)
     ]
 
 monadLift :: String -> Diagram B
@@ -44,16 +45,16 @@ addLift n1 n2 p len =
         ||| strutX 0.75)
        # moveTo (p + p2 (0, len))
 
-addBaseLift :: String -> String -> Point V2 Double -> Double -> Angle Double -> Diagram B
-addBaseLift n1 n2 p len ang =
+addBaseLift :: String -> String -> String -> Point V2 Double -> Double -> Angle Double -> Diagram B
+addBaseLift tclass lift to p len ang =
     (arrowAt p (unitY # scale len)
-    <> alignedText (-0.15) 1 ("liftBase b")
+    <> alignedText (-0.15) 1 (lift)
         # rotate (1/4 @@ turn)
         # scale (len/8)
         # moveTo p
         # moveOriginBy (V2 0.2 0)) # rotate ang
     <> (origin ~~ p2 (1, 0)
-        ||| alignedText 0 0.5 ("MonadBase b " ++ n2) # scale 0.1
+        ||| alignedText 0 0.5 (tclass ++ to) # scale 0.1
         ||| strutX 0.8)
        # moveTo (p + p2 (0, len))
 
@@ -62,15 +63,22 @@ transformerLift =
     transformer
     <> addLift "m" "t" (p2 (0, 1/2)) (1/2)
 
-transformerBaseLift2 :: Diagram B
-transformerBaseLift2 =
+transformerBaseLiftCommon :: String -> String -> String -> Diagram B
+transformerBaseLiftCommon tclass var lift =
     transformerBase2
-    <> addBaseLift "b" "t2"  (p2 (0, 1/3)) (1/3) (-1/16 @@ turn)
-    <> addBaseLift "t2" "t1" (p2 (0, 1/3)) (2/3) (1/16 @@ turn)
+    <> addBaseLift tclass' lift "t2"  (p2 (0, 1/3)) (1/3) (-1/16 @@ turn)
+    <> addBaseLift tclass' lift "t1" (p2 (0, 1/3)) (2/3) (1/16 @@ turn)
     <> (origin ~~ p2 (1, 0)
-        ||| alignedText 0 0.5 ("MonadBase b b") # scale 0.1
+        ||| alignedText 0 0.5 (tclass' ++ var) # scale 0.1
         ||| strutX 0.8)
        # moveTo (p2 (0, 1/3))
+    where tclass' = tclass ++ " "
+
+transformerBaseLift2 :: Diagram B
+transformerBaseLift2 = transformerBaseLiftCommon "MonadBase b" "b" "liftBase b"
+
+transformerIOLift2 :: Diagram B
+transformerIOLift2 = transformerBaseLiftCommon "MonadIO" "IO" "liftIO"
 
 transformerLift2 :: Diagram B
 transformerLift2 =
