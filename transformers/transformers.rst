@@ -77,17 +77,14 @@ construct a `t m a` type from that.
 The `MonadTrans` class allows us to do the wrapping generically for any
 transformer. Every transformer `t` provides an instance of MonadTrans.
 MonadTrans provides a `lift` operation which knows how to wrap a value `m a`
-from an arbitrary monad `m` into the `t` monad::
+from an arbitrary monad `m` into the `t` monad.
 
-   -----------------
-  |  t (MonadTrans) |  ^
-   -----------------   | lift :: m a -> t m a
-  |  m              |
-   -----------------
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-lift.png
 
 `lift` is nothing but applying the wrapper function `TransformerT` to the type
 `m a` in a manner appropriate for the given transformer type `t`::
 
+  lift :: m a -> t m a
   -- lifting an 'm a' into 'MaybeT m a'
   instance MonadTrans MaybeT where
       lift = MaybeT . liftM Just
@@ -97,24 +94,19 @@ the stack to the desired level.  The `transformers` package provides monad
 transformer types and MonadTrans instances for all the standard monads (IO,
 Maybe, Either, [], (->), Identity).
 
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-lift2.png
+
 MonadBase (liftBase)
 ~~~~~~~~~~~~~~~~~~~~
 
 The innermost monad in a stack, the one not wrapped by any other monad, is
 called the base monad. For the common case of lifting from the base monad, the
-`MonadBase b m` typeclass provides a `liftBase` operation to lift from `b` to
-`m`::
+`MonadBase b t` instance provides a `liftBase` operation to lift from `b` to
+`t`::
 
-   --------------------
-  |  n (MonadBase b n) |
-   --------------------    ^
-  |  m (MonadBase b m) |   |
-   --------------------  ^ |
-                         | | liftBase :: b a -> m a
-                         | |
-   --------------------  - -
-  |  b (MonadBase b b) |
-   --------------------
+  liftBase :: b a -> t a
+
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-base-lift2.png
 
 For a base monad (instance `MonadBase b b`), `liftBase` is usually just `id`
 since we are lifting to the same monad.  For a transformer it is `lift .
@@ -125,7 +117,7 @@ The `transformers-base` package provides MonadBase instances for base as well
 as transformer versions of all the standard monads. For user defined
 transformers the MonadBase instance can be derived automatically::
 
-  deriving instance (MonadBase b m) => MonadBase b (TransformerT m)
+  deriving instance (MonadBase b t) => MonadBase b (TransformerT t)
 
 For example::
 
