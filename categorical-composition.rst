@@ -24,6 +24,12 @@ Terminology
 +------------------+----------------------------------------------------------+
 | Kleisli category | A category naturally associated to any monad T.          |
 +------------------+----------------------------------------------------------+
+| Monoidal Category| A monoidal category is a category equipped with a        |
+|                  | tensor product and a unit object.                        |
+|                  | Monoidal categories can be used to define the concept    |
+|                  | of a monoid object and an associated action on the       |
+|                  | objects of the category                                  |
++------------------+----------------------------------------------------------+
 | Catamorphism     | the unique homomorphism from an initial algebra into     |
 |                  | some other algebra.                                      |
 |                  | catamorphisms provide generalizations of folds of lists  |
@@ -216,6 +222,66 @@ Natural Transformations
 
 An `Applicative` functor in Haskell provides two natural transformations i.e.
 `pure` and `<*>` to transform the functor.
+
+Monoidal Category of Endofunctors
+---------------------------------
+
+* objects - functors
+* morphism - natural transformation
+* combine and fold - natural transformations
+* combining operation - tensor
+
+In category theory, preservation of monoidal structure is related to tensorial
+strength, so an applicative functor is also known as a strong lax monoidal
+functor. However, in Hask, every functor has canonical strength with respect to
+the product, so this property doesn't add anything to the definition.
+
+
+For example an applicative is a functor with two natural transformations to
+preserve the monoidal structure.
+
+Notions of Computation
+----------------------
+
+Computation involves combining or folding functions or computations together.
+The way to combine or fold is of course a monoid.
+
++-----------------------------------------------------------------------------+
+| Each one of the three well-known notions of computations in Haskell are a   |
+| monoid in a monoidal category.                                              |
++-------------+--------------+------------------------------------------------+
+| Structure   | Monoidal     | Description                                    |
+|             | category     |                                                |
++=============+==============+================================================+
+| Applicative | Endofunctors | lax monoidal functors with a compatible        |
+|             |              | strength.                                      |
+|             |              | Monoids in a monoidal category of endofunctors |
+|             |              | using Day convolution as a tensor.             |
++-------------+--------------+------------------------------------------------+
+| Monad       | Endofunctors | Monoids in a monoidal category of endofunctors |
+|             |              | using composition as a tensor.                 |
++-------------+--------------+------------------------------------------------+
+| Arrows      | Profunctors  | Strong monoids in a monoidal category of       |
+|             |              | profunctors.                                   |
++-------------+--------------+------------------------------------------------+
+
+The main difference between monads and applicative functors is that the latter
+does not allow effects to depend on previous values, i.e. they are fixed
+beforehand.
+
+* A normal function could be wrapped in a (applicative) type and applied
+  to values wrapped in the same type. This is another way of composing
+  which is a transformation on normal function application to the peculiar
+  world of the type.
+* An applicative allows you to compose functor applications, monoidal functor
+* A monad allows you to compose by chaining or collecting and using the results
+  in a certain way. A do block in Monad allows you to chain conveniently. In
+  monad you first compose the actions and then run them using an input.
+
+Applicative, Monad, Arrows all provide facilities to compose computations and
+that is why the corresponding modules are in `Control.*` namespace. On the
+other hand a Functor allows transformation of a type and its operations to
+another and is therefore under `Data.*` namespace.
 
 References
 ----------
