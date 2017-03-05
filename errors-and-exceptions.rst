@@ -21,8 +21,12 @@ handling described next.
 | Unconditional    | error       | error is untyped, can be called from       |
 | termination      |             | anywhere                                   |
 +------------------+-------------+--------------------------------------------+
-| Aborting monadic | fail        | Maybe/Either                               |
+| Aborting monadic | fail        |                                            |
 | computations     | (MonadFail) |                                            |
++------------------+-------------+--------------------------------------------+
+|                  | Maybe       |                                            |
++------------------+-------------+--------------------------------------------+
+|                  | Either      |                                            |
 +------------------+-------------+--------------------------------------------+
 
 Exceptions
