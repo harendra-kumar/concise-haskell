@@ -512,6 +512,25 @@ Garbage Collection
 Explain how garbage collection works. For example, if we have to update the
 last node of a list, what all will get garbage collected. Draw a picture.
 
+Lazy Evaluation, Streaming and Space Leaks
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Lazy evaluation is like a streaming paradigm built into the language. It is
+consumer driven, the whole machinery is cranked only when the last guy in the
+chain demands a value.  Therefore, a value is produced only to be consumed
+immediately by the next stage and so on until the effect propagates to the
+final consumer.
+
+Streaming is like pipes connected together and data (water) flowing from one
+end of the system, through the network of pipes and then coming out of the
+other end.  There can be some buffering zones in this network where water
+(data) gets collected.  Such buffering zones should be minimal. When we design
+the system in a way that we buffer too much of data in between without consuming
+it then we might end up consuming too much memory, this is called a space leak.
+
+To avoid space leaks we must design the program in such a way that we consume
+the produced data as soon as possible.
+
 Understanding a Haskell Program
 -------------------------------
 
