@@ -109,3 +109,8 @@ Proofs & Programs
 +------------------------------+-----------------------------+
 | intuitionistic tautology     | inhabited type              |
 +------------------------------+-----------------------------+
+
+References
+----------
+
+* http://www.haskellforall.com/2017/02/the-curry-howard-correspondence-between.html
