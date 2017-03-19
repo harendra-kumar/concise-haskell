@@ -17,14 +17,6 @@ Basic Syntax
 .. contents:: Table of Contents
    :depth: 1
 
-+-----------------------------------------------------------------------------+
-| This is arranged in a strict dependency based sequence as much as possible, |
-| later sections building on previous ones to ensure a smooth sequential      |
-| reading flow.                                                               |
-+-----------------------------------------------------------------------------+
-| Roadmap (TBD)                                                               |
-+-----------------------------------------------------------------------------+
-
 Terminology
 -----------
 
