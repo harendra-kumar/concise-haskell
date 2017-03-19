@@ -140,7 +140,7 @@ Arithmetic Operations (Prelude)
 
 * Defined in base
 * TODO: point to prelude itself
-* TODO: show the result of the expression
+* TODO: make the expressions executable in ghci
 
 +-----------+----------------+------------------------------------------------+
 | Operation | Example        | Description                                    |
@@ -301,8 +301,8 @@ Nested Local Definitions
 | like at the top level.                                                      |
 +-----------------------------------------------------------------------------+
 
-Expression Local (let)
-......................
+Expression-local Definitions (let)
+..................................
 
 +-----------------------------------------------------------------------------+
 | A `let` clause is an expression with one or more local definitions.         |
@@ -324,8 +324,8 @@ Expression Local (let)
 |   in x + y + z                                                              |
 +-----------------------------------------------------------------------------+
 
-Equation Local (where)
-......................
+Equation-local Definitions (where)
+..................................
 
 +-----------------------------------------------------------------------------+
 | A `where` clause defines one or more equations within the local scope       |
@@ -365,11 +365,13 @@ Equation Indentation Rule
 Defining Functions
 ~~~~~~~~~~~~~~~~~~
 
-+--------------+---------------+
-| Application  | Definition    |
-+==============+===============+
-| v = f x y z  | f a b c = ... |
-+--------------+---------------+
++-----------------------------------------------------------------------------+
+| We have already seen function application, definition is just the opposite. |
++------------------------------------+----------------------------------------+
+| Application                        | Definition                             |
++====================================+========================================+
+| v = f x y z                        | f a b c = ...                          |
++------------------------------------+----------------------------------------+
 
 +-----------------------------------------------------------------------------+
 | Function definition equations                                               |
@@ -383,6 +385,25 @@ Defining Functions
 | ``sumOfSquares x y = (square x + square y) where square n = n * n``         |
 +-----------------------------------------------------------------------------+
 
++-----------------------------------------------------------------------------+
+| When the RHS of the equation is a function application then we can omit     |
+| trailing parameters that are identical on both sides.                       |
++-------------------------------------+---------------------------------------+
+| Explicit definition                 | Equivalent definition                 |
++-------------------------------------+---------------------------------------+
+| ``f a b = g a b``                   | ``f = g``                             |
++-------------------------------------+---------------------------------------+
+| ``f a b = g (a + 1) b``             | ``f a = g (a + 1)``                   |
++-------------------------------------+---------------------------------------+
+| When ambiguous always imagine that there are parenthesis around RHS         |
++-------------------------------------+---------------------------------------+
+| ``f a b = g (5 + 5) b``             | ``f = g $ 5 + 5``                     |
++-------------------------------------+---------------------------------------+
+| ``f a = print $ (+) 5 a``           | ``f = print $ (+) 5`` -- INCORRECT    |
+|                                     +---------------------------------------+
+|                                     | ``f = print . (+) 5`` -- CORRECT      |
++-------------------------------------+---------------------------------------+
+
 Anonymous Functions
 ^^^^^^^^^^^^^^^^^^^
 
@@ -393,6 +414,9 @@ Anonymous Functions
 | ``\a b c -> ...``                                                           |
 +-----------------------------------------------------------------------------+
 | ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
++-----------------------------------------------------------------------------+
+| Without explicit parentheses, a lambda extends all the way to the end of    |
+| the expression.                                                             |
 +-----------------------------------------------------------------------------+
 
 Type Level Syntax
@@ -407,8 +431,8 @@ Type Signatures
 +----------------+------------------------------------------------------------+
 | Type signature | ``<identifier or expression> :: <type>``                   |
 +----------------+------------------------------------------------------------+
-| A type is a type level value which can be specified as a type               |
-| identifier or a value composed using type functions.                        |
+| A type is denoted by an identifier, or an expression involving type         |
+| functions. Type level identifiers live in their own namespace.              |
 +-----------------------------------------------------------------------------+
 
 +--------------------+--------------------------------------------------------+
@@ -436,9 +460,12 @@ Type Operator ``->``
 ~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
+| Type level expressions representing complex types can be created by         |
+| combining simple types using type level operators.                          |
++-----------------------------------------------------------------------------+
 | ``->`` is a right associative type operator which is used to generate type  |
-| signatures of functions. It takes a function's `argument type` and          |
-| `return type` as operands and generates a function type.                    |
+| signatures of functions. ``->`` generates a function's type from the        |
+| function's `argument type` and `return type`.                               |
 +-----------------------------------------------------------------------------+
 | A function taking an `Int` argument `x` and returning an `Int`:             |
 +-----------------------------------------------------------------------------+
@@ -460,60 +487,66 @@ Type Operator ``->``
 |  add x y = x + y                                                            |
 +-----------------------------------------------------------------------------+
 
-Type & Data Variable Namespaces
--------------------------------
+Type & Data Namespaces
+----------------------
+
+Type and data identifiers have their own distinct namespaces. Types (e.g. Int)
+always start with an uppercase letter, however type level variables start with
+a lowercase letter. Everything in data namespace except data constructors,
+which are discussed later, start with a lowercase letter. Data constructors
+always start with an uppercase letter.
 
 +-----------------------------------------------------------------------------+
 | Identifiers starting with a `lowercase` letter                              |
 +------------------------------------+----------------------------------------+
 | type variables (type namespace)    | term variables (data namespace)        |
 +------------------------------------+----------------------------------------+
-| These two namespaces can use the same identifier names without conflict.    |
+| These two namespaces can use the same identifier name without conflict.     |
+| The compiler can distinguish them by the context.                           |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
 |  -- The following is a valid Haskell code where the identifier 'play'       |
 |  -- refers to multiple distinct objects in two independent namespaces       |
-|  play ::            -- 'play' refers to a function name defined in data     |
-|                     -- namespace                                            |
-|       play -> play  -- play is a type variable in type namespace            |
+|  play ::            -- 'play' refers to a function name in data namespace   |
+|       play -> play  -- 'play' is a type variable in type namespace          |
 |  play play = ...    -- both 'play' are term variables in data namespace     |
-|                     -- first one refers to function name and second one to  |
-|                     -- a parameter of the function                          |
+|                     -- first one refers to the name of the function name    |
+|                     -- and second one to a parameter of the function        |
 +-----------------------------------------------------------------------------+
 
 Scopes
 ------
 
-Ad-hoc Functions
-----------------
+TBD
 
-Previously we defined simple functions which did not discriminate individual
-input values.  They merely passed their input to a composed pipeline of
-functions.
+Case-mapped Functions
+---------------------
 
-We will now define what we call `ad-hoc functions` which have the ability to
-discriminate the input values creating a custom input to output mapping.
-Ad-hoc functions are implemented using case analysis on the algebraic
-data type inputs and mapping individual input values to custom output values.
+Previously we defined simple functions that were merely a composition, or
+expressions involving other existing functions. A real primitive function is
+created by a `case analysis` on the input and thereby mapping different values
+of the input data type to different values in the output data type. This
+requires three fundamental tools, `pattern matching` to destruct the input
+data, `case statement` to map inputs to outputs and `data constructors` to
+create new output data type.
 
 +--------------------------+---------------------+----------------------------+
 | Data Level               | Bridge              | Type Level                 |
 +==========================+=====================+============================+
 | Data construction        |                     |                            |
 +--------------------------+                     |                            |
-| Case analysis            | Data declaration    |                            |
-| (Ad-hoc Function)        |                     | Algebraic Data Types       |
+| Case analysis            | Data declaration    | Algebraic Data Types       |
 +--------------------------+---------------------+----------------------------+
 
 Data Declaration
 ~~~~~~~~~~~~~~~~
 
 +------------------------------------------------------------------------------------------------------+
-| A data declaration essentially binds a type in the type space to a data constructor in the data      |
-| space.                                                                                               |
+| A data declaration essentially binds a type in the type space to one or more data constructors in    |
+| the data space.                                                                                      |
 +------------+-----------------+---+------------------------------+------------------------------------+
-| ADT type   | Type Identifier |   | Data Constructors' Templates | Equivalent Constructor Signatures  |
+| ADT type   | Type Identifier |   | Data Constructor Templates   | Equivalent Constructor Signatures  |
 +============+=================+===+==============================+====================================+
 | Product    |   data Pair     | = | Pair Int Int                 | Pair  :: Int -> Int -> Pair        |
 +------------+-----------------+---+------------------------------+------------------------------------+
@@ -530,8 +563,8 @@ Data Construction
 ~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| Use a data constructor function, defined by a data declaration, to create a |
-| data reference. The data reference can be case analyzed later.              |
+| A data constructor is a special function defined by a data declaration, it  |
+| creates an algebraic data type and provides a reference to it.              |
 +-----------------------------------------------------------------------------+
 | x = C a b c ...                                                             |
 +-----------------------------------------------------------------------------+
@@ -542,13 +575,12 @@ Data Construction
 |   let list  = Cons 10 (Cons 20 Empty) :: List Int                           |
 +-----------------------------------------------------------------------------+
 
-Case Analysis (Ad-hoc Functions)
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Case Analysis
+~~~~~~~~~~~~~
 
 Algebraic data types and case analysis are the primary tools to implement
-ad-hoc functions.  Case analysis is a mechanism to navigate through the
-choices (values) represented by an algebraic data type and apply distinct
-transforms to map them to outputs.
+case-mapped functions.  Case analysis is a mechanism to navigate through the
+choices (values) represented by an algebraic data type and map them to outputs.
 
 A `case` expression is the only way (except syntactic sugars) to perform a case
 analysis by deconstructing an algebraic data type via `pattern matching` and
@@ -624,7 +656,7 @@ Case Expression
 Multi Equation Function Definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-An ad-hoc function can be defined more naturally as multiple equations. Each
+A case-mapped function can be defined more naturally as multiple equations. Each
 equation defines the function for a certain input pattern by using a pattern
 match on its arguments.  This is just a syntactic sugar on a `case` pattern
 match.
@@ -1053,13 +1085,14 @@ Filenames
 | .lhs      | Literate Haskell |
 +-----------+------------------+
 
-Importing Modules
-~~~~~~~~~~~~~~~~~
+Importing Symbols From Modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +---------------------------------------------------------------------------------------+
 | Assume you want to import the function ``take`` from module ``Data.List``             |
 +---------------------------------+--------------------------------+--------------------+
-| import directive                | Description                    | Using ``take``     |
+| import directive                | Description                    | How to use the     |
+|                                 |                                | imported item      |
 +=================================+================================+====================+
 | import Data.List                | imports everything             | ``take``           |
 +---------------------------------+--------------------------------+--------------------+
@@ -1069,6 +1102,61 @@ Importing Modules
 +---------------------------------+--------------------------------+--------------------+
 | import qualified Data.List as L | All qualified by ``L``         | ``L.take``         |
 +---------------------------------+--------------------------------+--------------------+
+| import "base" Data.List         | from package "base"            |                    |
+|                                 | -XPackageImports               |                    |
++---------------------------------+--------------------------------+--------------------+
+| import safe  Data.List          | Safe Haskell (-XSafe, -XUnsafe |                    |
+|                                 | -XTrustworthy). Since 7.2      |                    |
++---------------------------------+--------------------------------+--------------------+
+| import Data.XX (R)              | import type, type constructor  |                    |
+|                                 | or typeclass  R                |                    |
++---------------------------------+--------------------------------+--------------------+
+| Instances are automatically imported from a module without specifying any             |
+| imports. There is no way to control import or export of instances.                    |
++---------------------------------+--------------------------------+--------------------+
+| import Data.XX ()               | Import only instances, useful  |                    |
+|                                 | when you want to import orphan |                    |
+|                                 | instances.                     |                    |
++---------------------------------+--------------------------------+--------------------+
+| import Data.XX (R(X))           | import type, record type or    |                    |
+|                                 | type class R and its data      |                    |
+|                                 | constructor, selector function |                    |
+|                                 | or member function X.          |                    |
++---------------------------------+--------------------------------+--------------------+
+| import Data.XX (R(..))          | import type R and all its      |                    |
+|                                 | all its data constructors,     |                    |
+|                                 | selector or member functions   |                    |
++---------------------------------+--------------------------------+--------------------+
+| Note the above import won't bring in the data constructor if R is defined as a        |
+| pattern and not a data constructor.                                                   |
++---------------------------------+--------------------------------+--------------------+
+| import ((:=))                   | import operator `:=`           |                    |
++---------------------------------+--------------------------------+--------------------+
+| import ((:=))                   | import type operator `:=`,     |                    |
+|                                 | assuming a function with this  |                    |
+|                                 | name does not exist            |                    |
++---------------------------------+--------------------------------+--------------------+
+| The above import won't import a constructor or pattern of the same name if it exists. |
++---------------------------------+--------------------------------+--------------------+
+| import (type (:=))              | import type operator `:=`      |                    |
+|                                 | -XExplicitNamespaces           |                    |
++---------------------------------+--------------------------------+--------------------+
+| import (pattern (:=))           | import pattern and/or          |                    |
+|                                 | constructor                    |                    |
+|                                 | `:=` (-XPatternSynonyms)       |                    |
++---------------------------------+--------------------------------+--------------------+
+| Allows import/export of data constructor without its parent type constructor          |
++---------------------------------------------------------------------------------------+
+
+* instances which are not in the same file as the typeclass or the type are orphan instances.
+
+Export Symbols From Modules
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+you do not need to export orphan instances. Both of these will export all orphan instances::
+
+  module X where ...
+  module X () where...
 
 Defining Modules
 ~~~~~~~~~~~~~~~~
@@ -1097,6 +1185,8 @@ Namespaces
 
 Pragmas
 ~~~~~~~
+
+Language pragmas must be on top before module declaration.
 
 References
 ----------
