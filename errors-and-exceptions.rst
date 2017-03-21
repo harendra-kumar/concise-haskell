@@ -40,9 +40,13 @@ Exceptions
 |              | code. For example, `threadKill`.                             |
 +--------------+--------------------------------------------------------------+
 
-Synchronous exceptions are thrown at well-defined places in the code.
+Synchronous exceptions are thrown at well-defined places in the code and
+supposed to be caught in the outer parts of the code. We can expect exceptions
+from the inner code when are invoking it from the outer code.
+
 Asynchronous exception are beyond the control of the currently running code
-they can arrive at any time.
+they can arrive at any time whenever the external actors wish to throw them at
+you.
 
 Data
 ----
