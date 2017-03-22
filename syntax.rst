@@ -106,6 +106,16 @@ Expressions
 | 3 * 3 + 4 * 4 | print (subtract (2^3) ((5 + 4) + (5 - 4)))                  |
 +---------------+-------------------------------------------------------------+
 
++-----------------------------------------------------------------------------+
+| Evaluating Composite Expressions (Associativity and Precedence)             |
++=============================================================================+
+| Expressions are evaluated based on the associativity and precedence         |
+| of operators. See section TBD.                                              |
++-----------------------------------------------------------------------------+
+| Parenthesis can be used to explicitly group an expression as a single       |
+| composite value to be consumed by an operator.                              |
++-----------------------------------------------------------------------------+
+
 Basic Data Types (Prelude)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -645,6 +655,27 @@ Case Expression
 | branching is just syntactic sugar on top of case.                           |
 +-----------------------------------------------------------------------------+
 
+Case: Extended Syntax
+^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| -XLambdaCase                                                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  \x -> case x of                     |  \case                               |
+|    ...                               |      ...                             |
++--------------------------------------+--------------------------------------+
+
++-----------------------------------------------------------------------------+
+| -XEmptyCase                                                                 |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case e of { }                       |  \case { }                           |
++--------------------------------------+--------------------------------------+
+
+
 Multi Equation Function Definitions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -893,6 +924,21 @@ Branching on Booleans
 |    Green i -> "G " ++ show i         |                                      |
 +--------------------------------------+--------------------------------------+
 
++-----------------------------------------------------------------------------+
+| Multi-way conditions using guards                                           |
++--------------------------------------+--------------------------------------+
+| Using case on `()` and guards        | Using `-XMultiWayIf`                 |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case () of                          |  if | guard1 -> expr1                |
+|    _ | guard1 -> expr1               |     | ...                            |
+|    ...                               |     | guardN -> exprN                |
+|    _ | guardN -> exprN               |                                      |
++--------------------------------------+--------------------------------------+
+| You can have nested multiway-conditions too.                                |
++-----------------------------------------------------------------------------+
+
 Lists
 ~~~~~
 
@@ -1053,83 +1099,222 @@ Filenames
 | .lhs      | Literate Haskell |
 +-----------+------------------+
 
-Importing Symbols From Modules
+Using Modules: Importing Names
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+An import directive brings `names` from other modules into the scope of the
+importing module.
+
+Names may be qualified or unqualified. A qualified name has a module name
+prefixed to it e.g. ``Data.List.take`` means the ``take`` name defined in
+``Data.List`` module..
+
+Multiple import statements can be used to import different sets of names from
+the same module in different ways.
+
 +---------------------------------------------------------------------------------------+
-| Assume you want to import the function ``take`` from module ``Data.List``             |
+| Assuming module ``X.Y`` defines names ``a``, ``b`` and ``c``.                         |
 +---------------------------------+--------------------------------+--------------------+
-| import directive                | Description                    | How to use the     |
-|                                 |                                | imported item      |
+| import directive                | Description                    | What names come    |
+|                                 |                                | into scope         |
 +=================================+================================+====================+
-| import Data.List                | imports everything             | ``take``           |
+| import X.Y                      | imports everything             | a, b, c,           |
+|                                 |                                | X.Y.a, X.Y.b, X.Y.c|
 +---------------------------------+--------------------------------+--------------------+
-| import Data.List (take)         | import only ``take``           | ``take``           |
+| import X.Y ()                   | Imports only orphan instances  |                    |
 +---------------------------------+--------------------------------+--------------------+
-| import qualified Data.List      | All qualified by ``Data.List`` | ``Data.List.take`` |
+| import X.Y (a, b)               | import only ``a`` and ``b``    | a, b,              |
+|                                 |                                | X.Y.a, X.Y.b       |
 +---------------------------------+--------------------------------+--------------------+
-| import qualified Data.List as L | All qualified by ``L``         | ``L.take``         |
+| import X.Y hiding (c)           | import everything except ``c`` | a, b,              |
+|                                 |                                | X.Y.a, X.Y.b       |
 +---------------------------------+--------------------------------+--------------------+
-| import "base" Data.List         | from package "base"            |                    |
-|                                 | -XPackageImports               |                    |
+| import qualified X.Y (a, b)     | ``a`` and ``b`` only qualified | X.Y.a, X.Y.b       |
 +---------------------------------+--------------------------------+--------------------+
-| import safe  Data.List          | Safe Haskell (-XSafe, -XUnsafe |                    |
-|                                 | -XTrustworthy). Since 7.2      |                    |
+| import X.Y as Z                 | same as ``import X.Y`` except  | ``a``, ``b``,      |
+|                                 | that it is renamed to Z        | ``c``, ``Z.a``,    |
+|                                 |                                | ``Z.b``, ``Z.c``   |
 +---------------------------------+--------------------------------+--------------------+
-| import Data.XX (R)              | import type, type constructor  |                    |
-|                                 | or typeclass  R                |                    |
+| import qualified X.Y as Z       | same as                        | ``Z.a``, ``Z.b``,  |
+|                                 | ``import qualified X.Y``       | ``Z.c``            |
+|                                 | except that it is renamed to Z | ``Z.c``            |
 +---------------------------------+--------------------------------+--------------------+
-| Instances are automatically imported from a module without specifying any             |
-| imports. There is no way to control import or export of instances.                    |
-+---------------------------------+--------------------------------+--------------------+
-| import Data.XX ()               | Import only instances, useful  |                    |
-|                                 | when you want to import orphan |                    |
-|                                 | instances.                     |                    |
-+---------------------------------+--------------------------------+--------------------+
-| import Data.XX (R(X))           | import type, record type or    |                    |
-|                                 | type class R and its data      |                    |
-|                                 | constructor, selector function |                    |
-|                                 | or member function X.          |                    |
-+---------------------------------+--------------------------------+--------------------+
-| import Data.XX (R(..))          | import type R and all its      |                    |
-|                                 | all its data constructors,     |                    |
-|                                 | selector or member functions   |                    |
-+---------------------------------+--------------------------------+--------------------+
-| Note the above import won't bring in the data constructor if R is defined as a        |
-| pattern and not a data constructor.                                                   |
-+---------------------------------+--------------------------------+--------------------+
-| import ((:=))                   | import operator `:=`           |                    |
-+---------------------------------+--------------------------------+--------------------+
-| import ((:=))                   | import type operator `:=`,     |                    |
-|                                 | assuming a function with this  |                    |
-|                                 | name does not exist            |                    |
-+---------------------------------+--------------------------------+--------------------+
-| The above import won't import a constructor or pattern of the same name if it exists. |
-+---------------------------------+--------------------------------+--------------------+
-| import (type (:=))              | import type operator `:=`      |                    |
-|                                 | -XExplicitNamespaces           |                    |
-+---------------------------------+--------------------------------+--------------------+
-| import (pattern (:=))           | import pattern and/or          |                    |
-|                                 | constructor                    |                    |
-|                                 | `:=` (-XPatternSynonyms)       |                    |
-+---------------------------------+--------------------------------+--------------------+
-| Allows import/export of data constructor without its parent type constructor          |
+| All instances of a type are automatically imported along with the type                |
+| or the typeclass. Since orphan instances have no type or typeclass defined in the     |
+| same module, they are always imported unconditionally.                                |
 +---------------------------------------------------------------------------------------+
 
-* instances which are not in the same file as the typeclass or the type are orphan instances.
++-----------------------------------------------------------------------------+
+| Importing types                                                             |
++=================================+===========================================+
+| import X.Y (A)                  | import type A                             |
++---------------------------------+-------------------------------------------+
+| import X.Y (A(C1,C2))           | import A and its data                     |
+|                                 | constructors C1 and C2 as well            |
++---------------------------------+-------------------------------------------+
+| import X.Y (A(a1, a2))          | import A and its memmber                  |
+|                                 | functions (when A is a                    |
+|                                 | typeclass) or selector                    |
+|                                 | functions (when A is a record)            |
+|                                 | a1 and a2                                 |
++---------------------------------+-------------------------------------------+
+| import X.Y (A(..))              | import type A and all its                 |
+|                                 | data constructors,                        |
+|                                 | selector or member functions              |
++---------------------------------+-------------------------------------------+
+| Note the above import won't bring in the data constructor if A is defined as|
+| a pattern and not a data constructor.                                       |
++-----------------------------------------------------------------------------+
 
-Export Symbols From Modules
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
++-----------------------------------------------------------------------------+
+| importing type level or data level operators                                |
++-----------------------------------------------------------------------------+
+| operators do not have a upper or lower case based distinction, so the same  |
+| named operator could be a type operator as well as a function operator.     |
++=================================+===========================================+
+| import ((:=))                   | import operator `:=`, if a                |
+|                                 | type as well as a function                |
+|                                 | with this name exist, then only           |
+|                                 | the function will be imported             |
++---------------------------------+-------------------------------------------+
+| When the operator is a type, then the above import won't import a           |
+| constructor or pattern of the same name if it exists.                       |
++---------------------------------+-------------------------------------------+
+| import (type (:=))              | import type operator `:=`                 |
+|                                 | requires -XExplicitNamespaces             |
++---------------------------------+-------------------------------------------+
+| import (pattern (:=))           | import pattern and/or                     |
+|                                 | constructor                               |
+|                                 | `:=` (-XPatternSynonyms)                  |
++---------------------------------+-------------------------------------------+
+| Allows import of data constructor without its parent type constructor       |
++-----------------------------------------------------------------------------+
 
-you do not need to export orphan instances. Both of these will export all orphan instances::
 
-  module X where ...
-  module X () where...
++-----------------------------------------------------------------------------+
+| Others (importing from named packages, importing safe)                      |
++=================================+===========================================+
+| import "base" Data.List         | from package "base"                       |
+|                                 | -XPackageImports                          |
++---------------------------------+-------------------------------------------+
+| import safe  Data.List          | Safe Haskell (-XSafe, -XUnsafe            |
+|                                 | -XTrustworthy). Since 7.2                 |
++---------------------------------+-------------------------------------------+
 
-Defining Modules
-~~~~~~~~~~~~~~~~
+* By default, Prelude is implicitly imported. However, if you add an
+  explicit import declaration for Prelude, implicit import gets turned off::
 
-TBD - module declaration: module X where ...
+    import Prelude hiding (zip)
+    import qualified Prelude as P
+
+* Orphan instances are those which are not defined in the same file as the
+  typeclass or the type.
+
+Defining Modules: Exporting Names
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| Assuming module ``X.Y`` defines names ``a``, ``b`` and ``c``.               |
++-----------------------------+-----------------------------------------------+
+| module X.Y where ...        | Exports all names i.e. ``a``, ``b``, ``c``    |
++-----------------------------+-----------------------------------------------+
+| module X.Y () where ...     | Only orphan instances (if any) are exported   |
++-----------------------------+-----------------------------------------------+
+| module X.Y (a, b) where ... | Exports names ``a`` and ``b``                 |
++-----------------------------+-----------------------------------------------+
+
+Instances are always exported along with the type or the typeclass. Since
+orphan instances have no type or typeclass associated with them they are always
+automatically exported.
+
++-----------------------------------------------------------------------------+
+| Exporting types                                                             |
++============================+================================================+
+| module X.Y (A) where ...   | Export name ``A`` along with any instances     |
++----------------------------+------------------------------------------------+
+| module X.Y (A) where ...   | Export name ``A`` along with any instances     |
++----------------------------+------------------------------------------------+
+| module X.Y (A(C1,C2))      | Export A and its data                          |
+|                            | constructors C1 and C2 as well                 |
++----------------------------+------------------------------------------------+
+| module X.Y (A(a1, a2))     | Export A and its memmber                       |
+|                            | functions (when A is a                         |
+|                            | typeclass) or selector                         |
+|                            | functions (when A is a record)                 |
+|                            | a1 and a2                                      |
++----------------------------+------------------------------------------------+
+| module X.Y (A(..))         | Export type A and all its                      |
+|                            | data constructors,                             |
+|                            | selector or member functions                   |
++----------------------------+------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Exporting type level or data level operators                                |
++-----------------------------------------------------------------------------+
+| Operators do not have an upper or lower case based distinction, so the same |
+| named operator could be a type operator as well as a function operator.     |
++=================================+===========================================+
+| module ((:=))                   | export operator `:=`, if a                |
+|                                 | type as well as a function                |
+|                                 | with this name exist, then only           |
+|                                 | the function will be exported             |
++---------------------------------+-------------------------------------------+
+| When the operator is a type, then the above export won't export a           |
+| data constructor or pattern of the same name if it exists.                  |
++---------------------------------+-------------------------------------------+
+| module (type (:=))              | export type operator `:=`                 |
+|                                 | requires -XExplicitNamespaces             |
++---------------------------------+-------------------------------------------+
+| module (pattern (:=))           | export pattern and/or                     |
+|                                 | data constructor                          |
+|                                 | `:=` (-XPatternSynonyms)                  |
++---------------------------------+-------------------------------------------+
+| Allows export of data constructor without its parent type constructor       |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Re-exporting imported names.                                                |
++-----------------------------------------------------------------------------+
+| The form ``module M`` in export list names the set of all names that are in |
+| scope with both an unqualified name ``a`` as well as a qualified name       |
+| ``M.a``.                                                                    |
++----------------------------+------------------------------------------------+
+| ::                         |                                                |
+|                            |                                                |
+|  module X.Y (module X.Y    | Export all names from module X.Y itself and    |
+|             , module Z)    | all names from module Z too.                   |
+|  where ...                 |                                                |
+|  import Z                  |                                                |
++----------------------------+------------------------------------------------+
+| ::                         |                                                |
+|                            |                                                |
+|  module X.Y (module R)     | Export all names from module ``Z``             |
+|  where ...                 |                                                |
+|  import Z as R             |                                                |
++----------------------------+------------------------------------------------+
+| ::                         |                                                |
+|                            |                                                |
+|  module X.Y (module R)     | Nothing will be exported because no            |
+|  where ...                 | unqualified names from R are in scope.         |
+|  import qualified Z as R   |                                                |
++----------------------------+------------------------------------------------+
+| ::                         |                                                |
+|                            |                                                |
+|  module X.Y (R.a)          | Name ``a`` from module ``R`` will be exported  |
+|  where ...                 |                                                |
+|  import qualified Z as R   |                                                |
++----------------------------+------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| The unqualified names of the entities exported by a module must all be      |
+| distinct (within their respective namespace).                               |
++---------------------------------+-------------------------------------------+
+| ::                              |                                           |
+|                                 |                                           |
+|  module A (C.f, module B) where | Invalid: two exported names C.f and B.f   |
+|  import B(f)                    | have same unqualified names.              |
+|  import qualified C(f)          |                                           |
++---------------------------------+-------------------------------------------+
 
 Namespaces
 ~~~~~~~~~~
