@@ -399,8 +399,10 @@ Library of Syntax Construction Functions
 Library of Monadic Syntax Operators
 
 In general, we use the following nomenclature:
+
 * A four-character type name (e.g. Expr) is the monadic version
 of its three-character algebraic data type (e.g. Exp).
+
 * A lower-cased function (e.g. app) is the monadic version of
 its upper-cased data constructor (e.g. App)
 
