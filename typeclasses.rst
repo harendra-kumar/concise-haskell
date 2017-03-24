@@ -289,6 +289,18 @@ Deriving Instances
 * You can’t use deriving to define instances of a data type with existentially
   quantified data constructors.
 
++------------------------------+----------------------------------------------+
+| -XDeriveFunctor              | deriving Functor                             |
++------------------------------+----------------------------------------------+
+| -XDeriveFoldable             | deriving Foldable                            |
++------------------------------+----------------------------------------------+
+| -XDeriveTraversable          | deriving Traversable                         |
++------------------------------+----------------------------------------------+
+| -XDeriveDataTypeable         | deriving (Typeable, Data)                    |
++------------------------------+----------------------------------------------+
+| -XGeneralizedNewtypeDeriving | Everything that the underlying type supports?|
++------------------------------+----------------------------------------------+
+
 Associated Types
 ----------------
 
@@ -322,4 +334,5 @@ Type synonyms
 References
 ----------
 
-https://wiki.haskell.org/Typeclassopedia
+* https://wiki.haskell.org/Typeclassopedia
+* https://ocharles.org.uk/blog/guest-posts/2014-12-15-deriving.html
