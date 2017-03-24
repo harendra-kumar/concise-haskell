@@ -1,55 +1,137 @@
 Type Classes
 ============
 
-* Specifies functions to be implemented by member type or type group
-  (multiparameter)
-* Constraints can be applied to restrict the member types to certain type
-  classes (called superclasses)
-* Functions could be defined in terms of each other so that only one needs to
-  implemented.
-
 Terminology
 -----------
 
 * Dictionary
 * Superclass
 
-Class Definition
-----------------
+Typeclass Definition
+--------------------
 
-class ClassName t where
-  ...
++-----------------------------------------------------------------------------+
+| Typeclass definition                                                        |
++=============================================================================+
+| ::                                                                          |
+|                                                                             |
+|  class Default a where                                                      |
+|   def :: a                                                                  |
++-----------------------------------------------------------------------------+
+| The type variable `a` represents any member type of the type class.         |
++-----------------------------------------------------------------------------+
+| `def` is like any other function, the type signature of `def` is            |
+| polymorphic and determined by the typeclass. The effective signature of     |
+| `def` is equivalent to:                                                     |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   def :: Default a => a                                                     |
++-----------------------------------------------------------------------------+
 
-t is a type variable which represents a member of the class.
+Instances
+---------
 
-Infix Constructor syntax
-~~~~~~~~~~~~~~~~~~~~~~~~
+Unlike functions with polymorphic parameters, which provide a single definition
+for a whole set of types (known as `parametric polymorphism`), typeclasses
+allow the function definition to be dependent on the type.  Each type can have
+its own definition of the polymorphic functions defined by a type class, this
+is called `ad-hoc polymorphism`.
 
-::
+An instance of a typeclass provides the definition of the typeclass functions
+corresponding to a particular type.
 
-  class a :=: b where ...
++-----------------------------------------------------------------------------+
+| Typeclass instance                                                          |
++=============================================================================+
+| ::                                                                          |
+|                                                                             |
+|  instance Default Int where                                                 |
+|   def = 0                                                                   |
+|                                                                             |
+|  instance Default String where                                              |
+|   def = ""                                                                  |
++-----------------------------------------------------------------------------+
 
+Resolving Instances
+-------------------
 
-Instance declarations
----------------------
+When the function `def` is called, its definition is provided by one of the
+instances of `Default`. The definition is uniquely determined by the actual
+signature of the function inferred at the call site::
 
-::
+  def :: Default a => a
 
-  instance <context> => <head> where ...
-  instance (assertion1, ..., assertionn) => class type1 ... typem where ...
+  def :: Int -- 0
+  def :: String -- ""
+  def :: Char -- Doesn't compile, no instance for "Default Char"
 
-  instance <context> => C (T a1 ... an) : Haskell98
-  instance <context> => C (T1 a1 ... an) (T2 b1 ... bn) : Multiparameter
++-----------------------------------------------------------------------------+
+| Ambiguity check:                                                            |
+| To determine the typeclass instance, we must be able to fully resolve the   |
+| signature of `def` at the call site. This will result in an error:          |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  class Default a where                                                      |
+|   def :: Int                                                                |
++-----------------------------------------------------------------------------+
+| Here, type `a` and therefore the specific instance of the class, cannot be  |
+| determined by a call to `def` e.g.                                          |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  def :: Default a => Int                                                    |
+|                                                                             |
+|  def :: Int -- 'a' cannot be determined here so compiler cannot determine   |
+|             -- which instance to use                                        |
++-----------------------------------------------------------------------------+
 
-Examples::
+Typeclass Definition - Again
+----------------------------
 
-default instance
-~~~~~~~~~~~~~~~~
-
-Wildcard instance that applies when a specific instance does not::
-
-  instance C a where
-    op = ... -- Default
++-----------------------------------------------------------------------------+
+| Put a constraint to restrict the types that can be a member of the class    |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  class Num a => Default a where                                             |
+|   def :: a                                                                  |
++-----------------------------------------------------------------------------+
+| The signature of `def` is now equivalent to:                                |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   def :: (Num a, Default a) => a                                            |
++-----------------------------------------------------------------------------+
+| A typeclass can provide a default implementation of a function              |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  class Num a => Default a where                                             |
+|   def :: a                                                                  |
+|   def = 0 -- default implementation                                         |
+|                                                                             |
+|  instance Default Int  -- Will use the default implementation of def        |
++-----------------------------------------------------------------------------+
+| One class function can be defined in terms of another class function        |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  class Num a => Default a where                                             |
+|   def1 :: a                                                                 |
+|   def2 :: a                                                                 |
+|   def1 = def2 - 1                                                           |
+|   def2 = def1 + 1                                                           |
++-----------------------------------------------------------------------------+
+| If we define def1 then def2 will have a default implementation and vice     |
+| versa.                                                                      |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  instance Default Int where                                                 |
+|   def1 = 0         -- def2 is automatically defined to 1                    |
++-----------------------------------------------------------------------------+
 
 -XConstrainedClassMethods
 ~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -59,6 +141,17 @@ Allow class methods to constrain class type variables::
   class Seq s a where
     fromList :: [a] -> s a
     elem     :: Eq a => a -> s a -> Bool
+
+Typeclass Instances - Again
+---------------------------
+
+default instance
+~~~~~~~~~~~~~~~~
+
+Wildcard instance that applies when a specific instance does not::
+
+  instance C a where
+    op = ... -- Default
 
 -XTypeSynonymInstances
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -101,6 +194,38 @@ make a class which represents a single type.
 
   instance (x ~ R ("a" := Int, "b" := String)) => Default x  where
       def t = R (#a := 0 :: "a" := Int) :*: R t
+
+Multi-parameter Typeclasses
+---------------------------
+
+Functional Dependencies
+~~~~~~~~~~~~~~~~~~~~~~~
+
+-XAllowAmbiguousTypes can be useful with functional dependencies.
+
+Infix Constructor syntax
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  class a :=: b where ...
+
+
+Multi-parameter Typeclass Instances
+-----------------------------------
+
+Instance declarations
+---------------------
+
+::
+
+  instance <context> => <head> where ...
+  instance (assertion1, ..., assertionn) => class type1 ... typem where ...
+
+  instance <context> => C (T a1 ... an) : Haskell98
+  instance <context> => C (T1 a1 ... an) (T2 b1 ... bn) : Multiparameter
+
+Examples:
 
 Overlapping & Incoherent Instances
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -159,7 +284,7 @@ Allows class synonym::
 Relaxes the paterson conditions described above.
 
 Deriving Instances
-~~~~~~~~~~~~~~~~~~
+------------------
 
 * You can’t use deriving to define instances of a data type with existentially
   quantified data constructors.
