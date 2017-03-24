@@ -111,13 +111,15 @@ Terms with unlifted types must not be represented by closures, which implies
 that any unboxed value is necessarily unlifted. We distinguish between lifted
 and unlifted types by ascribing them different kinds.
 
-.. _Primitive Types: https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-prim-0.5.0.0/GHC-Prim.html>
+.. _Primitive Types: https://downloads.haskell.org/~ghc/latest/docs/html/libraries/ghc-prim-0.5.0.0/GHC-Prim.html
 
 `Primitive Types`_
 ------------------
 
 Unlifted Primitives
 ~~~~~~~~~~~~~~~~~~~
+
+Unlifted types can be boxed (e.g. Array types) or unboxed.
 
 +-----------------+------------------------------------------------+
 | Convention      | # postfix on unlifted primitives               |
@@ -328,6 +330,17 @@ Records
 |  x :: R -> String                                                           |
 |  y :: R -> Int                                                              |
 +-----------------------------------------------------------------------------+
+| Until the brain gets trained, it is pretty confusing that the types of the  |
+| selector functions are different from what they seem to be from the code:   |
++-----------------------------------+-----------------------------------------+
+| ::                                | ::                                      |
+|                                   |                                         |
+|  data R =                         |  --                                     |
+|    R {                            |                                         |
+|        x :: String                |  x  :: R -> String                      |
+|      , y :: Int                   |  y  :: R -> Int                         |
+|    }                              |                                         |
++-----------------------------------+-----------------------------------------+
 | `-XDuplicateRecordFields` (8.0.1) allows using identical fields in different|
 | records even in the same module. Selector functions and updates are         |
 | disambiguated using the type of the field or the record.                    |
@@ -764,6 +777,20 @@ Refer to the `Basic Syntax` chapter for basic pattern matching.
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
+| -XBangPatterns: make pattern matching strict by prefixing it with a `!`     |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+| f1 !x = True       -- it will always evaluate x                             |
+| f2 (!x, y) = [x,y] -- nested pattern, x will always get evaluated           |
++-----------------------------------------------------------------------------+
+| TODO more on bangpatterns, -XStrictData, -XStrict,                          |
++-----------------------------------------------------------------------------+
+
+
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
 | -XPatternGuards: deconstruct a value inside a guard                         |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
@@ -811,6 +838,29 @@ Refer to the `Basic Syntax` chapter for basic pattern matching.
 +-----------------------------------------------------------------------------+
 |  TBD                                                                        |
 +-----------------------------------------------------------------------------+
+
+Useless pattern matches
+~~~~~~~~~~~~~~~~~~~~~~~
+
+When a pattern match does not a bind a variable, it is useless.
+
+::
+
+  x = 2
+  y = Just 5
+
+  -- pattern matches without producing a binding:
+  1 = 2
+  1 = x
+
+  Nothing = Just 5
+  Nothing = y
+
+Though if you make match strict it can be used as an assert::
+
+  -- these will fail at runtime
+  let !1 = 2 in "hello"
+  let !Nothing = y in "hello"
 
 Pattern Synonyms
 ----------------
