@@ -11,22 +11,12 @@ Failure Representation
 |        | Right   | Return value                       |
 +--------+---------+------------------------------------+
 
-Error Handling
---------------
+MonadFail
+---------
 
-These are not commonly used. The usual way to handle errors is the exception
-handling described next.
-
-+------------------+-------------+--------------------------------------------+
-| Unconditional    | error       | error is untyped, can be called from       |
-| termination      |             | anywhere                                   |
 +------------------+-------------+--------------------------------------------+
 | Aborting monadic | fail        |                                            |
 | computations     | (MonadFail) |                                            |
-+------------------+-------------+--------------------------------------------+
-|                  | Maybe       |                                            |
-+------------------+-------------+--------------------------------------------+
-|                  | Either      |                                            |
 +------------------+-------------+--------------------------------------------+
 
 Exceptions
@@ -51,10 +41,23 @@ you.
 Data
 ----
 
+An exception is represented by a user defined algebraic data type. You can
+encode arbitrary information available at the exception site in the exception
+and throw it. At the catch site this information can be used by the handler.
+
+An exception data type is dynamically typed i.e. an instance of Typeable.  Use
+fromException and toException to convert a generic exception (SomeException) to
+a specific type and vice-versa. These functions have a default implementation
+in the typeclass Exception of which every exception is made an instance of.
+
+Exception class also provides a displayException function to show the exception
+in a human-friendly manner when it is caught, also Show is a superclass of
+Exception so each exception is required to have a Show instance as well.
+Example?
+
 Control.Exception in base
 
-SomeException
-  Exception
+SomeException (Exception)
     IOException
     ArithException
     ...
@@ -87,12 +90,40 @@ cleanup: finally, bracket or onException.
 Throw Exceptions
 ~~~~~~~~~~~~~~~~
 
+Mechanisms used to indicate an error e.g. error or throw are untyped and
+therefore can be used in an expression of any type without a type error.
+
 * throw
 * throwIO (e -> IO a), ioError (IOError -> IO a)
 * throwTo - throw to a thread
 
+Some Standard Exception APIs
+----------------------------
+
+error - the wildcard exception
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++----------------------+-------------+----------------------------------------+
+| error :: String -> a | error is completely untyped, and can be called from  |
+|                      | anywhere. Throws an exception with a message.        |
++----------------------+-------------+----------------------------------------+
+
+IO Exceptions
+~~~~~~~~~~~~~
+
+These can be used in IO code. The type is ``IO a``
+
+IO Exit Codes
+^^^^^^^^^^^^^
+
+System.Exit
+exitFailure -- throws exception of type ExitFailure
+exitSuccess
+exitWith
+die :: String -> IO a - like error but in IO.
+
 IO Errors
----------
+^^^^^^^^^
 
 * System.IO.Error
 * type IOError = IOException
@@ -101,6 +132,9 @@ Extensible Exceptions
 ---------------------
 
 See monad transformers chapter.
+
+CallStack, Source location
+--------------------------
 
 References
 ----------
