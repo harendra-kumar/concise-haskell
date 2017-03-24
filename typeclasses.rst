@@ -14,6 +14,22 @@ Terminology
 * Dictionary
 * Superclass
 
+Class Definition
+----------------
+
+class ClassName t where
+  ...
+
+t is a type variable which represents a member of the class.
+
+Infix Constructor syntax
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+::
+
+  class a :=: b where ...
+
+
 Instance declarations
 ---------------------
 
@@ -25,8 +41,10 @@ Instance declarations
   instance <context> => C (T a1 ... an) : Haskell98
   instance <context> => C (T1 a1 ... an) (T2 b1 ... bn) : Multiparameter
 
+Examples::
+
 default instance
-----------------
+~~~~~~~~~~~~~~~~
 
 Wildcard instance that applies when a specific instance does not::
 
@@ -34,7 +52,7 @@ Wildcard instance that applies when a specific instance does not::
     op = ... -- Default
 
 -XConstrainedClassMethods
--------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Allow class methods to constrain class type variables::
 
@@ -43,26 +61,49 @@ Allow class methods to constrain class type variables::
     elem     :: Eq a => a -> s a -> Bool
 
 -XTypeSynonymInstances
-----------------------
+~~~~~~~~~~~~~~~~~~~~~~
 ::
 
   type Point a = (a,a)
   instance C (Point a)   where ...
 
 -XFlexibleInstances
--------------------
+~~~~~~~~~~~~~~~~~~~
 ::
 
   instance C (Maybe Int) where ...   -- allows arbitrary nested types
 
 -XFlexibleContexts
-------------------
+~~~~~~~~~~~~~~~~~~
 ::
 
   instance (C t1 ... tn) => ...
 
+Type Family Application in Instance
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Is illegal. But there is a workaround for a single instance::
+
+  type family Fam t
+  instance (Fam Int ~ famint) => C famint
+
+* https://ghc.haskell.org/trac/ghc/ticket/3485
+
+Constraints are a good way to restrict the polymorphism. In fact we can even
+make a class which represents a single type.
+
+::
+
+  type Module = R ("a" := Int, "b" := String)
+
+  class (a ~ Module) => Default a where
+      def :: ("b" := String) -> a
+
+  instance (x ~ R ("a" := Int, "b" := String)) => Default x  where
+      def t = R (#a := 0 :: "a" := Int) :*: R t
+
 Overlapping & Incoherent Instances
-----------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Try `Int Bool` or `Int [Int]` in the folowing::
 
@@ -75,10 +116,10 @@ Try `Int Bool` or `Int [Int]` in the folowing::
 * When ambiguous, errors out unless ``-XIncoherentInstances`` is used
 
 UndecidableInstances
---------------------
+~~~~~~~~~~~~~~~~~~~~
 
 Instance termination rules
-~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 Paterson:
   - occurrence of `t` in constraint <= occurrence of `t` in head
@@ -107,7 +148,7 @@ Coverage:
   corresponding type in the instance head.
 
 -XUndecidableInstances
-~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^
 
 Allows class synonym::
 
@@ -118,18 +159,10 @@ Allows class synonym::
 Relaxes the paterson conditions described above.
 
 Deriving Instances
-------------------
+~~~~~~~~~~~~~~~~~~
 
 * You can’t use deriving to define instances of a data type with existentially
   quantified data constructors.
-
-Infix Constructor syntax
-------------------------
-
-::
-
-  class a :=: b where ...
-
 
 Associated Types
 ----------------
