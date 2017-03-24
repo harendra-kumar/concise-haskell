@@ -40,37 +40,184 @@ State Sharing Monads
 State, Reader, Writer monads are defined in terms of Identity monad and the
 corresponding monad transformer.
 
-One Monad At a Time
--------------------
+Stateless vs Stateful
+---------------------
 
-A monad allows us to compose a series of actions and add well-defined and
-enforced semantics at each composition step (using the bind operation)::
+A stateless function has no memory, implicit state, context or environment. Its
+result purely depends on its arguments. In other words, if it is called with
+the same arguments in any context, at any time it yields exactly the same
+results every time. A stateless function is also called a `pure` function or
+pure computation.
 
-          a           b           c           d
-          ^           ^           ^           ^      Pure Layer
+However, real practical programs are inherently stateful. A ubiquitous example
+of state is IO interaction. IO devices represent a global state that the
+program is embedded in and has to interact with. Within a program, an example
+of state is sharing configuration across various pieces of the program or
+passing information back and forth across various components via some shared
+state. Another common example of state is error handling, whether we continue
+processing may depend on the result of the previous computation.
+
+Stateless computations are easy to reason about, since we do not need to be
+aware of the context and the interaction of the computation with the context.
+Ideally we would like to keep everything stateless as long as possible but
+practically we have to manage state.  However, what we can do is to separate
+state management cleanly and modularly from stateless computations. That is
+where Haskell is invaluable and different from other languages.
+
+Pure: Stateless Computations
+----------------------------
+
+In Haskell, all functions are inherently pure or completely agnostic of state
+of any kind.  Pure computations are expressed using functions and expressions
+composed of pure functions and evaluated using lazy evaluation. Here is a model
+of a statless program::
+
+        Lazy evaluation
+        ---------------------------------------------
+              pure functions or expressions         Pure Computations
+        ---------------------------------------------
+          a           b           c           d     Inputs/Outputs
+
+Here, we have assumed that we have a way to make the inputs available to our
+program and a way of observing the outputs. We can write completely pure
+expressions and functions in GHCi, but to have a meaningful standalone program
+we will need a stateful interaction with the environment (global state)
+outside the program using IO.
+
+::
+
+  >> let add x y = x + y
+  >> add 1 2
+  3
+
+Monads: Stateful Computations
+-----------------------------
+
+TBD - maybe example
+
+A monad `m` is an abstraction or context that can wrap values of some type `a`
+as `m a` and implements a stateful logic to combine the wrapped values.  The
+state management or combining logic is hidden under the hood in the
+implementation of the monad `m`. The programmer writes pure stateless functions
+of type `f :: a -> m b` that map a pure value `a` to a monadic or state aware
+value `m b`. These functions are then combined using a bind (`>>=`) operation
+like `s >>= f1 >>= f2 >>= f3` where `s :: m a` is the initial state and the
+value of this expression is the final state `t :: m b`.
+
+`>>= :: m a -> (a -> mb) -> m b`
+
+The programmer only needs to know the semantics of the monad's stateful
+processing. The state management is handled under the hood and therefore is
+separated from pure processing in a modular and transparent way. The programmer
+writes stateful code by combining stateless functions. The monadic functions or
+actions can be thought of as state transition maps oblivious of the actual
+state. The state flows through the chain of actions, being inspected or
+modified by each one of them and finally producing the resulting state. The
+bind operation makes sure that all the actions in a monad are totally ordered
+and chained together.
+
+::
+
+        ---------------------------------------------
+              pure functions or expressions          Stateless Pure Layer
+        ---------------------------------------------
+          a           b           c           d      Pure Inputs/Outputs
+          ^           ^           ^           ^
         -||----------||----------||----------||------
- Actions vA    >>=   vB    >>=   vC    >>=   vD      Monadic Layer (Magic)
+         m a         m b         m c         m d
+        ---------------------------------------------
+        Monad evaluation semantics
+        vertically compartmentalized by bind
+        ---------------------------------------------Stateful Monad Layer
+  Actions vs    \->   vf1    \->   vf2    \->   f3v
         ---------------------------------------------
 
-For example the `IO` monad evaluates the previous action fully before
-performing the next action in a sequence, the `Maybe` monad performs the next
-action only if the previous one was successful, a `Reader` monad passes some
-state from the previous action to the next, allowing sharing of a common state
-by all actions.
+Interface of a Monad
+--------------------
 
-The actions and therefore bind operations in a monad are always totally
-ordered, each passing a value to the next in the order. The pure values
-generated by each action can be composed with future actions.  Before we feed
-it to the next action we can perform any pure or monadic operations on a
-value::
++-----------------------------------------------------------------------------+
+| Types of primitive operations provided by a monad to implement the actions. |
++--------------------------+---------+----------------------------------------+
+| Primitive class          | Generic | Example                                |
++==========================+=========+========================================+
+| create state (wrap `a`)  | Yes     | ``return   :: a -> m a``               |
++--------------------------+---------+----------------------------------------+
+| eliminate state          |         | ``runState :: m a -> a``               |
+| (unwrap `a`)             |         +----------------------------------------+
+|                          |         | ``fromMaybe :: a -> m a -> a``         |
++--------------------------+---------+----------------------------------------+
+| read state               |         | ``get     :: m a``                     |
+|                          |         +----------------------------------------+
+|                          |         | ``getLine :: m a``                     |
++--------------------------+---------+----------------------------------------+
+| modify state             |         | ``put       :: a -> m b``              |
+|                          |         +----------------------------------------+
+|                          |         | ``putStrLn  :: a -> m b``              |
++--------------------------+---------+----------------------------------------+
+
+The primitives are used to create composite actions using the ``>>=``
+operation.  Each one of the component actions being bound must be
+of type `m a`.  A composite action is essentially of this form::
+
+  f :: ... -> m a
+  f ... = ... >>= action1 >>= action2 >>= action3 ...
+
+Evaluation and Interpreter
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A monad orders all its actions in a sequence. If the bind is strict in its
+first argument, the evaluation proceeds step by step, each action is fully
+evaluated before the next one. This is quite like an interpreter. The bind
+statement is an interpreter which implements the the underlying semantics of
+the monad and executes the actions in sequence one by one. That's why monads
+are useful in implementing interpreted DSLs.
+
+Examples
+~~~~~~~~
+
+Different types of monads have different state semantics that serve specific
+purposes.  For example, in a given action sequence, the `IO` monad evaluates
+the previous action fully before performing the next action, the `Maybe` monad
+performs the next action only if the previous one was successful, a `Reader`
+monad passes some configuration or environment values from the previous action
+to the next, allowing sharing of a common environment by all actions.
+
+::
 
   do
     x <- getLine
     let y = doSomething x
     putStrLn y
 
-However, we are always using only one monad at a time, we never interleave
-semantics of two or more monads.
+Maybe Monad
+-----------
+
+The action chain results in a Maybe value, a Just if all actions return Just or
+a Nothing if any of them returns Nothing. Finally the result can be unwrapped
+by using `fromMaybe`::
+
+  instance  Monad Maybe  where
+      return              = Just
+
+      (Just x) >>= k      = k x
+      Nothing  >>= _      = Nothing
+
+::
+
+  Pure       x      |       y     |                          a
+             ^      |       ^     |
+           --|------|-------|-----|--------------------------
+ Result      Just x |      Just y |       Nothing
+           ---------|-------------|--------------------------
+ Actions     f1    >>=     f2    >>=         f3   >>=    f4   (Maybe a)
+           ---------|-------------|--------------------------
+                    eval f1    eval f2
+                    WHNF        WHNF
+
+Pure values can be lifted into the monad using `return`.
+
+Example: A list of integers, perform a running sum, abort if it ever becomes
+negative.
 
 Lifting a Function into a Monad
 -------------------------------
@@ -91,118 +238,158 @@ function::
  Actions  m1   >>=    m2   >>=  vv f => m r    Monadic Layer (Magic)
         ----------------------------
 
-Maybe Monad
------------
+General Structure of a stateful program
+---------------------------------------
 
-The action chain results in a Maybe value, a Just if all actions return Just or
-a Nothing if any of them returns Nothing. Finally the result can be unwrapped
-by using `fromMaybe`::
+It will be a tree like structure having IO at the root::
 
-  instance  Monad Maybe  where
-      return              = Just
+          S5     S6                    S8
+          ----- ---- ---------  -----------------------
+  Internal S3    S4    S5              S7
+  States  ----- ----- --------  -----------------------
+                 S1                       S2
+          --|-----------|-----------|-----------|------
+   IO Act   A    >>=    B    >>=    C    >>=    D
+          ---------------------------------------------
+          External world
 
-      (Just x) >>= k      = k x
-      Nothing  >>= _      = Nothing
+The state that IO operates on is global and external to the program.  To be
+meaningful the program has to do some form of IO, and we can never extract
+values from IO (that's why main always has the type IO). Therefore IO has to be
+always at the bottom, and any code that performs IO must be in IO monad all the
+way up to main. IO can never be run from pure code.
+
+All other monads operate on local states internal to the program, we can run the
+monad under some local state from pure code and even retrieve the final state
+when needed.
+
+Combining Stateful Semantics
+----------------------------
+
+Let us say we want to run some IO actions but at the same time want to use the
+error handling behavior of the Maybe monad to abort when an error or stop
+condition, dependent on the value we retreived from IO, is encountered.
+
+What we need is to interleave IO and Maybe such that they both work in tandem,
+IO lifting the value to a Maybe and Maybe performing the job of stopping any
+further processing as soon as a Nothing is encountered.
+
+We can make our IO actions return maybe values instead of plain values i.e.
+``IO (Maybe a)`` instead of ``IO a``. A just value indicates no error and
+Nothing indicates there was an error. Then we can run these actions with the
+semantics of the Maybe monad.
 
 ::
 
-  Pure       x           y                              a
-             ^           ^
-           --|-----------|------------------------------
- Result      Just x      Just y      Nothing
-           ---------------------------------------------
- Actions     A    >>=    B    >>=    C    >>=    D      (Maybe a)
-           ---------------------------------------------
-
-Pure values can be lifted into the monad using `return`.
-
-Combining Semantics
--------------------
-
-Can we combine the semantics of two monads? Can we add Maybe monad
-semantics on top of IO operations themselves?
-
-Let us say we want to run some IO actions in sequence but at the same time use
-the error handling behavior of the Maybe monad to abort when an error condition
-is encounterd. We can make our IO actions return maybe values instead of plain
-values i.e. ``IO (Maybe a)`` instead of ``IO a``. A just value indicates no
-error and Nothing indicates there was an error. Now the only thing left is to
-run these actions with the semantics of the Maybe monad as we did earlier.
-
-We can do this as a custom solution, but can we do this for any monad and not
-just IO monad?
-
-::
-
-          x           y                              a
- Pure     ^           ^
-        --|-----------|------------------------------
- Result   Just x      Just y      Nothing
-        ---------------------------------------------
- Maybe    W           X           Y           Z      (Maybe a)
-          ^           ^           ^           ^
-        --|-----------|-----------|-----------|------
- IO Act   A    >>=    B    >>=    C    >>=    D      IO (Maybe a)
-        ---------------------------------------------
+             x        |   y       |                       a
+ Pure        ^        |   ^       |
+           --|--------|---|-------|-----------------------
+ Result      Just x   |   Just y  |   Nothing
+           -----------|-----------|-----------------------
+ Maybe       W      |     X     |      Y           Z      (Maybe a)
+             ^      |     ^     |      ^           ^
+           --|------|-----|-----|------|-----------|------
+ IO Action   f1     | >>= f2    | >>=  f3   >>=    f4     IO (Maybe a)
+           ---------|-----------|-------------------------
+                   WHNF         WHNF
+                   eval f1      eval f2
 
 We have two layers here. The lower IO layer produces values according
 to IO monad semantics, these values are then lifted into a Maybe type. The
-Maybe monad layer then compose these according to the Maybe semantics. So we
+Maybe monad layer then composes these according to the Maybe semantics. So we
 can use the regular Maybe asbtractions and tools on top of the IO values.
+
+Evaluation is an important aspect of the semantics of a monad. The lowest monad
+drives evaluation. If the lowest monad is strict, a bind in that will force
+evaluation of that whole vertical compartment. If the lower one is lazy then
+the next one will drive the evaluation.
+
+In this particular case the way we think about the evaluation is that the IO
+bind occurs first in sequence which forces the bind of Maybe, which forces the
+evaluation of the expressions in the vertical compartment.
 
 Transformer Stack
 -----------------
 
-A transformer monad (`TransT`) embeds its state (`StateT`) inside some `inner`
-monad `m`.  The inner monad is wrapped inside the transformer monad using a
-newtype wrapper::
+We did this as a custom solution, but can we do this for any monad and not
+just IO monad?
 
-  newtype TransT m a = TransT {runTransT :: m (StateT a)} deriving Monad
-  newtype MaybeT m a = MaybeT {runMaybeT :: m (Maybe a) } deriving Monad
+We use `TransT` as a generic transformer definition just to illustrate the
+generic structure of a transformer. In the text below, we represent the
+combined monad `TransT m` by the variable `t` and the inner monad by the
+variable `m`.
 
-The run function `runTransT` runs or unwraps the outer transformer monad,
-yielding a value of type `m (StateT a)`::
+::
 
-  runTransT :: TransT m a -> m (StateT a)
+  newtype TransT m a = TransT {runTransT :: m (StT   a) }
+  newtype MaybeT m a = MaybeT {runMaybeT :: m (Maybe a) }
+
+  instance Monad      (TransT m) where ...   -- the transformed monad
+  instance MonadTrans  TransT    where ...   -- the transformer
+
+The transformer type `TransT` transforms a monad `m` into a combined monad of
+type (`TransT m`) adding new semantics on top of `m`. We call `m` as the lower
+level monad and `TransT m` as the top level monad.
+
+The runtime representation of the combined type is `m StT a`, where `StT` is
+the transformer specific data wrapper. Since the outermost constructor of this
+type is `m` we use a type level wrapper `TransT` to represent the combined type
+as a newtype.
+
+The run function `runTransT` runs or unwraps top level transformer monad
+`TransT m a`, yielding the value in underlying monad `m (StT a)`::
+
+  runTransT :: TransT m a -> m (StT a)
   runMaybeT :: MaybeT m a -> m (Maybe a)
-
-We are using the `TransT` definition as a generic definition just for
-illustration. In the text below, we represent the outer transformer monad by
-the variable `t` and the inner monad by the variable `m`.
 
 .. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer.png
 
-This combined type can be wrapped again inside another transformer monad and so on,
-forming a stack of monads. Stacking monads in this way allows us to combine
-multiple monads together and use the functionality of all of them together.
+The combined type can be wrapped again inside another transformer monad and so
+on, forming a stack of monads. Stacking monads in this way allows us to combine
+multiple monads together interleaving the functionality of all of them
+together.
 
 .. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-stack2.png
 
 MonadTrans (lift)
 ~~~~~~~~~~~~~~~~~
 
-When we run a computation in `m` we get a result of type `m a`. To be able to
-use the result in `t` we need to know how to wrap that into our type wrapper to
-construct a `t m a` type from that.
+A transformer monad is a monad to which we can generically lift values from
+some monad.
+
+Running a computation in `m` yields a result of type `m a`. To be able to
+use that result in `t m` we need to know how to wrap that into our type wrapper
+so as to construct a `t m a` type from that.
 
 The `MonadTrans` class allows us to do the wrapping generically for any
 transformer. Every transformer `t` provides an instance of MonadTrans.
 MonadTrans provides a `lift` operation which knows how to wrap a value `m a`
-from an arbitrary monad `m` into the `t` monad.
+from an arbitrary monad `m` into the `t` monad::
 
-.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-lift.png
-
-`lift` is nothing but wrapping the `m a` value in the constructor `TransT` in a
-manner appropriate for the given transformer type `t`::
-
-  lift :: m a -> t m a
+  class MonadTrans t where -- t represents TransT here
+    lift :: m a -> t m a
 
   -- lifting an 'm a' into 'MaybeT m a'
   instance MonadTrans MaybeT where
       lift = MaybeT . liftM Just
+      -- this is just the lifted Just with a MaybeT wrapper
+      -- Compare with Maybe monad's 'return = Just'
+
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-lift.png
+
+The way `return` lifts pure values into the Maybe monad, the same way `lift`
+lifts values from the `m` monad into `MaybeT`. lift generalizes the return
+operation of a monad. In fact return for a transformer is defined in terms of
+`lift`::
+
+    return = lift . return
+
+A transformer can wrap any monad generically. Also, it is agnostic of the full
+stack of transformers, all it needs to know is the immediate next monad that it
+is wrapping.
 
 By applying lift in a cascading manner we can wrap a value from a monad lower
-down in the stack to the desired level.
+down in the stack to the desired level. What is the use case for this?
 
 .. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-lift2.png
 
@@ -210,49 +397,77 @@ The `transformers` package provides monad transformer types and MonadTrans
 instances for all the standard monads (``IO, Maybe, Either, [], (->),
 Identity``).
 
+MonadIO (liftIO)
+~~~~~~~~~~~~~~~~
+
+The `MonadIO` class provides an abstraction `liftIO` to lift a value from the
+IO monad to monad `m`::
+
+  class (Monad m) => MonadIO m where
+      liftIO :: IO a -> m a
+
+Using the `lift` abstraction a transformer can implement `liftIO` by lifting
+the value iteratively through the whole stack until we reach the IO Monad::
+
+  instance (MonadIO m) => MonadIO (MaybeT m) where
+   -- liftIO :: IO a -> MaybeT m a
+      liftIO =   lift    -- lift from m to (MaybeT m)
+               . liftIO  -- liftIO from IO to m
+
+When we reach the IO Monad the iteration stops because `liftIO` for the IO
+monad is just `id`::
+
+  instance MonadIO IO where
+      liftIO = id
+
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-io-lift2.png
+
+We can write functions which are polymorphic in the monad type and therefore
+work for any monad. We can use class constraints to make sure that the monad
+and the whole stack under it support lifting from IO.  For example::
+
+  f :: (MonadIO m) => ... -> m a
+  res <- liftIO getLine
+  ...
+
 MonadBase (liftBase)
 ~~~~~~~~~~~~~~~~~~~~
 
-The innermost monad in a stack, the one not wrapped by any other monad, is
-called the base monad. For the common case of lifting from the base monad, the
-`MonadBase b t` instance provides a `liftBase` operation to lift from `b` to
-`t`::
+`MonadBase` generalizes `MonadIO` to any monad.  The `MoandBase`
+class provides a `liftBase` operation to lift values from an arbitrary base
+monad `b` to the current monad `m` as long as we have a `MonadBase b m`
+instance::
 
-  liftBase :: b a -> t a
+  class MonadBase b m where
+    liftBase :: b a -> m a
+
+Using the `lift` abstraction a transformer can implement `liftBase` generically
+by lifting the value iteratively through the whole stack until we reach the
+base monad::
+
+  instance (MonadBase b m) ⇒  MonadBase b (TransT m) where
+    liftBase =   lift     -- lift from m to (TransT m)
+               . liftBase -- lift from b to m
 
 .. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-base-lift2.png
 
-For a base monad (instance `MonadBase b b`), `liftBase` is usually just `id`
-since we are lifting to the same monad.  For a transformer it is `lift .
-liftBase`. The MonadTrans class has already provided us the necessary lift
-operation to implement liftBase.
+When we reach the base Monad the iteration stops because `liftBase` for the
+base monad is just `id`::
 
-The `transformers-base` package provides MonadBase instances for base as well
-as transformer versions of all the standard monads. For user defined
-transformers the MonadBase instance can be derived automatically::
+  instance MonadBase b b where liftBase = id
 
-  deriving instance (MonadBase b t) => MonadBase b (TransformerT t)
+For a polymorphic function we can use a `MonadBase b b` constraint to sepcify
+the base monad relationship.  The `transformers-base` package provides
+`MonadBase b b` and `MonadBase b m` instances for all combinations of `b` and
+`m` for the standard monads.  For user defined transformers the MonadBase
+instance can be derived automatically::
+
+  deriving instance (MonadBase b m) => MonadBase b (TransT m)
 
 For example::
 
   f :: (MonadBase m) => ...
   res <- liftBase baseOperation
-
-MonadIO (liftIO)
-~~~~~~~~~~~~~~~~
-
-For lifting from IO to any monad we have a special `MonadIO` typeclass that
-provides us the `liftIO` operation. Though the same job can be done by the
-MonadBase typeclass as well::
-
-    liftIO :: IO a -> t a
-
-.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-io-lift2.png
-
-For example::
-
-  f :: (MonadIO m) => ...
-  res <- liftIO getLine
 
 MonadTransControl (liftWith)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -351,7 +566,7 @@ returned by `RunInBase`::
 
 This mechanism allows us to lift arguments of functions and not just the
 results, for example we can lift `catch` using this. Notice that the arguments
-too are actions and have a generic `m a` type. `control` is a convenience
+too are actions and have a polymorphic `m a` type. `control` is a convenience
 function which calls `restoreM` after `liftBaseWith`::
 
   catch :: (MonadBaseControl IO m, Exception e)
@@ -367,8 +582,19 @@ Instances for standard monads are provided by the monad-control package.
 MonadTransUnlift
 ~~~~~~~~~~~~~~~~
 
+For a readonly sharing transformer, simpler versions of running an action in
+the lower monad. Note, readonly transformers can have mutable IORefs to
+keep the state readonly but still provide RW capabilities.
+
+askRun - get the run function
+askUnlift - get `Unlift run`
+
 MonadBaseUnlift
 ~~~~~~~~~~~~~~~
+
+Run an action in a base monad:
+
+askUnliftBase - get `UnliftBase run`
 
 Summary
 ~~~~~~~
@@ -398,6 +624,80 @@ Summary
 |              | MonadBaseUnlift   | askUnliftBase,|                                         |
 |              |                   | askRunBase    |                                         |
 +--------------+-------------------+---------------+-----------------------------------------+
+
+What is lifting?
+----------------
+
+In general, lifting is wrapping a type into some sort of a `box` around it,
+creating a layer of indirection or a semantic context around the type.  Lifting
+takes place at many levels and in many forms.  The most basic example is
+`lifted types`, where the box is a closure structure on the heap which helps
+lazy construction of the type.  In almost all other cases the box is a functor
+(keep in mind that applicative and monad are also functors).
+
+The `pure` and `return` statements basically lift a pure value into an
+applicative or a monad respectively. We are essentially wrapping a type into a
+functor. While a monad wraps pure values, a monad transformer wraps monadic
+types instead, we lift values into the transformer type by using the `lift`
+operation on a monadic type.
+
+Lifting merely adds more context around an opaque type and never loses any
+information from the original value. Put another way, lifting uses only
+constructors and no pattern matches.
+
++-----------------------------------------------------------------------------+
+| Summary of value lifting operations                                         |
++---------------+--------+----------+-----------------------------------------+
+| Operation     | From   | To       | Description                             |
++===============+========+==========+=========================================+
+| pure          | a      | f a      | Lift a type into an applicative functor |
++---------------+--------+----------+-----------------------------------------+
+| return        | a      | m a      | Lift a type into a monad                |
++---------------+--------+----------+-----------------------------------------+
+| lift          | m a    | t m a    | lift from a lower monad to the upper    |
+|               |        |          | transformer monad.                      |
+|               |        |          | ``t m`` is a transformer monad          |
++---------------+--------+----------+-----------------------------------------+
+| liftIO        | IO a   | m a      | lift a value from the IO monad to m.    |
+|               |        |          | m must satify MonadIO m                 |
++---------------+--------+----------+-----------------------------------------+
+| liftBase      | b a    | m a      | lift a value from monad b to monad m.   |
+|               |        |          | m must satify MonadBase b m             |
++---------------+--------+----------+-----------------------------------------+
+
+Lifting Functions
+-----------------
+
++--------------------------------------------------------------------------------------------+
+| Summary of function lifting                                                                |
++---------------+--------------+-------------------+-----------------------------------------+
+| Operation     | From         | To                | Description                             |
++===============+==============+===================+=========================================+
+| fmap          | (a -> b)     | f a -> f b        | Lift a function into a functor          |
++---------------+--------------+-------------------+-----------------------------------------+
+| liftA         | (a -> b)     | f a -> f b        | Lift a function into an applicative     |
++---------------+--------------+-------------------+ functor.                                |
+| liftA2        | (a -> b -> c)| f a -> f b -> f c |                                         |
++---------------+--------------+-------------------+-----------------------------------------+
+| liftM         | (a -> b)     | m a -> m b        | Lift a function into a monad            |
++---------------+--------------+-------------------+                                         |
+| liftM2        | (a -> b -> c)| m a -> m b -> m c |                                         |
++---------------+--------------+-------------------+-----------------------------------------+
+
+For functions, lifting means coverting a function that works on unlifted
+arguments into a function that workds on lifted argument types and returns a
+lifted type.
+
+Simple rules to use transformers:
+
+* use a transformer just like any regular monad, you do not need to care about
+  the underlying monad, regular monads work on pure values, transfomers can
+  work on pure values or values lifted from inner monad or from some base
+  monad.
+
+How values in a monad are generated?
+  * lifting values
+  * functions producing values of those types
 
 mtl
 ---
