@@ -17,8 +17,7 @@ Terminology
 |                        | A partial function is said to diverge when it is   |
 |                        | invoked for an undefined value.                    |
 +------------------------+----------------------------------------------------+
-| Algebra                | An (algebraic) data type representing a set of     |
-|                        | values (the carrier set) along with the            |
+| Algebra                | A set of values (the carrier set) along with the   |
 |                        | operations on the set                              |
 +------------------------+----------------------------------------------------+
 | Initial algebra        | Defined by the fact that there is always a         |
@@ -69,6 +68,10 @@ functor::
 
   data List a  = Empty | Cons a (List a)
 
+A recursive data has an initial constructor (the base case) and a building
+constructor.  Therefore a recursive function can do the opposite i.e. dismantle
+the recursive constructor and finally reach the base case.
+
 Coalgebra
 ~~~~~~~~~
 
@@ -97,8 +100,8 @@ A little thought leads to the following definition clauses::
 Coalgebras often describe dynamical systems (of some sort). For example,
 streams or processes.
 
-Recursive data vs codata
-------------------------
+Recursive (data) and corecursive data (codata)
+----------------------------------------------
 
 The structure of a data object is exposed, while
 the structure of a codata object is hidden.
@@ -124,10 +127,10 @@ finitary (finite records are an exception to this
 rule).
 
 `The Producer Contract:` The producer of data promises that he/she will
-construct data only using the agreed constructors.
+construct data only `using the agreed constructors`.
 
 `The Consumer contract`: The consumer of codata promises that he/she will only
-analyze codata using the patterns induced by the agreed constructors.
+analyze codata `using the patterns` induced by the agreed constructors.
 
 +-------------------------------------+---------------------------------------+
 | data                                | codata                                |
@@ -149,13 +152,6 @@ analyze codata using the patterns induced by the agreed constructors.
 +-------------------------------------+---------------------------------------+
 | structural induction                | guarded coinduction                   |
 +-------------------------------------+---------------------------------------+
-
-In Haskell data and codata both are defined in the same way, there is no type
-level distinction:
-
-* recursive data is always a sum type. `data A a = X a | Y (A a)`
-  X a is the termination condition.
-* corecursive data or codata is always a product type `data A a = Y (A a)`
 
 Functions are mappings which can map data to data or codata, and codata to
 data or codata. They create abstractions which can be used to abstract data or
@@ -190,12 +186,37 @@ always ends up in the same final data structure and can change it based on any
 components of it. codata looks at data as a whole whereas data looks at data as
 sum of its parts.
 
-coalgebras are therefore sutiable to represent continuous infinite processes,
+coalgebras are therefore suitable to represent continuous infinite processes,
 moving from one state to another. algebras on the other are suitable to
 represent finite data structures.
 
-Recursion and Corecursion
--------------------------
+codata is a closed structure like infinitely nested eggs and we work on it from
+outside, we keep peeling layers from outside. recursive data is an open
+recursive structure like a tree which we can build or dismantle piece by piece.
+codata and data are just opposite. in data we start building from the smallest
+pieces and keep on building, we can go on till infinity but whenever we stop,
+it will be finite. In the case of codata we start from the other end of the
+spectrum i.e. (a prebuilt infinite structure) infinity and keep removing
+layers. Since it is infinite, it never ends whatever number of layers we remove
+from it.
+
+A recursive structure always has a base case since we always start building
+from the base up. When we dismantle it we finally reach the base case. A
+corecursive structure always has the final or terminal case. We never build a
+corecursive structure, it starts from the whole. We always start consuming it
+from the terminal case, and we can never dismantle it completely.
+
+In Haskell, data and codata both are defined in the same way, there is no type
+level distinction:
+
+* recursive data is usually a sum type because we need a base case to build
+  upon. `data A a = Base a | Recurse a (A a)` . canonical example is a list.
+* corecursive structure is usually a product type `data A a = Y (A a)` because
+  there is no base case and we start from the final case itself. canonical
+  example is a stream.
+
+Recursive and Corecursive Procedures
+------------------------------------
 
 Recursion expresses a well defined pattern. We just specify a rule to govern
 the repetitive pattern. When we use a rule to consume a recursively defined
@@ -206,23 +227,23 @@ non-recursive seed structure, it is called corecursion.
 * Recursion consumes recursive data structures in a pattern
 * Corecursion produces a pattern of recursive data structures
 
-+-----------+-------------+--------------+
-|           | Recursion   | Corecursion  |
-+===========+=============+==============+
-| Nature    | Consumption | Production   |
-+-----------+-------------+--------------+
-| Nature    | Reduce      | Produce      |
-+-----------+-------------+--------------+
-|           | fold        | unfold       |
-+-----------+-------------+--------------+
-| Driven by | Functions   | Constructors |
-+-----------+-------------+--------------+
-|           | Finite      | Infinite     |
-+-----------+-------------+--------------+
-|           | data        | codata       |
-+-----------+-------------+--------------+
-|           | algebra     | coalgebra    |
-+-----------+-------------+--------------+
++-------------------------------------+---------------------------------------+
+| Recursion                           | Corecursion                           |
++=====================================+=======================================+
+| consume                             | produce                               |
++-------------------------------------+---------------------------------------+
+| fold                                | unfold                                |
++-------------------------------------+---------------------------------------+
+| dismantle                           | build                                 |
++-------------------------------------+---------------------------------------+
+| Driven by a function                | Driven by a constructor               |
++-------------------------------------+---------------------------------------+
+| Finite                              | Infinite                              |
++-------------------------------------+---------------------------------------+
+| data                                | codata                                |
++-------------------------------------+---------------------------------------+
+| algebra                             | coalgebra                             |
++-------------------------------------+---------------------------------------+
 
 Note the duality: in structural recursion we 'deconstruct' the argument and
 then we're allowed to recurse. In guarded recursion we recurse first, and then
@@ -241,6 +262,13 @@ defined within the definition.  Any recursive definition can be reduced to the
 following normalized version::
 
   x = f x -- implies f :: a -> a
+
+When `f` is a function that performs a case analysis on `x` we have a
+structural recursion which eliminates the structure of `x`. When `f` is a
+constructor of `x` instead that is expressed in terms of functions of `x` then
+we have a corecursion that builds an infinite codata. Notice that whether `f`
+is a constructor or function its return type must always be the same as the
+type of `x`.
 
 We can see `x` unfold clearly by repeatedly substituting the term `x` in the
 expression for its own definition::
@@ -288,6 +316,9 @@ scrutiny of `x` are produced in the loop. For example:
 Recursive Functions
 ^^^^^^^^^^^^^^^^^^^
 
+A recursive function can either iterate application of a function on a
+non-recursive data or it can eliminate and fold a recursive data structure.
+
 A recursive definition can also be called an inductive definition of a
 function.
 
@@ -331,19 +362,16 @@ Guarded corecursion (Corecursion)
 
 When the function `f` in `x = f x` constructs `x` before a case analysis on `x`
 (or application of `x` when it is a function) we have a corecursive expression
-generating an infinite codata. This means `f` is a constructor of `x`
-represented in terms of functions of x. Notice that this is dual of a regular
-case analysis based function implementation.
+generating an infinite codata. This means the outermost application `f` is a
+constructor of `x` represented in terms of functions of x. Notice that this is
+dual of a regular case analysis based function implementation.
 
 Corecursive Data Expressions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 When `f` is a data constructor of `x` in `x = f x`, the expression evaluates to
 a lazy infinite codata structure.  The data type of `x` has to be necessarily
-recursive for this expression to typecheck in this case.
-
-If `f` is not a data constructor it will result in a infinite loop when we
-scrutinize `x`.
+recursively defined; for this expression to typecheck in this case.
 
 Let us see some examples:
 
@@ -363,8 +391,45 @@ Let us see some examples:
 
     let fibs = 1 : 1 : zipWith (+) fibs (tail fibs) in take 10 fibs
 
+Co-recursive computations can be expressed in terms of recursive ones:
+
+::
+
+  -- cyclic list
+  -- unfoldr is however implemented using corecursion!
+  unfoldr (\x -> Just (x, x)) 1
+
+
+Constructor function constructor => corecursion
+function constructor function    => recursion
+
+Co-recursion and recursion are two different ways of expressing. We can
+accomplish a task in any of the ways but some tasks are more sutiable to one
+form than the other.
+
+Similarly, at another level, recursive and iterative are two different ways to
+accomplish a task. Any of them can be employed to accomplish a task. Both
+recursion and co-recursion can be expressed in iterative manner.
+
 Corecursive Functions
 ^^^^^^^^^^^^^^^^^^^^^
+
+If `f` is a constructor in the expression `g = f g` or equivalently `g x = f g
+x` then the constructor `f` has to be necessarily recursively defined because
+`f` is recursively defined in terms of `g` which returns the same type as `f`.
+
+In general, `g` pattern matches and breaks down `x`, which is in WHNF already
+because the top level is necessarily a constructor, and defines `f` in terms of
+the components of `x`.
+
+In fact the function `g` is not recursive in real sense because it does not
+really case analyze anything, the pattern match on LHS is trivial as the data
+is guaranteed to be in WHNF, the only thing it is doing is to connect the
+components of `f` on both sides.
+
+This is dual to the recursive functions where the function is recursive but the
+data it uses does not have to be. Here the data is recursive but the functions
+used by it do not have to be.
 
 Corecursive definition can also be called a coinductive definition of a
 function.
@@ -376,7 +441,21 @@ Transform a stream::
 Sum of a stream::
 
   sumSoFar x [] = [x]
+
+  -- the second argument is corecursive so we can keep pattern matching on it
   sumSoFar x (y:ys) = x : sumSoFar (x+y) ys
+
+A corecursive definition starts from a concrete seed, it remembers the
+previous value and builds the next value using the previous values::
+
+  x2 = x1 + ...
+  x3 = x2 + ...
+  x4 = x3 + ...
+
+It is essentially a builder. It has a seed and a builder::
+
+  builder (x, y : ys) = Just (x + y, (x + y, ys))
+  unfoldr builder (0, (let x = 1 : x in x))
 
 Iteration
 ---------
