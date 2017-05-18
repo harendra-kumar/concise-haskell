@@ -23,23 +23,31 @@ the expression can be defined as independent equations using let, where or top
 level definitions. This is pure basic functional programming. The only way to
 compose things in this method is by applying a function.
 
+A regular function application has a `single track of composition`. It is a
+pure composition because there is no scope of any side effect or state. However
+a function wrapped in an applicative or monad allows a two track composition.
+In addition to composing like pure functions, where a pure value is passed from
+one function to another, they allow you to do something else as well i.e. they
+can shoot from the hip too! The second track can do something behind the scenes
+usually a side effect.
+
 We then raise our level of abstraction to applicative programming. In
 applicative form of programming we build upon the basic functional programming.
 We can compose the basic functional building blocks using applicatives which
-is just another form of composition where we give a different semantics to
-function composition, the applicative composition. In this form we can compose
-computations defined as functions using a lifted form of function composition
-called applicative style composition. An applicative program is again like a
-single expression but it consists of applicatives in the expression. Here we
-added an additional way of composing different pieces of the program using a
-applicative style composition in addition to the lower level function
-application. Another level of abstraction is added by using a Functor layer on
-top of the bare types. The Functor layer adds the composition semantics.
+is just another form of composition where we give different semantics to
+function application. In this form we can compose computations by, using a
+lifted form of function application called applicative style. An applicative
+program is again like a single expression but it consists of applicatives in
+the expression. Here we added an additional way of composing different pieces
+of the program called an applicative style of composition. This is achieved by
+adding another level of abstraction using a Functor layer on top of the bare
+types. The Functor layer allows us to add the applicative semantics.  The full
+name of an applicative is applicative functor.
 
 But applicative is not enough to express complicated dependencies between
 computations. So we raise our abstraction a bit further and introduce a more
 sophisticated way of composing computations called monadic composition. This is
-a more evolved form of composition where we add another level of abstraction to
+a more flexible form of composition where we add another level of abstraction to
 function composition, we don't just compose them by passing the result of one
 to the other but by also doing something behind the scenes while we are doing
 so. We can define independent computations and join them together using a
@@ -73,10 +81,10 @@ other optional. Another elegant way to use a functional interface is to use
 builders. We can compose out input by multiple functions consuming their
 arguments and returning a builder again.
 
-Applicative is less declarative and in addition to
-abstractions via functions we need to understand the applicative layer of
-abstraction, its added layer of semantics. Monadic is imperative we need to
-understand how computations are composed or dependent on each other.
+Applicative is less declarative and in addition to abstractions via functions
+we need to understand the applicative layer of abstraction, its added layer of
+semantics. Monadic is imperative we need to understand how computations are
+composed or dependent on each other.
 
 It should be noted that monadic style may or may not use its full power but it
 has the power. For example we can write pure code using monads or applicative
@@ -87,8 +95,9 @@ imperative languages by discipline. But there is always potential for abuse and
 it is abused.
 
 We can differentiate them based on where the magic is hidden. In functions the
-magic is hidden just behind the functions. in applicative there are two level
-walls hiding the magic. In monadic there are three walls.
+magic is hidden just behind the functions. In applicatives and monads there is
+another layer of indirection supplied by the Functor, allowing us to do some
+magic in that layer.
 
 In general, we should try to restrict ourselves to the pure functional style,
 if that is not enough lift to the applicative style and if that is not powerful
@@ -156,73 +165,177 @@ a, f b) -> f (a, b) and ι: () -> f ()
 
 Also called "strong lax monoidal functor". The monoidal formulation is
 more elegant. Apply a function (functor property) and combine (monoidal
-property).
+property)::
 
-class (Functor f) => Applicative f where
-  pure :: a -> f a
-  zip :: (f a, f b) -> f (a, b)
+  class (Functor f) => Applicative f where
+    pure :: a -> f a
+    zip :: (f a, f b) -> f (a, b)
 
 A functor type allows you to have function objects wrapped in that type,
 but it does not know how to apply them to values wrapped in the same
 type. Applicative adds that via <*>. An applicative type provides a type
 specific way of applying functions contained in that type to values
-contained in that same type.
+contained in that same type::
 
-<*> :: f (a -> b) -> f a -> f b
+  <*> :: f (a -> b) -> f a -> f b
 
 This is another way of composing analogous to function application.
+
+Applicatives are more rigid and structured compared to Monads. Monads are much
+more flexible as there is no enforcement on the structure. Applicatives enforce
+a structure on the computation determined by the structure of the function
+application. However, applicatives are more composable than Monads.
+Applicatives can be freely composed to create new applicatives whereas monads
+cannot be.
 
 Examples
 ~~~~~~~~
 
 List: apply a collection of functions on a collection of values and
 combine the results. Its own unique way of application - apply each
-function to each value and then concatenate the results.
+function to each value and then concatenate the results::
 
->> [id,id,id] <*> [1,2,3]
-[1,2,3,1,2,3,1,2,3]
+  >> [id,id,id] <*> [1,2,3]
+  [1,2,3,1,2,3,1,2,3]
 
 IO: Apply the function to the values resulting from the IO action. Note
 the function itself is NOT an IO action or something resulting from an
-IO action.
+IO action::
 
-sz <- (++) <$> getLine <*> getLine
+  sz <- (++) <$> getLine <*> getLine
 
 Maybe:
+
+Alternative
+~~~~~~~~~~~
+
+A monoid on applicative functors. A monoid means we have a way to represent a
+zero or identity which means we can perform an action zero or more times and
+fold the results into a list combining them in a typeclass instance specific
+manner.
+
+The basic intuition is that empty represents some sort of "failure", and (<|>)
+represents a choice between alternatives.
+
+Combines applicative actions in the following ways:
+
++---------------------------+-------------------------------------------------+
+| empty                     | Identity of the monoid                          |
++---------------------------+-------------------------------------------------+
+| <\|> :: f a -> f a -> f a | In a sequence of actions composed using '<|>',  |
+|                           | keep performing actions until you get a         |
+|                           | non-empty value.                                |
++---------------------------+-------------------------------------------------+
+| some :: f a -> f [a]      | perform an action multiple times, return a list |
+|                           | of non-empty results or an empty value.         |
+|                           | failure, ...              = failure             |
+|                           | success, failure          = success [res]       |
+|                           | success, success, failure = sucess [res1, res2] |
++---------------------------+-------------------------------------------------+
+| many :: f a -> f [a]      | perform an action multiple times, return an     |
+|                           | empty list, a list of values or an empty value. |
+|                           | failure, ...              = []                  |
+|                           | success, failure          = success [res]       |
+|                           | success, success, failure = sucess [res1, res2] |
++---------------------------+-------------------------------------------------+
+
+The intuition is that both some and many keep running `v`, collecting its
+results into a list, until it fails; `some v` requires `v` to succeed at least
+once, whereas `many v` does not require it to succeed at all. That is, many
+represents 0 or more repetitions of `v`, whereas some represents 1 or more
+repetitions.
+
+Example: Maybe
+
++------+----------------------------------------------------------------------+
+| <\|> | Perform an action until you get a Just value                         |
++------+----------------------------------------------------------------------+
+| some | keep performing until you get a Nothing                              |
++------+----------------------------------------------------------------------+
+| many | keep performing until you get a Nothing                              |
++------+----------------------------------------------------------------------+
+
++--------------+--------------------------------------------------------------+
+| some Nothing | Nothing                                                      |
++--------------+--------------------------------------------------------------+
+| many Nothing | Nothing                                                      |
++--------------+--------------------------------------------------------------+
+| some Just 5  | loop -- because it keeps succeeding every time               |
++--------------+--------------------------------------------------------------+
+| many Just 5  | loop -- because it keeps succeeding every time               |
++--------------+--------------------------------------------------------------+
+
+The problem is that since `Just a` is always "successful", the recursion will
+never terminate. In theory the result "should be" the infinite list [a,a,a,...]
+but it cannot even start producing any elements of this list, because there is
+no way for the (<*>) operator to yield any output until it knows that the
+result of the call to many will be Just.
+
+In the end, some and many really only make sense when used with some sort of
+"stateful" Applicative instance, for which an action v, when run multiple
+times, can succeed some finite number of times and then fail. For example,
+parsers have this behavior, and indeed, parsers were the original motivating
+example for the some and many methods;
+
+Concurrently from the async package has an Alternative instance, for which c1
+<|> c2 races c1 and c2 in parallel, and returns the result of whichever
+finishes first. empty corresponds to the action that runs forever without
+returning a value.
+
+Practically any parser type (e.g. from parsec, megaparsec, trifecta, ...) has
+an Alternative instance, where empty is an unconditional parse failure, and
+(<|>) is left-biased choice. That is, p1 <|> p2 first tries parsing with p1,
+and if p1 fails then it tries p2 instead.
+
+some and many work particularly well with parser types having an Applicative
+instance: if p is a parser, then some p parses one or more consecutive
+occurrences of p (i.e. it will parse as many occurrences of p as possible and
+then stop), and many p parses zero or more occurrences.
+
+* http://stackoverflow.com/questions/13080606/confused-by-the-meaning-of-the-alternative-type-class-and-its-relationship-to
 
 Monad
 -----
 
 A Monad knows how to flatten the same type contained within the same
 type. join eliminates a layer of indirection, the elimination is encoded in a
-type specific manner:
+type specific manner::
 
-join   :: M (M a) -> M a
+  join   :: M (M a) -> M a
 
 It allows functions of type (a -> m b) to be mapped to the type and results
-collected by joining. Join behavior defines the Monad.
+collected by joining. Join behavior defines the Monad::
 
-(>>=) :: Monad m => m a -> (a -> m b) -> m b
-m >>= g = join (fmap g m)
+  (>>=) :: Monad m => m a -> (a -> m b) -> m b
+  m >>= g = join (fmap g m)
 
 Examples
 ~~~~~~~~
 
-List: join is concatenation of the resulting list of lists:
-xs >>= f = concat (map f xs) -- concat == join
+List: join is concatenation of the resulting list of lists::
 
-IO: join is strict evaluation of the IO action (case is strict):
+  xs >>= f = concat (map f xs) -- concat == join
 
-bindIO (IO m) k = IO $ \ s -> case m s of (# new_s, a #) -> unIO (k a) new_s
-join x   = x >>= id
+IO: join is strict evaluation of the IO action (case is strict)::
 
-Note that for IO '<*> = ap', ap is defined in terms of monadic
-primitives and has a Monad constraint on the type, so even the
-applicative sequencing will also strictly evaluate the IO actions in
-sequence.
+  bindIO (IO m) k = IO $ \ s -> case m s of (# new_s, a #) -> unIO (k a) new_s
+  join x   = x >>= id
 
 do desugar
 ~~~~~~~~~~
+
+The do notation allows a special form of binding via the ``<-`` symbol. ``<-``
+is like a ``=`` in a pattern matching equation except that the binding produced
+by ``<-`` must be used in a future computation or action in the same do block
+via a bind operator.
+
++------------------------------------+----------------------------------------+
+| ::                                 | ::                                     |
+|                                    |                                        |
+|  do pat <- computation             |  let f pat = more                      |
+|     more                           |      f _ = fail "..."                  |
+|                                    |  in  computation >>= f                 |
++------------------------------------+----------------------------------------+
 
 +------------------------------------+----------------------------------------+
 | ::                                 | ::                                     |
@@ -232,7 +345,60 @@ do desugar
 |        action3 x1 x2               |        action3 x1 x2))                 |
 +------------------------------------+----------------------------------------+
 
-inline do blocks:
+As a special case::
+
+  do
+    x1
+    x2
+    x3
+    ...
+  is x1 >> x2 >> x3 ...
+
+You can use ``<-`` just like a ``=`` on any expression. For example::
+
+  v <- case x of
+        ...
+
+  v <- do
+        x1
+        x2
+        ...
+
+* Each non-let statement in a do statement is bound by the monadic semantics
+
+  * for example in IO monad they are evaluated sequentially
+* Each variable bound by "<-" must be chained to another monadic action
+* bindings produced by ``<-`` can be used in subsequent let statements in the
+  same do block but cannot be used in the where block.
+
+Evaluation semantics
+^^^^^^^^^^^^^^^^^^^^
+
+Note that when the monad is strict, each line in the do statement is evaluated
+before the next line. However, any let statement evaluation is driven by the
+monadic statements where they are used?
+
+For example in the IO monad, action1 is strictly evaluated before action2
+irrespective of where x1 or x2 are used in the following code::
+
+  do x1 <- action1
+     x2 <- action2
+        action3 x1 x2
+
+This is much more clearer from the desugared form of the do statement. Every
+`>>=` in the desugared version is an evaluation fence. We go left to right and
+anything before a fence is evaluated before anything that comes after it.
+
+Scoping rules
+^^^^^^^^^^^^^
+
+Scoping rules for monadic variables. They are not visible in where statements,
+but they are visible in the following let statements.
+
+Applicative do
+~~~~~~~~~~~~~~
+
+TBD
 
 List Monad Desugaring
 ~~~~~~~~~~~~~~~~~~~~~
@@ -473,51 +639,38 @@ state cannot leak out.
 +----------+---------+--------------------------------------------------------+
 | IO       | Strict  | Evaluate previous action before performing the next.   |
 +----------+---------+--------------------------------------------------------+
-| ST       | Strict/ | Embed an opaque mutable data                           |
-|          | Lazy    | Do not allow extraction of the data                    |
+| ST       | Strict/ | * Embed an opaque mutable data                         |
+|          | Lazy    | * Do not allow extraction of the data                  |
 +----------+---------+--------------------------------------------------------+
 
 IO Actions - Applicative vs Monad
 ---------------------------------
 
-IO is Applicative and Monad, you can use whichever you need. Applicative and
-Monad are both ways to compose the sequencing of IO actions.
+IO is an Applicative as well as a Monad, you can use whichever you need.
+Applicative and Monad are both ways to compose the sequencing of IO actions.
 
-An applicative IO orders the effects partially whereas a Monadic IO can order
-them totally.
+An applicative is more rigid as the sequencing of actions is tied with function
+application. The applicative instance defines the semantics of the side effects
+generated by an applicative.
 
-When we think about IO actions.
-
-* In a normal Haskell program there are no evaluation fences. it is a very fine
-  granular pipeline, everything is evaluated on demand lazily whenever it is
-  needed.
-* For IO, Applicative provides a coarse grained fence, the simplest possible
-  fence. It guarantees that a set of actions are performed before their results
-  are collected. It does not guarantee any relative order between those
-  actions.
-* A Monad provides a more fine grained fence. You can put a fence anywhere.
-  Every action in the Monad is strictly sequenced.
+A monad is more flexible, it provides full control of sequencing in the hands
+of the programmer. Sequencing of side effects and function applications are
+tied together, they can be performed independently, providing more power and
+flexibility.
 
 You can think of IO Monad as specifying data dependencies just like an
 imperative program has implicit data dependencies. A Monad specifies the
 dependencies explicitly.
 
-An applicative is more like a tree of dependencies with no cycles. Whereas a
-monad is like a graph which can have cycles. You can express effectful
-sequencing using Applicative whereas you can express effectful looping only
-using Monads.
+You can express effectful sequencing using Applicative whereas you can express
+effectful looping only using Monads.
 
-When to use what?
-~~~~~~~~~~~~~~~~~
+Free Functor
+------------
 
-An applicative performs multiple actions in parallel and then joins them all. A
-Monad joins each action before performing the next, so it serializes them.
-Whenever you can perform multiple actions in parallel i.e. there is no
-interdependency between them then use applicative. Using a monad will
-unnecessarily serialize them. But if you want strict serialization of actions
-because they depend on each other or strict sequencing is needed, then use
-Monad. Using an applicative in that case will parallelize them and generate
-unintended results.
+::
+
+  newtype Free c a = Free { runFree :: forall b. c b => (a -> b) -> b }
 
 Free Monad
 ----------
@@ -574,13 +727,6 @@ transformations.
 |                                     | significant.                          |
 +-------------------------------------+---------------------------------------+
 
-Free Functor
-------------
-
-::
-
-  newtype Free c a = Free { runFree :: forall b. c b => (a -> b) -> b }
-
 Freer Monad
 -----------
 
@@ -596,15 +742,19 @@ generating `FFree g a`.
 Monad vs Comonad
 ----------------
 
-(=>=) :: Comonad w => (w a -> b) -> (w b -> c) -> (w a -> c)
+::
 
-* Monad composes producers of functors, comonad composes consumers of functors.
+  (=>=) :: Comonad w => (w a -> b) -> (w b -> c) -> (w a -> c)
+
+* Monad composes actions that are producers of functors (`m a` is in output
+  position), comonad composes actions that are consumers of functors (`w a` is
+  in input position).
 * Monadic action produces positive side effects i.e. side effects are in the
   positive position. Comonadic action consumes negative side effects i.e. side
   effects are in negative position.
 * Monadic action produces a container or functor layer which is then eliminated
-  by a join. Comonadic action consumes a container or functor layer which is
-  created by duplicate.
+  by a ``join``. Comonadic action consumes a container or functor layer which is
+  created by ``duplicate``.
 * Monad is provided an environment to run under. Comonad builds an environment?
   that is consumer of environment vs builder of state.
 * A Monadic context keeps distributing state to consumers, a comonadic context
@@ -668,12 +818,15 @@ Monad vs Comonad
 References
 ~~~~~~~~~~
 
+* https://wiki.haskell.org/Typeclassopedia
 * https://en.wikipedia.org/wiki/Monoidal_category
 * https://monadmadness.wordpress.com/2015/01/02/monoids-functors-applicatives-and-monads-10-main-ideas/
 * https://arxiv.org/pdf/1406.4823.pdf Notions of Computation as Monoids
 * http://stackoverflow.com/questions/35013293/what-is-applicative-functor-definition-from-the-category-theory-pov
 * http://stackoverflow.com/questions/17376038/what-exactly-are-the-categories-that-are-being-mapped-by-applicative-functors
 
+* https://wiki.haskell.org/All_About_Monads
+* https://bartoszmilewski.com/2016/11/21/monads-programmers-definition/
 * http://okmij.org/ftp/Computation/free-monad.html
 * https://jaspervdj.be/posts/2012-09-07-applicative-bidirectional-serialization-combinators.html
 
