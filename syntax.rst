@@ -67,9 +67,6 @@ Expressions
 +-----+----+------------------------------------------------------------------+
 | 'a' | 10 | 10.5                                                             |
 +-----+----+------------------------------------------------------------------+
-| Reducing or computing the expression to its final result is called          |
-| `reduction` or `evaluation` of the expression.                              |
-+-----------------------------------------------------------------------------+
 | You can type these expressions in GHCi to evaluate and print the result.    |
 +-----------------------------------------------------------------------------+
 
@@ -109,6 +106,9 @@ Expressions
 +-----------------------------------------------------------------------------+
 | Evaluating Composite Expressions (Associativity and Precedence)             |
 +=============================================================================+
+| Reducing or computing the expression to its final result is called          |
+| `reduction` or `evaluation` of the expression.                              |
++-----------------------------------------------------------------------------+
 | Expressions are evaluated based on the associativity and precedence         |
 | of operators. See section TBD.                                              |
 +-----------------------------------------------------------------------------+
@@ -522,25 +522,6 @@ Scopes
 
 TBD
 
-Case-mapped Functions
----------------------
-
-Previously we defined simple functions that were merely a composition, or
-expressions involving other existing functions. A real primitive function is
-created by a `case analysis` on the input and thereby mapping different values
-of the input data type to different values in the output data type. This
-requires three fundamental tools, `pattern matching` to destruct the input
-data, `case statement` to map inputs to outputs and `data constructors` to
-create new output data type.
-
-+--------------------------+---------------------+----------------------------+
-| Data Level               | Bridge              | Type Level                 |
-+==========================+=====================+============================+
-| Data construction        |                     |                            |
-+--------------------------+                     |                            |
-| Case analysis            | Data declaration    | Algebraic Data Types       |
-+--------------------------+---------------------+----------------------------+
-
 Data Declaration
 ~~~~~~~~~~~~~~~~
 
@@ -561,12 +542,15 @@ Data Declaration
 |            |                 |   |                              | Cons  :: Int -> IntList -> IntList |
 +------------+-----------------+---+------------------------------+------------------------------------+
 
+Sum and Product Types
+~~~~~~~~~~~~~~~~~~~~~
+
 Data Construction
 ~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | A data constructor is a special function defined by a data declaration, it  |
-| creates an algebraic data type and provides a reference to it.              |
+| creates a reference to an algebraic data type.                              |
 +-----------------------------------------------------------------------------+
 | x = C a b c ...                                                             |
 +-----------------------------------------------------------------------------+
@@ -577,6 +561,107 @@ Data Construction
 |   let list  = Cons 10 (Cons 20 Empty) :: List Int                           |
 +-----------------------------------------------------------------------------+
 
+Pattern Match on a Product Type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| In addition to `case` expression and `function definition` pattern matches  |
+| can also be performed in `let` and `where` clauses.                         |
+| The same pattern matching rules specified for `case` apply to other         |
+| forms as well.                                                              |
++-----------------------------------------------------------------------------+
+| Pattern matches in `case` and `function definition` are strict.             |
++-----------------------------------------------------------------------------+
+| Pattern matches in `let` and `where` are lazy and irrefutable.              |
++-----------------------------------------------------------------------------+
+
+Deconstructing a Product
+^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   let pair = Pair 10 20                                                     |
++--------------------------------------+--------------------------------------+
+| Case                                 | Function                             |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case pair of                        |  total (Pair a b) = a + b            |
+|    Pair a b -> a + b                 |                                      |
++--------------------------------------+--------------------------------------+
+| Let                                  | Where                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  let Pair a b = pair                 |  total = a + b                       |
+|  in a + b                            |   where Pair a b = pair              |
++--------------------------------------+--------------------------------------+
+
+Wild Card and Nested Patterns
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  data Pair = Pair (Int, Int) (Int, Int)                                     |
+|  let  pair = Pair (1, 2) (3, 4)                                             |
++-------------------------+---------------------------------------------------+
+| Wild card (``_``) match | ``total (Pair _ b)   = b``                        |
++-------------------------+---------------------------------------------------+
+| Nested pattern          | ``total (Pair a (i, j))   = i + j``               |
++-------------------------+---------------------------------------------------+
+| Nested `As pattern`     | ``total (Pair a b@(i, j)) = (i + j, b)``          |
+| (``b`` as ``(i, j)``)   |                                                   |
++-------------------------+---------------------------------------------------+
+| `b` is bound to the original argument passed, and `i` and `j` are           |
+| bound to the deconstructed components of `b`. Pattern match of `b` is       |
+| irrefutable since `b` matches the incoming argument as it is.               |
++-----------------------------------------------------------------------------+
+
+Pattern Match Failure
+^^^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| Patterns that can never fail                                                |
++=============================================================================+
+| Wildcards i.e. patterns without data constructors (``_`` or a variable)     |
++-----------------------------------------------------------------------------+
+| Pattern match on a single constructor data type.                            |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Refutable patterns                                                          |
++=============================================================================+
+| Refutable patterns have alternatives to fall back on, when a refutable      |
+| pattern match fails we fall back on the alternative.                        |
+| However, if all possible patterns are not captured by all the alternatives  |
+| then a runtime error may occur due to non-exhaustive patterns.              |
++-----------------------------------------------------------------------------+
+| **Cases**                                                                   |
++-----------------------------------------------------------------------------+
+| Patterns in a case analysis                                                 |
++-----------------------------------------------------------------------------+
+| Patterns in function parameters, except "as patterns" and lazy patterns     |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Irrefutable patterns                                                        |
++=============================================================================+
+| Patterns that are committed for use with no fallback option or alternatives |
+| if the pattern match fails.                                                 |
+| When an irrefutable pattern match fails it results in a runtime error.      |
++-----------------------------------------------------------------------------+
+| **Cases**                                                                   |
++-----------------------------------------------------------------------------+
+| Patterns in a top level binding,                                            |
+| `let`, and `where`                                                          |
++-----------------------------------------------------------------------------+
+| "As patterns"                                                               |
++-----------------------------------------------------------------------------+
+| Patterns marked lazy using ``~``                                            |
++-----------------------------------------------------------------------------+
+
 Case Analysis
 ~~~~~~~~~~~~~
 
@@ -584,9 +669,10 @@ Algebraic data types and case analysis are the primary tools to implement
 case-mapped functions.  Case analysis is a mechanism to navigate through the
 choices (values) represented by an algebraic data type and map them to outputs.
 
-A `case` expression is the only way (except syntactic sugars) to perform a case
-analysis by deconstructing an algebraic data type via `pattern matching` and
-mapping the individual deconstructions to corresponding output expressions.
+A `case` expression is the fundamental way (others are syntactic sugars on top
+of case) to perform a case analysis by deconstructing an algebraic data type
+via `pattern matching` and mapping the individual deconstructions to
+corresponding output expressions.
 
 Case Expression
 ~~~~~~~~~~~~~~~
@@ -655,91 +741,6 @@ Case Expression
 | branching is just syntactic sugar on top of case.                           |
 +-----------------------------------------------------------------------------+
 
-Case: Extended Syntax
-^^^^^^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| -XLambdaCase                                                                |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  \x -> case x of                     |  \case                               |
-|    ...                               |      ...                             |
-+--------------------------------------+--------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| -XEmptyCase                                                                 |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  case e of { }                       |  \case { }                           |
-+--------------------------------------+--------------------------------------+
-
-
-Multi Equation Function Definitions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-A case-mapped function can be defined more naturally as multiple equations. Each
-equation defines the function for a certain input pattern by using a pattern
-match on its arguments.  This is just a syntactic sugar on a `case` pattern
-match.
-
-+--------------------------------------+--------------------------------------+
-| Function                             | Case                                 |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  name Red   i = "R " ++ show i       |  name c = case c of                  |
-|  name Green i = "G " ++ show i       |    Red   i -> "R " ++ show i         |
-|                                      |    Green i -> "G " ++ show i         |
-+--------------------------------------+--------------------------------------+
-| All equations of a function must remain together i.e. no other definition   |
-| can come between them.                                                      |
-+-----------------------------------------------------------------------------+
-| Just like `case` alternatives, patterns in equations are matched from top   |
-| to bottom.                                                                  |
-+-----------------------------------------------------------------------------+
-| Multi equation functions can also be defined inside `let` and `where`       |
-| clauses.                                                                    |
-+-----------------------------------------------------------------------------+
-
-Pattern Matches
-~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| In addition to `case` expression and `function definition` pattern matches  |
-| can also be performed in `let` and `where` clauses.                         |
-| The same pattern matching rules specified for `case` apply to other         |
-| forms as well.                                                              |
-+-----------------------------------------------------------------------------+
-| Pattern matches in `case` and `function definition` are strict.             |
-+-----------------------------------------------------------------------------+
-| Pattern matches in `let` and `where` are lazy and irrefutable.              |
-+-----------------------------------------------------------------------------+
-
-Deconstructing a Product
-^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   let pair = Pair 10 20                                                     |
-+--------------------------------------+--------------------------------------+
-| Case                                 | Function                             |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  case pair of                        |  total (Pair a b) = a + b            |
-|    Pair a b -> a + b                 |                                      |
-+--------------------------------------+--------------------------------------+
-| Let                                  | Where                                |
-+--------------------------------------+--------------------------------------+
-| ::                                   | ::                                   |
-|                                      |                                      |
-|  let Pair a b = pair                 |  total = a + b                       |
-|  in a + b                            |   where Pair a b = pair              |
-+--------------------------------------+--------------------------------------+
-
 Selecting Alternatives of a Sum
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
@@ -781,46 +782,70 @@ Selecting Alternatives of a Sum
 | a non-matching constructor.                                                 |
 +-----------------------------------------------------------------------------+
 
-More on Pattern Matches
-^^^^^^^^^^^^^^^^^^^^^^^
+Case: Extended Syntax
+^^^^^^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  data Pair = Pair (Int, Int) (Int, Int)                                     |
-|  let  pair = Pair (1, 2) (3, 4)                                             |
-+-------------------------+---------------------------------------------------+
-| Nested pattern          | ``total (Pair a (i, j))   = i + j``               |
-+-------------------------+---------------------------------------------------+
-| Wild card (``_``) match | ``total (Pair _ (i, j))   = i + j``               |
-+-------------------------+---------------------------------------------------+
-| `As pattern`            | ``total (Pair a b@(i, j)) = (i + j, b)``          |
-| (``b`` as ``(i, j)``)   |                                                   |
-+-------------------------+---------------------------------------------------+
-| `b` will be bound to the original argument passed and `i` and `j` will be   |
-| bound to the deconstructed components of `b`. Pattern match of `b` is       |
-| irrefutable since `b` matches the incoming argument as it is.               |
-+-----------------------------------------------------------------------------+
-
-Irrefutable Pattern Matches
-^^^^^^^^^^^^^^^^^^^^^^^^^^^
+| -XLambdaCase                                                                |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  \x -> case x of                     |  \case                               |
+|    ...                               |      ...                             |
++--------------------------------------+--------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Irrefutable means the pattern is bound to match. When multiple              |
-| alternatives are possible it implies that the pattern is chosen and no more |
-| alternatives will be tried.                                                 |
-+-----------------------------------------------------------------------------+
+| -XEmptyCase                                                                 |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  case e of { }                       |  \case { }                           |
++--------------------------------------+--------------------------------------+
 
-+-------------------------------------+---------------------------------------+
-| Irrefutables that cannot fail       | Irrefutables that can fail            |
-+=====================================+=======================================+
-| Wildcards (``_`` or a variable)     | As patterns                           |
-+-------------------------------------+---------------------------------------+
-|                                     | Patterns in `let` and `where`         |
-+-------------------------------------+---------------------------------------+
-|                                     | Patterns marked lazy using ``~``      |
-+-------------------------------------+---------------------------------------+
-| Note pattern match on a single constructor data type can never fail.        |
+Case-mapped Functions
+---------------------
+
+Previously we defined simple functions that were merely a composition, or
+expressions involving other existing functions. A real primitive function is
+created by a `case analysis` on the input and thereby mapping different values
+of the input data type to different values in the output data type. This
+requires three fundamental tools, `pattern matching` to destruct the input
+data, `case statement` to map inputs to outputs and `data constructors` to
+create new output data type.
+
++--------------------------+---------------------+----------------------------+
+| Data Level               | Bridge              | Type Level                 |
++==========================+=====================+============================+
+| Data construction        |                     |                            |
++--------------------------+                     |                            |
+| Case analysis            | Data declaration    | Algebraic Data Types       |
++--------------------------+---------------------+----------------------------+
+
+Multi Equation Function Definitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A case-mapped function can be defined more naturally as multiple equations. Each
+equation defines the function for a certain input pattern by using a pattern
+match on its arguments.  This is just a syntactic sugar on a `case` pattern
+match.
+
++--------------------------------------+--------------------------------------+
+| Function                             | Case                                 |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  name Red   i = "R " ++ show i       |  name c = case c of                  |
+|  name Green i = "G " ++ show i       |    Red   i -> "R " ++ show i         |
+|                                      |    Green i -> "G " ++ show i         |
++--------------------------------------+--------------------------------------+
+| All equations of a function must remain together i.e. no other definition   |
+| can come between them.                                                      |
++-----------------------------------------------------------------------------+
+| Just like `case` alternatives, patterns in equations are matched from top   |
+| to bottom.                                                                  |
++-----------------------------------------------------------------------------+
+| Multi equation functions can also be defined inside `let` and `where`       |
+| clauses.                                                                    |
 +-----------------------------------------------------------------------------+
 
 Basic Algebraic Data Types (Prelude)
@@ -896,7 +921,7 @@ Branching on Booleans
 +------------------------------------+----------------------------------------+
 | ::                                 | ::                                     |
 |                                    |                                        |
-|  case pred of                      |  if pred                               |
+|  case predicate of                 |  if predicate                          |
 |    True ->  expr1                  |  then expr1                            |
 |    False -> expr2                  |  else expr2                            |
 +------------------------------------+----------------------------------------+
@@ -1316,11 +1341,21 @@ automatically exported.
 |  import qualified C(f)          |                                           |
 +---------------------------------+-------------------------------------------+
 
+The ``Main`` Module
+~~~~~~~~~~~~~~~~~~~
+
+* ``Main`` is special module name. When compiled, the ``Main`` module is linked
+  to create an executable.
+* A file without a module declaration is automatically considered to contain a
+  ``Main`` module.
+
 Namespaces
 ~~~~~~~~~~
 
+All keywords, functions, variables start with lowercase letters
+
 +-----------------------------------------------------------------------------+
-| Identifiers starting with an `uppercase` letter                             |
+| The following identifiers start with `uppercase` letters                    |
 +--------------------+-------------------+------------------------------------+
 | Module identifiers | Types             | Data constructors                  |
 +--------------------+-------------------+------------------------------------+
@@ -1349,6 +1384,7 @@ References
 * https://hackage.haskell.org/package/base-4.9.0.0/docs/Prelude.html
 * https://hackage.haskell.org/package/base
 * https://hackage.haskell.org/ All Haskell packages and their documentation
+* https://www.haskell.org/onlinereport/haskell2010/ The Haskell Specification
 
 * Its a good idea to get familiar with Prelude and then other modules in the
   base package after you are familiar with the basic syntax.
