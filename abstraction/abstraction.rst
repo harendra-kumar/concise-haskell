@@ -475,11 +475,136 @@ functions do not discriminate values the way parametrically polymorphic
 functions do not discriminate types. We can say that a composed function is a
 parametrically polymorphic value.
 
-Higher-order functions
-~~~~~~~~~~~~~~~~~~~~~~
+Currying first order functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consider this function definition::
+
+  f :: a -> b -> c -> d
+  f :: a -> (b -> (c -> d))
+
+We can supply any combination of arguments to this function and leave others
+unsatisfied. For regular function currying the arguments must be fed in order,
+if we need to curry arguments out of order then we need to make a new function
+using a lambda or otherwise. Assume that we have values `x`, `y` and `z` in
+scope to be used for parameters `a`, `b` and `c` respectively.
+
++-----------------+-----------------+-------------+---------------------------+
+| consumed (-ve)  | produced (+ve)  | Curry       | Lambda                    |
++=================+=================+=============+===========================+
+| a               | (b -> (c -> d)) | f x         | \b c -> f x b c           |
++-----------------+-----------------+-------------+---------------------------+
+| b               | a -> c -> d     |             | \a c -> f a y c           |
++-----------------+-----------------+-------------+---------------------------+
+| c               | a -> b -> d     |             | \a b -> f a b z           |
++-----------------+-----------------+-------------+---------------------------+
+| a, b            | (c -> d)        | f x y       | \c -> f x y c             |
++-----------------+-----------------+-------------+---------------------------+
+| b, c            | a -> d          |             | \a -> f a y z             |
++-----------------+-----------------+-------------+---------------------------+
+| a, c            | b -> d          |             | \b -> f x b z             |
++-----------------+-----------------+-------------+---------------------------+
+| a, b, c         | d               | f x y z     | f x y z                   |
++-----------------+-----------------+-------------+---------------------------+
+
+In any of the productions positive or negative status of `a`, `b`, `c` & `d`
+never changes. The regular function application provides us only three ways out
+of the seven possible ways to consume inputs.
+
+Currying Higher-order functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A function which takes another function as an argument is a higher order
 function.
+
+Consider this function::
+
+  f :: (a -> b) -> c
+
+The function `a -> b` consumes an `a` and produces a `b`. `f` does direct
+opposite, it produces that `a` and consumes the `b`. This reversal is
+important to keep in mind and becomes even more important when we try to
+understand higher order function with even deeper nesting. Every nesting level
+flips the consumed or produced roles of the arguments of the function.
+
+Example: Two level nesting
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+  f :: ((a -> b) -> c) -> d
+
+This function is fully applied by supplying two arguments, for example `f g x`.
+To understand this it is useful to think in terms of which function is provided
+by us and which function is supplied by f.
+
++---------------------------+------------------------+
+| Consumed by f             | Supplied by f          |
++===========================+========================+
+| g :: (a -> b) -> c        | k :: a -> b            |
++---------------------------+------------------------+
+| x :: a                    |                        |
++---------------------------+------------------------+
+
+We can curry the functions that are supplied by `f` by applying them partially
+to the arguments that are supplied by us.
+
++------------------------+------------------------+---------------------------+
+| Consumed               | Produced               | Example                   |
++========================+========================+===========================+
+| g :: (a -> b) -> c     | a -> d                 | f g                       |
++------------------------+------------------------+---------------------------+
+| x :: a                 | (b -> c) -> d          | \bc -> f (\k -> bc (k x)) |
++------------------------+------------------------+---------------------------+
+| g :: (a -> b) -> c,    | d                      | f g x                     |
+| x :: a                 |                        |                           |
++------------------------+------------------------+---------------------------+
+
+See `liftBaseWith` and `defaultLiftWith` for real examples.
+
+Example: Three level nesting
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Now lets take an example of a function with three nesting levels.
+
+::
+
+  f :: (((a -> b) -> c) -> d) -> e
+
+This function is fully applied by supplying two arguments, for example `f g h`.
+
++---------------------------+------------------------+
+| Consumed by f             | Supplied by f          |
++===========================+========================+
+| g :: ((a -> b) -> c) -> d | k :: (a -> b) -> c     |
++---------------------------+------------------------+
+| h :: a -> b               | x :: a                 |
++---------------------------+------------------------+
+
+We can curry the functions that are supplied by `f` by applying them partially
+to the arguments that are supplied by us.
+
++------------------------+------------------------+---------------------------+
+| Consumed by f          | Produced by f          | Example                   |
++========================+========================+===========================+
+| ((a -> b) -> c) -> d   | (a -> b) -> e          | f g                       |
++------------------------+------------------------+---------------------------+
+| a -> b                 | (c -> d) -> e          | \cd -> f (\k -> cd (k h)) |
++------------------------+------------------------+---------------------------+
+| ((a -> b) -> c) -> d,  | e                      | f g h                     |
+| a -> b                 |                        |                           |
++------------------------+------------------------+---------------------------+
+
+Positive and Negative Positions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+It is easier to understand this by using a positive and negative position
+terminology. What a function consumes is negative position and what it produces
+is positive position (mnemonic, produce and positive both start with p). Now,
+(a -> b) is in negative position in f and a is in negative position in 'a ->
+b', it follows a multiplication rule and negative x negative becomes positive,
+therefore `a` is in positive position in `f`. Similarly, `b` is in negative
+position in `f` and is therefore consumed by `f`.
 
 Ad-hoc Functions
 ~~~~~~~~~~~~~~~~
@@ -1130,31 +1255,70 @@ output.
 
 Mathematical substitution of terms in the equations.
 
-Bindings
---------
-
-A binding is a name given to an entity (e.g. variable, parameter,
-function). When we refer to that name in an expression we are always
-referring to the same entity at all places. However, not all entities
-may have a name, for example an anonymous function does not have a
-name. Some examples of bindings are:
-
-* A binding for an expression referring to a concrete data value
-* A binding for a function i.e. an expression referring to an abstract value
-* A binding for the parameters of a function
-* A binding created by a pattern match
-
-Tips: Understanding a Haskell Program
--------------------------------------
+Namespaces
+----------
 
 The names or identifiers in one level (data, type or kind) should not be
 confused or conflated with the names in other level. An identifier of the same
 name can be used in different levels without any problem.
 
+Tips: Understanding a Haskell Program
+-------------------------------------
+
 Names of data constructor functions and types could be the same, which can be
 confusing for beginners. Similarly type variables in type level and type
 parameters in data level could be same or different, they should not be
 confused with each other.
+
+Names, References, Bindings & Scopes
+------------------------------------
+
+Names are given to values, functions, function parameters, data constructors or
+types so that we can refer to them uniquely in expressions. The LHS of any
+`definition` (definition and declaration are used interchangeably in Haskell)
+is a `name`. In the following examples `x` is said to be in `binding position`:
+
++----------------------------+
+| x = ...                    |
++----------------------------+
+| f x = ...                  |
++----------------------------+
+| f (C x) = ...              |
++----------------------------+
+| let x = ... in ...         |
++----------------------------+
+| let (C x) = ... in ...     |
++----------------------------+
+| where x = ...              |
++----------------------------+
+| where (C x) = ...          |
++----------------------------+
+
+An expression can either have literals, which are values without a name, or it
+can refer to names which are defined elsewhere.  Note, an anonymous function
+can be called a function literal since it does not have a name.  Every
+`reference` to a name in an expression is `resolved` and  `bound` to some
+definition or to a name in a binding position.
+
+Definitions may be nested within other definitions.  A definition which is not
+nested in any other definition is a `top level declaration`. Each nest level
+creates a `scope`. In a given module, at any given scope, we cannot have
+multiple definitions with the same name. However, the same name can be defined
+at different scopes. When two scopes in hierarchy define the same name, we
+`resolve` the name to innermost scope.  The other definitions of the name are
+said to be `shadowed` by the chosen definition. The definition to which the
+name reference is bound is said to `capture` the reference.
+
++-------------------+---------------------------------------------------------+
+| ::                | The variable `x` on RHS is captured by or bound to the  |
+|                   | parameter `x` of `f`                                    |
+|  f x = x          |                                                         |
++-------------------+---------------------------------------------------------+
+| ::                | The `x` in `g x` captures the `x` on RHS. The `x` in    |
+|                   | `f x` is shadowed by the `x` in `g x`.                  |
+|  f x = g          |                                                         |
+|     where g x = x |                                                         |
++-------------------+---------------------------------------------------------+
 
 Summary
 -------
@@ -1164,3 +1328,7 @@ Summary
 * There are three independent functional programming spaces viz. data, type
   and kind
 * The bridge between any two spaces is a function name
+
+References
+----------
+
