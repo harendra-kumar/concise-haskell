@@ -140,7 +140,7 @@ Abstraction of Concrete Values
 ------------------------------
 
 +-----------------------------------------------------------------------------+
-| A `concrete value` is an expression which can be computed to a pure data    |
+| A `concrete value` is an expression that can be computed to a pure data     |
 | without requiring any input (or free variables). Here is a definition       |
 | representing a concrete value:                                              |
 +-----------------------------------------------------------------------------+
@@ -305,7 +305,7 @@ Reduction of Abstract values
 | operator.                                                                   |
 +-----------------------------------------------------------------------------+
 | Everything is a value! `f a` combines an abstract value `f` with the value  |
-| `a` to produce a less abstract value.                                       |
+| `a` to produce a more concrete value.                                       |
 +-----------------------------------------------------------------------------+
 | This is an asymmetric operation because `f` and `a` have different roles,   |
 | which means the operation is not commutative i.e. `f a` is not the same as  |
@@ -314,7 +314,7 @@ Reduction of Abstract values
 | This operation is left associative i.e. ``f a b c <=> ((f a) b) c``         |
 +-----------------------------------------------------------------------------+
 | Whitespace as an operator may be clearer if we imagine some other operator  |
-| symbol in place of whitespace e.g. ``f @ a @ b @ c``                        |
+| symbol in place of whitespace e.g. ``f $ a $ b $ c``                        |
 +-----------------------------------------------------------------------------+
 
 Mathematical Definition of a Function
@@ -322,21 +322,28 @@ Mathematical Definition of a Function
 
 Earlier we described a function as a polymorphic value or an abstract value.
 Another way of a looking at a function is as a mapping from the values of input
-parameters to the outputs of the function. A function discriminates its inputs
-and maps different input values to different output values.
+parameters to the output values of the function. In other words, a function
+discriminates its inputs and maps different input values to different output
+values.
 
-Data & Type level programming
------------------------------
+Compute & Type level programming
+--------------------------------
 
-A Haskell program defines logic to process input data and produce output data.
-This logic is defined in terms of functions and function applications. We will
-call this part of the program the `data level program`. Along with the data
-level program a Haskell program also contains a `type level program` which
-ensures the correctness of the data level program at compile time. We will talk
-about the basics of a type level program in the next section.
+A Haskell program essentially defines computation logic to process input data
+and produce output data.  This logic is defined in terms of function
+applications. We will call this program the `compute level
+program`. Along with the compute level program a Haskell program also contains
+a `type level program` that ensures the correctness of the compute level
+program at compile time. We will talk about the basics of a type level program
+in the next section.
 
-Types: Ensuring Correctness of Data Level Program
--------------------------------------------------
+Note: I am not satisfied with the word "compute". "Application" level could be
+more appropriate but that term is already taken to mean a different class.
+"Value" is very generic and could be overloaded. Any better term? Application
+may still be a better term?
+
+Types: Ensuring Correctness of Compute Level Program
+----------------------------------------------------
 
 In our (data level) program, how do we make sure that we do not supply
 `oranges` as input to a function parameter which only works correctly with
@@ -431,53 +438,165 @@ with the type level program. Some fundamental checks:
 * `Equations`: When two values can be substituted in place of each other then
   they must have the same type.
 
-Data Level Program
-------------------
+Compute Level Program
+---------------------
+
+Expressions
+~~~~~~~~~~~
+
+There are two fundamental atoms of an expression, function and data.  An
+expression represents either a function or data. An expression may consist
+of:
+
++---------------------------------------+-------------------------------------+
+| Primitive data                        | Function name                       |
++---------------------------------------+-------------------------------------+
+| Data constructor application          | Function application                |
++---------------------------------------+-------------------------------------+
+| A data contructor or function can in turn refer to an expression.           |
++-----------------------------------------------------------------------------+
+
+An expression is named (or defined) by an equation:
+
++-----------------------------------------------------------------------------+
+| ``v = 10``                                                                  |
++-----------------------------------------------------------------------------+
 
 Functions & Data
 ~~~~~~~~~~~~~~~~
 
-A data level program is composed of functions. Functions operate on values.
-There are two types of values viz. functions and data. Data is the only
-mechanism to transfer values across functions. It is used to represent
-inputs and outputs of a program as well as intermediate values passed from one
-function to another during computations. Note that data can hold any type of
-values, concrete values or even functions (computations). Data is represented
-by `algebraic data types` in Haskell.
+Function and data are two fundamental concepts in the construction of a
+program. Whenever we say data here we mean alegbraic data.
 
-+-----------------------------------------------------------------------------+
-| Values                                                                      |
 +---------------------------------------+-------------------------------------+
-| Defined Values                        | Constructed Values                  |
-+---------------+-----------------------+-------------------------------------+
-| Data          | Function Definitions  | Algebraic Data                      |
-| Definitions   |                       | Structures                          |
-+---------------+-----------------------+-------------------------------------+
-| ``v = 10``    | ``f x = x + v``       | ``data Color = Red | Green | Blue`` |
-+---------------+-----------------------+-------------------------------------+
+| Functions                             | Algebraic Data Structures           |
++=======================================+=====================================+
+| Abstractions of functions or data     | Containers of functions or data     |
++---------------------------------------+-------------------------------------+
+| Created by function definitions or    | Created by data definitions or      |
+| function applications                 | constructor applications            |
++---------------------------------------+-------------------------------------+
 
-Composed Functions
-~~~~~~~~~~~~~~~~~~
+Note that a function application can generate either data or function whereas a
+constructor application always generates data. Though the data may contain a
+function.
 
-Composed functions are defined purely in terms of composed applications of
-other functions. They pass on their arguments without having to know their
-values and hence do not discriminate the logic based on them.  In other words,
-they treat their parameters as opaque data.  It means that they do not need to
-de-construct the algebraic structure of their arguments.
++---------------------------------------+-------------------------------------+
+| Function Definition                   | Algebraic Data Structure            |
+|                                       | Definition                          |
++---------------------------------------+-------------------------------------+
+| ``f x = x + 10``                      | ``data Color = Red | Green | Blue`` |
++---------------------------------------+-------------------------------------+
 
-::
+Functions as Transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  square x = x * x
+A function is a transformation that has one or more inputs and precisely one
+output. However a multi-input function can be represented as a single input
+function that produces a function consuming the rest of the inputs.
+Therefore, fundamentally a function can be considered as a transformation with
+precisely one input and one output.
 
-This classification is not very interesting as such but it is a concrete
-value level equivalent of function-level parametric polymorphism. Such
-functions do not discriminate values the way parametrically polymorphic
-functions do not discriminate types. We can say that a composed function is a
-parametrically polymorphic value.
+Here is an example of a simple function that consumes ``a`` and produces ``b``.
+Often, we also say that it is a consumer of ``a`` and producer of ``b``.
+
++----------+--------+-------+--------+--------+
+| function |        | input |        | output |
++----------+--------+-------+--------+--------+
+|  ``f``   | ``::`` | ``a`` | ``->`` | ``b``  |
++----------+--------+-------+--------+--------+
+
+Note that the input as well as the output could be data or function.
+
+Higher Arity/Order Functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A higher arity function produces a function as output and a higher order
+function accepts a function as input.
+
+An n-ary function provides a way to the values of parameters to
+in the function definition expression::
+
+  -- multi-arity functions, producing a function as output
+  -- nesting of functions on the output side
+  -- we will refer to the rank as "arity", arity is 3 in this example
+  f :: a -> (b -> (c -> d))
+
+A higher order function provides a way to plug pipes (inputs and outputs)
+in the function definition expression::
+
+  -- accepting a function as input
+  -- nesting of functions on the input side
+  -- we will refer to the rank as "order", order is 3 in this example
+  f :: ((a -> b) -> c) -> d
+
+Note that ``->`` is right associative and therefore ``f :: a -> (b -> c)`` is
+the same as ``f :: a -> b -> c``. However ``f :: (a -> b) -> c`` is entirely
+different, it accepts one argument which is a function.
+
+Operations on Functions
+-----------------------
+
+In this section we will look at ways to combine functions and values together.
+There are three fundamental ways to combine functions and values:
+
+* `Composition`: When the input type of a function matches the output type of
+  another function, the two functions can be chained together by feeding the
+  output of the latter to the input of the former::
+
+    -- the arity of the composed function is at least n1 + n2 - 1
+    -- output modification, same order, arity
+    f :: a -> b
+    g :: b -> c
+    k :: a -> c
+    k = f . g
+
+     -- input modification, same order, arity
+     f :: a -> b
+     g :: c -> a
+     k :: c -> b
+     k = f . g
+
+* `Composition`:: Composing functions where the input of one of them is a
+  function (higher order function)::
+
+     -- the order of the combined function is at most max (n1, n2)
+
+     f :: a -> (b -> c)
+     g :: (b -> c) -> d
+
+     k :: a -> d
+     k x = g (f x)
+
+* `Application` or `Currying`: A value matching one of the inputs of a function
+  can be fed to the function to generate a lower order function or a data
+  value::
+
+    -- reduces the arity
+    f :: a -> b -> c
+    x :: a
+    f x :: b -> c
+
+    f :: (a -> b) -> c
+    x :: b
+    g :: b -> c
+    g x = f (\_ -> x)
+
+* `Extension`: Like an application reduces the arity, an extension increase the
+  order of a function. A function and a value can be used such that the input
+  of the function is modified to accept a function whose output matches the
+  input of original function::
+
+     -- increases the order
+     f :: a -> b
+     x :: c
+     g :: (c -> a) -> b
+     g k = f (k x)
 
 Currying first order functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Currying refers to function application in multi-arity functions.
 Consider this function definition::
 
   f :: a -> b -> c -> d
@@ -520,6 +639,8 @@ function.
 Consider this function::
 
   f :: (a -> b) -> c
+       g^^^^^^^                -- Positive position
+        -                      -- Negative position
 
 The function `a -> b` consumes an `a` and produces a `b`. `f` does direct
 opposite, it produces that `a` and consumes the `b`. This reversal is
@@ -527,12 +648,21 @@ important to keep in mind and becomes even more important when we try to
 understand higher order function with even deeper nesting. Every nesting level
 flips the consumed or produced roles of the arguments of the function.
 
++---------------------------------+------------------------+
+| Supplied by user, consumed by f | Supplied by f          |
++=================================+========================+
+| g :: a -> b                     | x :: a                 |
++---------------------------------+------------------------+
+
 Example: Two level nesting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 ::
 
   f :: ((a -> b) -> c) -> d
+       g^^^^^^^^^^^^^^           -- Positive position
+        --------                 -- Negative position
+         x                       -- Positive position
 
 This function is fully applied by supplying two arguments, for example `f g x`.
 To understand this it is useful to think in terms of which function is provided
@@ -550,7 +680,7 @@ We can curry the functions that are supplied by `f` by applying them partially
 to the arguments that are supplied by us.
 
 +------------------------+------------------------+---------------------------+
-| Consumed               | Produced               | Example                   |
+| input                  | Output                 | Example                   |
 +========================+========================+===========================+
 | g :: (a -> b) -> c     | a -> d                 | f g                       |
 +------------------------+------------------------+---------------------------+
@@ -570,6 +700,10 @@ Now lets take an example of a function with three nesting levels.
 ::
 
   f :: (((a -> b) -> c) -> d) -> e
+       g^^^^^^^^^^^^^^^^^^^^^               -- Positive position
+        ---------------                     -- Negative position
+         h^^^^^^^                           -- Positive
+          -                                 -- Negative
 
 This function is fully applied by supplying two arguments, for example `f g h`.
 
@@ -585,7 +719,7 @@ We can curry the functions that are supplied by `f` by applying them partially
 to the arguments that are supplied by us.
 
 +------------------------+------------------------+---------------------------+
-| Consumed by f          | Produced by f          | Example                   |
+| Consumed by f          | Supplied by f          | Example                   |
 +========================+========================+===========================+
 | ((a -> b) -> c) -> d   | (a -> b) -> e          | f g                       |
 +------------------------+------------------------+---------------------------+
@@ -595,16 +729,214 @@ to the arguments that are supplied by us.
 | a -> b                 |                        |                           |
 +------------------------+------------------------+---------------------------+
 
+Nesting with Currying
+^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+  f :: (((a -> b) -> c) -> d) -> m -> e -- f g x h
+       g^^^^^^^^^^^^^^^^^^^^^    x
+        ---------------
+         h^^^^^^^
+  f :: m -> (((a -> b) -> c) -> d) -> e -- f x g h
+
 Positive and Negative Positions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 It is easier to understand this by using a positive and negative position
-terminology. What a function consumes is negative position and what it produces
-is positive position (mnemonic, produce and positive both start with p). Now,
-(a -> b) is in negative position in f and a is in negative position in 'a ->
-b', it follows a multiplication rule and negative x negative becomes positive,
-therefore `a` is in positive position in `f`. Similarly, `b` is in negative
-position in `f` and is therefore consumed by `f`.
+terminology. What a function consumes (consumable) is negative position and
+what it produces (product) is positive position (mnemonic - produce and positive
+both start with p). Now, (a -> b) is in negative position in f and a is in
+negative position in 'a -> b', it follows a multiplication rule and ``negative
+x negative`` becomes positive, therefore `a` is in positive position in `f`.
+Similarly, `b` is in negative position in `f` and is therefore consumed by `f`.
+
+Extensions
+~~~~~~~~~~
+
+* XXX This section needs to be cleaned up.
+
+Extensions are higher order functions.  A continuation is an interesting
+extension.
+
+::
+
+  cont :: (a -> r) -> r
+
+``a -> r`` is a missing piece in this computation which is supplied later. The
+missing piece is what produces the final result.
+
+A continuation has already decided the final result (``r``) type of the
+computation, it also has an intermediate value ``a``. What it needs is a
+function that cosumes the intermediate value and generates a result type which
+may be consumed by ``cont`` to generate the final result. The continuation ``a
+-> r`` is sort of sandwiched somewhere inside ``cont``.
+
+From a CPS perspective, ($ 2) is a suspended computation: a function with
+general type (a -> r) -> r which, given another function as argument, produces
+a final result. The a -> r argument is the continuation; it specifies how the
+computation will be brought to a conclusion.
+Note that suspended computations are largely interchangeable with plain values:
+flip ($) [1] converts any value into a suspended computation, and passing id as
+its continuation gives back the original value.
+
+When we apply a function, we say that the function consumes the value. However,
+a function application is a complementing operation and we can flip the
+perspective and say that the value is eaten by some function instead. ``flip
+($)`` flips the value into a function which eats some function to complete the
+application. Or we can say that we wrapped the value into a higher order match
+maker function which has eaten one part of the match and is waiting for the
+other part. Continuations create holes in a computation to be filled later, it
+is an incomplete or suspended computation.
+
+Continuation is just a dual of the function application. They are just another
+way of composing - in the opposite direction. We just have to think from the
+end to the beginning rather than the other way round.
+
+You have f, you pass it a value, the value is - you have g and you pass x to
+it::
+
+  f (g x)
+
+You have x, it is to be fed to someone (g) and that in turn is to be fed to
+someone else (f)::
+
+  \f -> f y
+  \g -> g x
+
+A continuation is a reverse function application style. In a continuation we
+say that this value is to be used by someone, say k. In a forward application
+style we say this function will be applied to some value.
+
+https://en.wikibooks.org/wiki/Haskell/Continuation_passing_style pythgoras
+example.
+
+In fact a continuation passing style is a more straightforward thinking. For
+example::
+
+  pythagoras_cps x y = \k ->
+  square_cps x $ \x_squared ->
+  square_cps y $ \y_squared -> -- square y and the pass the result to second arg
+  add_cps x_squared y_squared $ k -- add two values and pass the result to k
+
+Here we say, square x, then square y, then add them and then pass the result to
+k. In contrast see the regular function application style::
+
+  pythagoras x y = add (square x) (square y)
+
+we are saying, add two things, first thing is a square of x, the second thing
+is a square of y.
+
+Both ways are equivalent, just a dual of each other. In continuation style a
+value is provided and we need who eats it i.e. the continuation of this value.
+
+The Cont monad makes composing the continuations much easier. Basically it
+allows us to write the continuations in the straight application style::
+
+  pythagoras_cont :: Int -> Int -> Cont r Int
+  pythagoras_cont x y = do
+      x_squared <- return (square x)  -- perform square of x, use it later
+      y_squared <- return (square y)  -- perform square of y use it later
+      return (x_squared + y_squared)  -- add the squares, use the result later
+
+Cont monad straightens the callback style programming. A continuation can be
+thought of as a callback. In a callback style "square x" can take a callback
+and call it when it is done squaring x. In a continuation style the rest of the
+computation is the callback or continuation of "square x" though written in a
+straightforward manner because all the callbacks are lined up sequentially.
+
+Event driven programming is suited to a cont monad. Event driven programming
+and upfront available value driven programming are duals of each other. In
+regular programming we have all the values available and compute using that. In
+event driven programming values are generated by events and when it is
+generated we need to pass it to the consumer, this is reverse style. In the
+same way cont monad is a dual of the regular straightforward funciton
+applicaiton style.
+
+A more general, MachineT example::
+
+  The CPS form is:
+
+  newtype PlanT k o m a = PlanT
+    { runPlanT :: forall r.
+        (a -> m r) ->                                     -- Done a
+        (o -> m r -> m r) ->                              -- Yield o (Plan k o a)
+        (forall z. (z -> m r) -> k z -> m r -> m r) ->    -- forall z. Await (z -> Plan k o a) (k z) (Plan k o a)
+        m r ->                                            -- Fail
+        m r
+    }
+
+runPlanT is a computation that takes multiple missing pieces. The PlanT monad
+allows us to compose a computation and then we can supply these missing pieces
+later to complete the computation. The missing pieces are all continuations as
+their result type is the same as the result type of the whole computation.
+
+::
+
+  runPlanT :: forall r. (a -> m r) -> (o -> m r -> m r) -> (forall z. (z -> m r)
+  -> k z -> m r -> m r) -> m r -> m r
+
+  The CPS form is equivalent to the following regular form:
+
+  data Plan k o a
+    = Done a              -- runPlanT supplies a to a -> m r
+    | Yield o (Plan k o a) -- runPlanT supplies o and m r to (o -> m r -> m r)
+    | forall z. Await (z -> Plan k o a) (k z) (Plan k o a)
+    | Fail
+
+Kan Extensions
+~~~~~~~~~~~~~~
+
+::
+
+  -- Right Kan Extension
+  newtype Ran g h a = Ran (forall b. (a -> g b) -> h b)
+
+  -- Left Kan Extension
+  data Lan g h a = Lan (forall b. (g b -> a) (h b))
+
+* http://comonad.com/reader/2008/kan-extensions/
+
+Codensity
+~~~~~~~~~
+
+A special case of right Kan Extension where g and h are the same::
+
+  newtype Codensity m a = Codensity (forall b. (a -> m b) -> m b)
+
+* Reference: Asymptotic Improvement of Computations over Free Monads
+
+Yoneda
+~~~~~~
+
+::
+
+  type Yoneda = Ran Identity
+  newtype Yoneda m a = Yoneda (forall b. (a -> b) -> m b)
+
+* http://blog.sigfpe.com/2006/11/yoneda-lemma.html
+* http://www.math.harvard.edu/~mazur/preprints/when_is_one.pdf When is one
+  thing equal to some other thing?
+
+
+Functions Defined Purely in Terms of Compositions, Applications or Extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Composed functions are expressions defined purely in terms of composed
+applications of other functions. They pass on their arguments without having to
+know their values and hence do not discriminate the logic based on them.  In
+other words, they treat their parameters as opaque data.  It means that they do
+not need to de-construct the algebraic structure of their arguments.
+
+::
+
+  square x = x * x
+
+This classification is not very interesting as such but it is a value level
+equivalent of function-level parametric polymorphism at the type level. Such
+functions do not discriminate values the way parametrically polymorphic type
+functions do not discriminate types. We can say that a composed function is a
+parametrically polymorphic value.
 
 Ad-hoc Functions
 ~~~~~~~~~~~~~~~~
@@ -1063,9 +1395,11 @@ scope) and `existential` (local scope) quantification.
 
 When a type variable is universally quantified it means that the type variable
 is valid over the scope of the whole program. The type variable is visible for
-typechecking anywhere in the program without any restrictions. Universal
-quantification is implicit or default. All type variables of a function are
-unviersally quantified by default. Though we can use an explicit `forall`:
+typechecking anywhere in the program without any restrictions.  A universally
+quantified type variable must be able to `unify` with any usage of that type
+variable.  Universal quantification is implicit or default. All type variables
+of a function are unviersally quantified by default. Though we can use an
+explicit `forall` in the global scope:
 
 ::
 
@@ -1077,9 +1411,9 @@ of the quantified variable is limited`. The variable cannot exist or typecheck
 outside the specified scope. It is represented by a scoped `forall`. For
 example:
 
-When we say a type variable is `not quantified`, it means that it is
+Sometimes we say that a type variable is `not quantified`, it means that it is
 universally quantified. Whereas just saying `quantified` is equivalent to
-saying `existentially quantified`.
+saying that it is `existentially quantified`.
 
 TBD: examples of existential quantification.
 
