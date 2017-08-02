@@ -4,8 +4,8 @@
 
 .. role:: blue
 
-Data Abstraction: Functions
-===========================
+Abstraction: Data & Functions
+=============================
 
 .. contents:: Table of Contents
    :depth: 1
@@ -60,7 +60,8 @@ Terminology
 | Type                   | Denotes rules that a value should conform to       |
 |                        | (e.g. Int or String)                               |
 +------------------------+----------------------------------------------------+
-| Concrete               | Represents a real physical value (not abstract)    |
+| Concrete               | Represents a value without any unknowns            |
+|                        | (not abstract)                                     |
 +------------------------+----------------------------------------------------+
 | Monomorphic            | Has only one possible concrete representation      |
 +------------------------+----------------------------------------------------+
@@ -87,48 +88,47 @@ Terminology
 Abstraction
 -----------
 
-`Abstraction` is a powerful tool to `reuse` code and remove
-duplication or redundancy. When we have  multiple `concrete` objects which
-have a common structure but differ only slightly in some parts then we can
-create an abstract form of the object by retaining the common parts and
-abstracting the varying parts by replacing them with variable parameters.  This
-form is called an `abstraction` or a `polymorphic form` since it is an abstract
-representation of many different concrete forms.
+`Abstraction` is a powerful tool to `reuse` code and remove duplication or
+redundancy. When we have multiple `concrete` objects that have a common
+structure but differ only slightly in some parts then we can create an abstract
+form representing all the objects by retaining the common parts and abstracting
+the varying parts, replacing them with variable parameters.  This common form
+is called an `abstraction`. We can also call it a `polymorphic form` since it
+is a representation of many different concrete forms.
 
-The variable parameters of an abstract form can be replaced with
-specific values to recover a concrete form. By using different values of the
+The variable parameters of an abstract form can be replaced with specific
+values to recover the original concrete form. By using different values of the
 parameters we can recover all possible concrete forms represented by the
-abstract form.
+abstract form. We have essentially separated the common part from variable
+parts allowing us to reuse the common part.
 
-There are different levels of abstractions. Even an abstract form can be
-further abstracted creating higher level abstractions. The first level of
-abstraction is a `function` which abstracts concrete values. A function can
-also be called a polymorphic value. The next level of abstraction is an
-abstraction of a function itself which is called a `polymorphic function`.
+There are different levels of abstractions. An abstract form can be further
+abstracted creating higher level abstractions. The fundamental abstraction in
+Haskell is a `function`. A function abstracts many values and therefore can
+also be thought of as a polymorphic value. A function that can work upon many
+different data types is an abstraction of many functions also known as a
+`polymorphic function`.
 
-The two most fundamental properties of Haskell that bestow power upon the
+The two fundamental aspects of Haskell that bestow power upon the
 programmer are the powerful `abstraction` and `composition` facilities.
-`Everything is a value`, be it a function or concrete value and we can compose
-values in very flexible and powerful ways.
 
-Concrete Values and Functions
------------------------------
+Values: Data and Functions
+--------------------------
 
-A `value` is the most general and unifying concept in Haskell. A program is
-nothing but definition of values and how to combine them. Ultimately everything
-in a Haskell program is a value. There are `concrete values` like strings or
-numbers which represent real concrete data. Then there are `abstract values`
-which are called functions. A Haskell program can compose abstract values (i.e.
-functions) to create new abstract values dynamically but ultimately the
-abstract parameters are replaced with concrete arguments to reduce the
-abstractions to concrete output values.
+We use the term `value` in a general sense to represent either a `function` or
+`data`. A function is an `abstract value` whereas data represents a `concrete
+value`. A data is like a container that can hold a value, abstract or concrete.
+Note that the data itself is always concrete even though it may be holding an
+abstract value inside it.
 
-The key point is that functions are not special they are just another form of
-concrete values or data. Functions and concrete values can be converted back
-and forth by the reciprocal processes of `abstraction` and `reduction`.  Since
-there is no clear distinction between functions and data they are processed in
-similar ways. Hopefully this generalised description will be clearer after
-going through the following sections.
+Essentially, everything in a Haskell program is a value, either function or
+data.  A program is nothing but the definition and composition of values.
+Functions are not special; they are just an abstract form of some concrete or
+abstract values. Functions can be converted back and forth into more abstract
+or less abstract forms by the reciprocal processes of `abstraction` and
+`reduction`.  Since there is no clear distinction between functions and data
+they are processed in similar ways. Hopefully this generalised description will
+be clearer after going through the following sections.
 
 ::
 
@@ -136,13 +136,13 @@ going through the following sections.
   Value    |<------- reduction or   <------| or function
                  function application
 
-Abstraction of Concrete Values
-------------------------------
+Abstraction of Values
+---------------------
 
 +-----------------------------------------------------------------------------+
-| A `concrete value` is an expression that can be computed to a pure data     |
-| without requiring any input (or free variables). Here is a definition       |
-| representing a concrete value:                                              |
+| Data or concrete values are represented by an expression that has no        |
+| unknown parameters in it. Here is a definition representing a concrete      |
+| value:                                                                      |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -166,11 +166,11 @@ For illustrations we will represent a concrete value with a complete rectangle:
 +-------------------------------+---------------------------------------------+
 | concrete value                | ``c0       = 10 + 10 + 10``                 |
 +-------------------------------+---------------------------------------------+
-| polymorphic value of arity 1  | ``f1 a     = a  + 10 + 10``                 |
+| abstract value of arity 1  | ``f1 a     = a  + 10 + 10``                    |
 +-------------------------------+---------------------------------------------+
-| polymorphic value of arity 2  | ``f2 a b   = a  + b  + 10``                 |
+| abstract value of arity 2  | ``f2 a b   = a  + b  + 10``                    |
 +-------------------------------+---------------------------------------------+
-| polymorphic value of arity 3  | ``f3 a b c = a  + b  + c``                  |
+| abstract value of arity 3  | ``f3 a b c = a  + b  + c``                     |
 +-------------------------------+---------------------------------------------+
 | `Arity` is the number of parameters of an abstract value. It is a measure   |
 | of abstraction. Higher arity means there are more abstract parameters in    |
@@ -187,7 +187,7 @@ For illustrations we will represent a concrete value with a complete rectangle:
 | This abstraction process is also called `beta abstraction` in lambda        |
 | calculus terminology. Writing a program is a process of abstraction that    |
 | the programmer goes through. The functions defined in a program are a       |
-| result of abstraction.                                                      |
+| result of that abstraction.                                                 |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
@@ -237,9 +237,6 @@ Reduction of Abstract values
 | Reduction can be viewed as a `transformation` of a single value or          |
 | `composition` of multiple values.                                           |
 +-----------------------------------------------------------------------------+
-| When we say `value` in general we mean anything that a function can accept  |
-| as its arguments. It could be a `concrete value` or a `function`.           |
-+-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
 | Reduction                                                                   |
@@ -273,6 +270,9 @@ Reduction of Abstract values
 | of evaluation of a program.                                                 |
 +-----------------------------------------------------------------------------+
 
+Function Application
+--------------------
+
 +-----------------------------------------------------------------------------+
 | Function application                                                        |
 +========+===+======+=========================================================+
@@ -280,7 +280,7 @@ Reduction of Abstract values
 +--------+---+------+---------------------------------------------------------+
 | r      | = | f3   | v1 v2 v3                                                |
 +--------+---+------+---------------------------------------------------------+
-| Parameters `a`, `b` and `c` in the function definition get bound to the     |
+| Parameters `a`, `b` and `c` in the function definition get `bound` to the   |
 | input arguments `v1`, `v2` and `v3` respectively when the function is       |
 | applied.                                                                    |
 +-----------------------------------------------------------------------------+
@@ -304,65 +304,53 @@ Reduction of Abstract values
 | `whitespace` between them) in `f a` as a reduction or function application  |
 | operator.                                                                   |
 +-----------------------------------------------------------------------------+
+| Whitespace as an operator may be clearer if we imagine some other operator  |
+| symbol in place of whitespace e.g. ``f $ a $ b $ c``                        |
++-----------------------------------------------------------------------------+
 | Everything is a value! `f a` combines an abstract value `f` with the value  |
 | `a` to produce a more concrete value.                                       |
 +-----------------------------------------------------------------------------+
-| This is an asymmetric operation because `f` and `a` have different roles,   |
-| which means the operation is not commutative i.e. `f a` is not the same as  |
-| `a f`                                                                       |
+| Function application is an asymmetric operation because `f` and `a`         |
+| have different roles, which means the operation is not commutative i.e.     |
+| `f a` is not the same as `a f`                                              |
 +-----------------------------------------------------------------------------+
 | This operation is left associative i.e. ``f a b c <=> ((f a) b) c``         |
-+-----------------------------------------------------------------------------+
-| Whitespace as an operator may be clearer if we imagine some other operator  |
-| symbol in place of whitespace e.g. ``f $ a $ b $ c``                        |
 +-----------------------------------------------------------------------------+
 
 Mathematical Definition of a Function
 -------------------------------------
 
-Earlier we described a function as a polymorphic value or an abstract value.
-Another way of a looking at a function is as a mapping from the values of input
-parameters to the output values of the function. In other words, a function
-discriminates its inputs and maps different input values to different output
-values.
+Earlier we described a function as an abstract value.  Another way of a looking
+at a function is as a mapping from the values of input parameters to the output
+values of the function. In other words, a function discriminates its inputs and
+maps them to different output values.
 
-Compute & Type level programming
---------------------------------
+Value Types: Ensuring the Correctness of a Program
+--------------------------------------------------
 
-A Haskell program essentially defines computation logic to process input data
-and produce output data.  This logic is defined in terms of function
-applications. We will call this program the `compute level
-program`. Along with the compute level program a Haskell program also contains
-a `type level program` that ensures the correctness of the compute level
-program at compile time. We will talk about the basics of a type level program
-in the next section.
+A common mistake in `untyped` or weakly typed languages is to use an `orange`
+in a computation where we were supposed to use an `apple`.  In our program, how
+do we make sure that we do not supply oranges as input to a function
+that only works correctly with apples?
 
-Note: I am not satisfied with the word "compute". "Application" level could be
-more appropriate but that term is already taken to mean a different class.
-"Value" is very generic and could be overloaded. Any better term? Application
-may still be a better term?
+In Haskell, functions are the `only way` to consume and produce values.
+Therefore, at compile time if we can check that we are passing an orange to a
+function that expects an orange we can avoid this major class of programming
+errors.
 
-Types: Ensuring Correctness of Compute Level Program
-----------------------------------------------------
+`Every value` (function or data) in Haskell has a `type` associated with it.
+Type is a label that determines the legal values that the data can assume.
+Type labels are either explicitly specified by the programmer using `type
+signatures` (also known as `type annotations`) or determined automatically by
+way of `type inference`. At compile time the type annotations are interpreted
+by the typechecker. The typechecker makes sure that when we apply a function to
+an input value the type label of that value matches the type label of the
+function input. Therefore if a value is labeled `apple` the typechecker will
+refuse to pass the data level program if we feed this value to a function input
+which is labeled `orange`.
 
-In our (data level) program, how do we make sure that we do not supply
-`oranges` as input to a function parameter which only works correctly with
-`apples`?
-
-`Every value` (function or data) in the `data level` has a `type` label
-associated with it.  Type is a label which identifies a whole class of values
-conforming to certain rules or you can say it defines the shape of the data.
-
-The type labels are either explicitly specified by the programmer or determined
-automatically by way of inference. At compile time the type level program
-annotations are interpreted by the typechecker. The typechecker makes sure that
-when we apply a function to an input value the type label of that value matches
-the type label of the function input. Therefore if a value is labeled `apple`
-the typechecker will refuse to pass the data level program if we feed this
-value to a function input which is labeled `orange`.
-
-Value or Function Signatures
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Value Type Signatures
+~~~~~~~~~~~~~~~~~~~~~
 
 Let's take an example of an identifier `v` representing a concrete data value::
 
@@ -420,26 +408,35 @@ Type Checking
 ~~~~~~~~~~~~~
 
 The onus of assigning unique types to different data items is on the programmer
-so that distinct types do not get confused by mistake.  The type annotations
-for values in data level program can collectively be thought of as a `type
-level program`.
-
-The type level program is interpreted at compile time by the `typechecker`.  It
-essentially checks if the types used in the data level program are consistent
-with the type level program. Some fundamental checks:
+so that distinct types of values cannot accidentally be used in place of each
+other.  The types are analyzed at compile time by the `typechecker`.  It
+essentially checks if the types used in the program are consistent and we are
+not using one type in place of another. Type checks include:
 
 * `functions`: The type of the function input must match the type of the value
   being fed to the function.
 
-* `case`: The only way a function maps one type to another is via case
-  expression. All the values `mapped from` must have one type and all the
-  values `mapped to` must have one type.
+* `case`: A case expression maps one type to another.  All the values `mapped
+  from` must have the same type and all the values `mapped to` must have the
+  same type.
 
 * `Equations`: When two values can be substituted in place of each other then
   they must have the same type.
 
-Compute Level Program
----------------------
+Data & Type Level Programming
+-----------------------------
+
+A Haskell program essentially defines computation logic to process input data
+and produce output data.  This logic is defined in terms of function
+applications. We will call this program the `data level program`. Along with
+the data level program a Haskell program also contains a `type level program`
+that ensures the correctness of the compute level program at compile time.  The
+type annotations for values in a `data level program` can collectively be
+regarded as a `type level program`.  We will talk about the basics of a type
+level program in the next section.
+
+Data Level Program
+------------------
 
 Expressions
 ~~~~~~~~~~~
@@ -919,6 +916,9 @@ Yoneda
   thing equal to some other thing?
 
 
+Defining Functions
+------------------
+
 Functions Defined Purely in Terms of Compositions, Applications or Extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -1206,25 +1206,68 @@ expressed in terms of these primitives`. A function application (and case) are
 the only primitives that can map a value of one type to another type.
 
 Type Level Programming
-~~~~~~~~~~~~~~~~~~~~~~
+----------------------
 
-The purpose of type level programming is to generate concrete types.
-Just like at data level we have `data functions` representing `asbtract` or
-`polymorphic data`, the same way at the type level we have `type functions`
-representing abstract or `polymorphic types`.  Type functions can be used to
-compose types together to create more complex types from simple concrete types.
+The purpose of type level programming is to generate concrete types to be used
+in the data level program.  Just like at data level we create `data functions`
+representing `asbtract` or `polymorphic data`, the same way at the type level
+we can create `type functions` representing abstract or `polymorphic types`.
+Type functions can be used to compose types together to generate more complex
+types from simple concrete types.
 
 Note that the type assigned to any data level value is always `concrete`.  The
 type of a data value can never be a type function. Type functions only exist at
 the type level. See the kinds section for details.
+
+Type Inference
+~~~~~~~~~~~~~~
+
+Every value in Haskell has a type associcated with it. A type originates when
+you define a data via a `data declaration`. A data declaration is in fact a
+specification of the type of the data. In theory this is the only place where
+the programmer has to specify a type, all other types in the program can be
+`inferred` from this.
+
+The type of a function can be inferred from the use of the function in the
+program. The number of arguments that a function takes can be inferred from its
+use at the use sites. Each use of the function must consistently agree with the
+number of arguments it takes. Similarly the types of its arguments can be
+inferred from the types of arguments passed to it at the use sites. The return
+value type of a function can also be inferred from the use site by looking at
+the type of the data item to which the return value is assigned. If the type
+of a function is inferred to be different at different places the typechecker
+will complain.
+
+An expression is essentially either a data value or a function call. Therefore,
+the type of an expression can be inferred the same way as a function.
+
+In a pattern match the type of a deconstructed component can be inferred from
+the type of the component in the data element being deconstructed.
+
+Type Signatures
+~~~~~~~~~~~~~~~
+
+However, there may be situations where the inferred type may be ambiguous. In
+such cases, the programmer can provide type annotations or type signatures to
+remove the ambiguity. Also, it is recommended to specify type signatures for
+all top level declarations it helps in diagnosing the type errors. One way to
+narrow down type errors is by specifying type signatures to the known types
+involved in an expression.
+
+A programmer can specify type signatures at the following places:
+
+* declarations - function definitions, let or where clauses
+* expressions - any part of an expression can be given a type
+* pattern matches
 
 Generating function types
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 What is the type of a function value? A function with one argument is different
 from a function with two arguments. A function accepting an `Int` argument is
-different from a function accepting `Char` argument. Similarly for return
-value. The combinations are huge, so how do we represent so many types uniquely?
+different from a function accepting `Char` argument. The same applies to return
+values as well. The combinations are huge, so how do we represent so many types
+uniquely?
 
 +-----------------------------------------------------------------------------+
 | We generate function types using a type level operator denoted by           |
@@ -1251,7 +1294,288 @@ value. The combinations are huge, so how do we represent so many types uniquely?
 |  add x y = x + y                                                            |
 +-----------------------------------------------------------------------------+
 
-TBD - deduplicate with the table in the syntax chapter
+TBD - deduplicate this with the table in the syntax chapter
+
+Parametric Polymorphism
+-----------------------
+
+When the parameters of a function are of a variable type i.e. polymorphic then
+the function is known as parametrically polymorphic function.
+
+Polymorphic Types
+~~~~~~~~~~~~~~~~~
+
+A parametrically polymorphic type is a type function parameterized by a type
+variable (``a`` in the following example)::
+
+  data Pair a = Pair a a
+
+The type can be `instantiated` for a specific value of the variable `a`, for
+example the type ``Pair Int`` is equivalent to the definition ``Pair Int Int``.
+
+Polymorphic Functions
+~~~~~~~~~~~~~~~~~~~~~
+
+The arguments and/or return value of a parametrically polymorphic function can
+be a variable type. The function can be `instantiated` for any value of the
+type variable::
+
+  id :: a -> a
+  id x = x
+
+The `a` in the signature of this function is a `type variable`. `a` can assume
+any concrete type.
+
+Scope and Quantification of Type Variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The type variables in a type signature lexically scope over the whole type
+signature. However, unless ``ScopedTypeVariables`` is enabled, they are not
+visible to any type signatures inside the declararion.
+
+The type variables in a function signature are by default `universally
+quantified`. You can think of quantification as scoping from the typechecker
+perspective. Universal quantification implies that the type variables are
+scoped globally across the entire program from the typechecker perspective.
+Therefore, when a polymorphic function is `instantiated`, the specific values
+of the type variables are determined by the user of the function.  For
+example::
+
+  let x = 'a'
+  id x -- id :: Char -> Char, because x is of type Char
+
+When a (universally quantified) type variable occurs at more than one places in
+a signature it means that both the types are same. For example the argument and
+the result type in the following function must be the same::
+
+  id :: a -> a
+  id :: Int -> Int
+  id :: Char -> Char
+
++-----------------------------------------------------------------------------+
+| A programmer-written type signature is implicitly quantified over its free  |
+| type variables.                                                             |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XExplicitForAll                                                           |
++-----------------------------------------------------------------------------+
+| Allow use of `forall` keyword where universal quantification is implicit.   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  id :: forall a. a -> a                                                     |
+|  id :: forall a. (a -> a)                                                   |
+|  instance forall a. Eq a => Eq [a] where ...                                |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XScopedTypeVariables                                                      |
++-----------------------------------------------------------------------------+
+| Enable lexical scoping of type variables explicitly introduced with         |
+| `forall`. `The type variables bound by a forall` scope over the entire      |
+| definition of the accompanying value declaration.                           |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f :: forall a. [a] -> [a]                                                  |
+|  f xs = ys ++ ys                                                            |
+|      where                                                                  |
+|        ys :: [a]                                                            |
+|        ys = reverse xs                                                      |
++-----------------------------------------------------------------------------+
+| * A scoped type variable stands for a type variable, and not for a type.    |
+| * Distinct lexical type variables stand for distinct type variables         |
+| * A lexically scoped type variable can be bound by a declaration,           |
+|   expression, pattern type signature and class and instance declarations.   |
++-----------------------------------------------------------------------------+
+| * Any type variable that is `in scope` is not universally quantified.       |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  (e :: a -> a)     means     (e :: a -> a)                                  |
+|  (e :: b -> b)     means     (e :: forall b. b->b)                          |
++-----------------------------------------------------------------------------+
+| An expression type signature that has explicit quantification               |
+| (using forall) brings into scope the explicitly-quantified type variables,  |
+| in the annotated expression. For example:                                   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f = runST ( (op >>= \(x :: STRef s Int) -> g x) :: forall s. ST s Bool )   |
++-----------------------------------------------------------------------------+
+| Unlike expression and declaration type signatures, pattern type signatures  |
+| are not implicitly generalised. The pattern in a pattern binding may only   |
+| mention type variables that are already in scope. For example:              |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f :: forall a. [a] -> (Int, [a])                                           |
+|  f xs = (n, zs)                                                             |
+|    where                                                                    |
+|      (ys::[a], n) = (reverse xs, length xs) -- OK                           |
+|      zs::[a] = xs ++ ys                     -- OK                           |
+|                                                                             |
+|      Just (v::b) = ...  -- Not OK; b is not in scope                        |
++-----------------------------------------------------------------------------+
+| However, in all patterns other than pattern bindings, a pattern type        |
+| signature may mention a type variable that is not in scope; in this case,   |
+| the signature brings that type variable into scope. This is particularly    |
+| important for existential data constructors. For example:                   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  data T = forall a. MkT [a]                                                 |
+|                                                                             |
+|  k :: T -> T                                                                |
+|  k (MkT [t::a]) =                                                           |
+|      MkT t3                                                                 |
+|    where                                                                    |
+|      t3::[a] = [t,t,t]                                                      |
++-----------------------------------------------------------------------------+
+| in this situation (and only then), a pattern type signature can mention a   |
+| type variable that is not already in scope; the effect is to bring it       |
+| into scope, standing for the existentially-bound type variable.             |
++-----------------------------------------------------------------------------+
+
+Higher Rank Parametric Polymorphism
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+When all the type variables of a function are universally quantified the values
+of type variables and therefore the function instance is completely decided by
+the caller context. However, when one of the parameters of a polymorphic
+function is a function, that function will be called by the polymorphic
+function itself. If that function is polymorphic and its type variables are not
+universally quantified but scoped to the polymorphic function itself then the
+specific instance of that functon is completely decided by the calling
+polymorphic function. Essentially the inner function instance depends on how
+the outer function is instantiated i.e. how the type parameters of the outer
+function are chosen.
+
+Such a polymorphic function that instantiates another polymorphic function
+locally depending on its own instance is called a rank-2 polymorphic function.
+Similarly if the inner function instantiates another polymorphic function
+locally then we get a rank-3 polymorphism and so on.
+
+The scoped quantification is introduced by the ``XRankNTypes`` GHC extension.
+
++----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
+| Polymorphic Functions| Rank3  | ``f :: (Rank2 polymorphic function type) -> b``                                | Abstract functions      |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | f :: ((forall a. a -> a) -> Int) -> Int                                        |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | Rank can be determined by counting the nesting level of the type variable      |                         |
+|                      +--------+--------------------------------------------------------------------------------+                         |
+|                      | Rank2  | ``f :: (Rank1 polymorphic function type) -> b``                                |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | This function itself may be monomorphic but it accepts a polymorphic function  |                         |
+|                      |        | as an argument                                                                 |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | The key point is that the instantiation of the polymorphic function passed as  |                         |
+|                      |        | argument is decided by this function.                                          |                         |
+|                      |        +--------------------------------------------------------------------------------+                         |
+|                      |        | f :: (forall a. a -> a) -> Int                                                 |                         |
+|                      +--------+--------------------------------------------------------------------------------+                         |
+|                      | Rank1  | ``f :: a -> b`` where type variable `a` represents values of Rank0             |                         |
++----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
+| Monomorphic Functions         | ``f :: Char -> Int``                                                           | Concrete function       |
+|                               |                                                                                | Abstract value          |
+|                               |                                                                                | Polymorphic value       |
++-------------------------------+--------------------------------------------------------------------------------+-------------------------+
+| Concrete Data Values          | ``f :: Int``                                                                   | Monomorphic value       |
++-------------------------------+--------------------------------------------------------------------------------+-------------------------+
+
+Any of the type parameters of a function can be made locally quantified by
+grouping it with a forall keyword. For example::
+
+  f :: a -> a             -- implicitly universally quantified
+  f :: forall a. a -> a   -- explicitly universally quantified
+
+  f :: (forall a. a) -> a -- the first parameter is locally quantified and is
+                          -- distinct from the return type variable
+  f :: a -> forall a. a   -- the return type is locally quantified and is
+                          -- distinct from the first parameter.
+
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XRankNTypes                                                               |
++-----------------------------------------------------------------------------+
+| Arbitrary-rank polymorphism                                                 |
++-----------------------------------------------------------------------------+
+| Rank-1 types                                                                |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f :: forall a. Ord a => a -> a                                             |
+|  f :: Int -> (forall a. a -> a)                                             |
+|  f :: Int -> forall a. a -> a                                               |
+|  f :: Int -> Ord a => a -> a                                                |
++-----------------------------------------------------------------------------+
+| Rank-2 types                                                                |
++-----------------------------------------------------------------------------+
+| ``f :: (forall a. Eq a => [a] -> a -> Bool) -> Int -> Int``                 |
++-----------------------------------------------------------------------------+
+| Rank-3 types                                                                |
++-----------------------------------------------------------------------------+
+| ``f :: ((forall a. a -> a) -> Int) -> Bool``                                |
++-----------------------------------------------------------------------------+
+| Inference                                                                   |
++-----------------------------------------------------------------------------+
+| For a lambda-bound or case-bound variable, x, either the programmer         |
+| provides an explicit polymorphic type for x, or GHC’s type inference will   |
+| assume that x’s type has no foralls in it.                                  |
++-----------------------------------------------------------------------------+
+
+Type Signatures
+~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| Type Signatures                                                             |
++-----------------------------------------------------------------------------+
+| Type signatures can be given to a declaration, expression or a pattern      |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XFlexibleContexts                                                         |
++-----------------------------------------------------------------------------+
+| Allow flexibility in declaring in type class constraints.                   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  g :: Eq [a] => ...                                                         |
+|  g :: Ord (T a ()) => ...                                                   |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XAllowAmbiguousTypes                                                      |
++-----------------------------------------------------------------------------+
+|                                                                             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  TBD                                                                        |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XKindSignatures                                                           |
++-----------------------------------------------------------------------------+
+| Explicitly-kinded quantification                                            |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  TBD                                                                        |
++-----------------------------------------------------------------------------+
+
+* Bindings and generalisation (TBD)
+* Visible type application
+* Implicit parameters
+
+* Impredicative polymorphism
+* Typed Holes
+* Partial Type Signatures
 
 Kinds: Ensuring correctness of Types
 ------------------------------------
@@ -1353,104 +1677,6 @@ Kind check
 +------------------------------+-------------+                                |
 | (->) :: Type -> Type -> Type | Int# -> Int |                                |
 +------------------------------+-------------+--------------------------------+
-
-Polymorphic Functions & Types
------------------------------
-
-Functions whose argument types can vary. They work for many types.
-
-::
-
-  id :: a -> a
-  id x = x
-
-The `a` in the signature of this function is a `type variable`. `a` can assume
-any concrete type.
-
-`Function instances`: When we apply the `id` function to a value of a
-concrete type, then we `instantiate` the type variable `a` to that concrete
-type:
-
-::
-
-  id (3 :: Int)
-
-This is also known as `parametric polymorphism`.
-
-Similarly, polymorphic types (type functions) also use type variables::
-
-  data Pair a = Pair a a
-
-Quantification of Type Variables
---------------------------------
-
-A polymorphic function as well as a polymorphic type uses type variables. Like
-variables in a data level program, type variables too have scope. The scope of
-a type variable is also known as quantification.
-
-Quantification decides the `visibility scope of a type variable` to the
-typechecker. The type variable cannot be instantiated and cannot exist outside
-that scope. There are two types of quantifications viz.  `univseral` (global
-scope) and `existential` (local scope) quantification.
-
-When a type variable is universally quantified it means that the type variable
-is valid over the scope of the whole program. The type variable is visible for
-typechecking anywhere in the program without any restrictions.  A universally
-quantified type variable must be able to `unify` with any usage of that type
-variable.  Universal quantification is implicit or default. All type variables
-of a function are unviersally quantified by default. Though we can use an
-explicit `forall` in the global scope:
-
-::
-
-  id :: forall a. a -> a
-  id x = x
-
-Whereas `existential quantification implies that the availability or the scope
-of the quantified variable is limited`. The variable cannot exist or typecheck
-outside the specified scope. It is represented by a scoped `forall`. For
-example:
-
-Sometimes we say that a type variable is `not quantified`, it means that it is
-universally quantified. Whereas just saying `quantified` is equivalent to
-saying that it is `existentially quantified`.
-
-TBD: examples of existential quantification.
-
-Parametric Polymorphism Ranks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Higher order functions could be of different ranks depending on whether the
-function passed as argument also takes another function as argument and so on.
-
-Data Level Parametric Polymorphism
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-+----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
-| Polymorphic Functions| Rank3  | ``f :: (Rank2 polymorphic function type) -> b``                                | Abstract functions      |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | f :: ((forall a. a -> a) -> Int) -> Int                                        |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | Rank can be determined by counting the nesting level of the type variable      |                         |
-|                      +--------+--------------------------------------------------------------------------------+                         |
-|                      | Rank2  | ``f :: (Rank1 polymorphic function type) -> b``                                |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | This function itself may be monomorphic but it accepts a polymorphic function  |                         |
-|                      |        | as an argument                                                                 |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | The key point is that the instantiation of the polymorphic function passed as  |                         |
-|                      |        | argument is decided by this function.                                          |                         |
-|                      |        +--------------------------------------------------------------------------------+                         |
-|                      |        | f :: (forall a. a -> a) -> Int                                                 |                         |
-|                      +--------+--------------------------------------------------------------------------------+                         |
-|                      | Rank1  | ``f :: a -> b`` where type variable `a` represents values of Rank0             |                         |
-+----------------------+--------+--------------------------------------------------------------------------------+-------------------------+
-| Monomorphic Functions         | ``f :: Char -> Int``                                                           | Concrete function       |
-|                               |                                                                                | Abstract value          |
-|                               |                                                                                | Polymorphic value       |
-+-------------------------------+--------------------------------------------------------------------------------+-------------------------+
-| Concrete Data Values          | ``f :: Int``                                                                   | Monomorphic value       |
-+-------------------------------+--------------------------------------------------------------------------------+-------------------------+
 
 Abstraction Ladders
 -------------------
@@ -1666,3 +1892,4 @@ Summary
 References
 ----------
 
+* https://en.wikipedia.org/wiki/Scope_(computer_science)
