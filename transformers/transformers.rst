@@ -47,7 +47,7 @@ A stateless function has no memory, implicit state, context or environment. Its
 result purely depends on its arguments. In other words, if it is called with
 the same arguments in any context, at any time it yields exactly the same
 results every time. A stateless function is also called a `pure` function or
-pure computation.
+a pure computation.
 
 However, real practical programs are inherently stateful. A ubiquitous example
 of state is IO interaction. IO devices represent a global state that the
@@ -316,7 +316,7 @@ just IO monad?
 
 We use `TransT` as a generic transformer definition just to illustrate the
 generic structure of a transformer. In the text below, we represent the
-combined monad `TransT m` by the variable `t` and the inner monad by the
+transformed monad `TransT m` by the variable `t` and the lower monad by the
 variable `m`.
 
 ::
@@ -351,11 +351,22 @@ together.
 
 .. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-stack2.png
 
-MonadTrans (lift)
-~~~~~~~~~~~~~~~~~
+The Two tracks
+~~~~~~~~~~~~~~
 
-A transformer monad is a monad to which we can generically lift values from
-some monad.
+The e and a in a transformer represent the two tracks of a monad. The e track
+is the hidden track and a is the normal track::
+
+  newtype TransT e m a = TransT {runTransT :: m (StT e a) }
+
+MonadTrans (lift) - Lifting through the Stack
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A transformer monad provides a ``lift`` operation which allows lifting values
+from an arbitrary monad ``m`` to the transformer monad thus transforming ``m``
+into this monad. When we have a stack of transformer monads we can apply
+``lift`` in a cascading manner to lift from a lower monad in the stack to a
+higher monad.
 
 Running a computation in `m` yields a result of type `m a`. To be able to
 use that result in `t m` we need to know how to wrap that into our type wrapper
@@ -397,80 +408,22 @@ The `transformers` package provides monad transformer types and MonadTrans
 instances for all the standard monads (``IO, Maybe, Either, [], (->),
 Identity``).
 
-MonadIO (liftIO)
-~~~~~~~~~~~~~~~~
-
-The `MonadIO` class provides an abstraction `liftIO` to lift a value from the
-IO monad to monad `m`::
-
-  class (Monad m) => MonadIO m where
-      liftIO :: IO a -> m a
-
-Using the `lift` abstraction a transformer can implement `liftIO` by lifting
-the value iteratively through the whole stack until we reach the IO Monad::
-
-  instance (MonadIO m) => MonadIO (MaybeT m) where
-   -- liftIO :: IO a -> MaybeT m a
-      liftIO =   lift    -- lift from m to (MaybeT m)
-               . liftIO  -- liftIO from IO to m
-
-When we reach the IO Monad the iteration stops because `liftIO` for the IO
-monad is just `id`::
-
-  instance MonadIO IO where
-      liftIO = id
-
-.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-io-lift2.png
-
-We can write functions which are polymorphic in the monad type and therefore
-work for any monad. We can use class constraints to make sure that the monad
-and the whole stack under it support lifting from IO.  For example::
-
-  f :: (MonadIO m) => ... -> m a
-  res <- liftIO getLine
-  ...
-
-MonadBase (liftBase)
+Lifting and Lowering
 ~~~~~~~~~~~~~~~~~~~~
 
-`MonadBase` generalizes `MonadIO` to any monad.  The `MoandBase`
-class provides a `liftBase` operation to lift values from an arbitrary base
-monad `b` to the current monad `m` as long as we have a `MonadBase b m`
-instance::
-
-  class MonadBase b m where
-    liftBase :: b a -> m a
-
-Using the `lift` abstraction a transformer can implement `liftBase` generically
-by lifting the value iteratively through the whole stack until we reach the
-base monad::
-
-  instance (MonadBase b m) ⇒  MonadBase b (TransT m) where
-    liftBase =   lift     -- lift from m to (TransT m)
-               . liftBase -- lift from b to m
-
-.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-base-lift2.png
-
-When we reach the base Monad the iteration stops because `liftBase` for the
-base monad is just `id`::
-
-  instance MonadBase b b where liftBase = id
-
-For a polymorphic function we can use a `MonadBase b b` constraint to sepcify
-the base monad relationship.  The `transformers-base` package provides
-`MonadBase b b` and `MonadBase b m` instances for all combinations of `b` and
-`m` for the standard monads.  For user defined transformers the MonadBase
-instance can be derived automatically::
-
-  deriving instance (MonadBase b m) => MonadBase b (TransT m)
-
-For example::
-
-  f :: (MonadBase m) => ...
-  res <- liftBase baseOperation
+Transformers provide a monad agnostic way of lifting computations from one
+monad to another. The opposite of lifting is lowering which happens when we
+invoke the monad runner function. However sometimes we may need to run a lifted
+computation in a lower level monad. In that case we may have to invoke the
+monad runner in the lower level monad to lower the computation. monad-control
+and monad-unlift packages provide a generic way of lowering the computations
+for this purpose.
 
 MonadTransControl (liftWith)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Lifting functions through the transformer stack, when those functions may need
+to run computations in the current monad.
 
 `MonadTransControl` provided by the `monad-control` package is a more flexible
 and powerful version of MonadTrans.
@@ -539,26 +492,110 @@ example of ``MaybeT`` instance and see how this works::
 
 Instances for standard monads are provided by the monad-control package.
 
+MonadIO (liftIO) - Lifting from IO to some Monad
+------------------------------------------------
+
+Note: This mechanism is completely independent of transformer Monads. Helps in
+writing generic monad code. As long as the monad running the code provides a
+MonadIO instance we can use liftIO to lift values from IO to the monad. However
+this can be combined with ``lift`` to lift an IO action through a transpformer
+stack, providing a MonadIO instance for any transformer.
+
+The `MonadIO` class provides an abstraction `liftIO` to lift a value from the
+IO monad to monad `m`::
+
+  class (Monad m) => MonadIO m where
+      liftIO :: IO a -> m a
+
+Using the `lift` abstraction a transformer can implement `liftIO` by lifting
+the value iteratively through the whole stack until we reach the IO Monad::
+
+  instance (MonadIO m) => MonadIO (MaybeT m) where
+   -- liftIO :: IO a -> MaybeT m a
+      liftIO =   lift    -- lift from m to (MaybeT m)
+               . liftIO  -- liftIO from IO to m
+
+When we reach the IO Monad the iteration stops because `liftIO` for the IO
+monad is just `id`::
+
+  instance MonadIO IO where
+      liftIO = id
+
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-io-lift2.png
+
+We can write functions which are polymorphic in the monad type and therefore
+work for any monad. We can use class constraints to make sure that the monad
+and the whole stack under it support lifting from IO.  For example::
+
+  f :: (MonadIO m) => ... -> m a
+  res <- liftIO getLine
+  ...
+
+MonadBase (liftBase) - Lifting from a designated Base Monad
+-----------------------------------------------------------
+
+Note: This mechanism is completely independent of transformer Monads. Helps in
+writing generic monad code. However this can be combined with ``lift`` to lift
+an IO action through a transformer stack, providing MonadBase instance for any
+transformer.
+
+`MonadBase` generalizes `MonadIO` to any monad.  The `MoandBase`
+class provides a `liftBase` operation to lift values from an arbitrary base
+monad `b` to the current monad `m` as long as we have a `MonadBase b m`
+instance::
+
+  class MonadBase b m where
+    liftBase :: b a -> m a
+
+Using the `lift` abstraction a transformer can implement `liftBase` generically
+by lifting the value iteratively through the whole stack until we reach the
+base monad::
+
+  instance (MonadBase b m) ⇒  MonadBase b (TransT m) where
+    liftBase =   lift     -- lift from m to (TransT m)
+               . liftBase -- lift from b to m
+
+.. image:: https://github.com/harendra-kumar/concise-haskell-diagrams/blob/master/transformers/transformer-base-lift2.png
+
+When we reach the base Monad the iteration stops because `liftBase` for the
+base monad is just `id`::
+
+  instance MonadBase b b where liftBase = id
+
+For a polymorphic function we can use a `MonadBase b b` constraint to sepcify
+the base monad relationship.  The `transformers-base` package provides
+`MonadBase b b` and `MonadBase b m` instances for all combinations of `b` and
+`m` for the standard monads.  For user defined transformers the MonadBase
+instance can be derived automatically::
+
+  deriving instance (MonadBase b m) => MonadBase b (TransT m)
+
+For example::
+
+  f :: (MonadBase m) => ...
+  res <- liftBase baseOperation
+
 MonadBaseControl (liftBaseWith)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
+Lifting functions from a designated Base Monad, functions being lifted may need
+to run computations in the current monad.
+
 `MonadBaseControl` is a more flexible and powerful version of `MonadBase`.
 
-`liftBaseWith` provides a `RunInBase` function to the `b` computation being
-lifted. `RunInBase` is a runner function for the `m` monad and allows us to run
-`m` computations embedded inside the `b` computations. This allows us to
-capture bindings from `m` inside the `b` computations and run them while
-lifting `b`. `restoreM` allows constructing a `m` value back from the results
-returned by `RunInBase`::
+While lifting computations in `b`, `liftBaseWith` provides a `RunInBase`
+function, which is a runner function for the monad `m` allowing us to run `m`
+computations embedded inside `b` computations; `restoreM` allows constructing
+an `m` value back from the results returned by `RunInBase`.  This allows us to
+capture bindings from surrounding `m` computations inside `b` computations and
+run them while lifting `b`::
 
    ------------------------
-  |  n (MonadBaseControl)  |    ^
-   ------------------------     |
-  |  m (MonadBaseControl)  |  ^ |
-   ------------------------   | |
-                              | |
-                              | | liftBaseWith :: (RunInBase m b -> b a) -> m a
-   ------------------------   _ _ restoreM :: StM m a -> m a
+  |  m (MonadBaseControl)  |  ^
+   ------------------------   |
+                              |
+                              |  liftBaseWith :: (RunInBase m b -> b a) -> m a
+   ------------------------   _  restoreM :: StM m a -> m a
   |  b (MonadBaseControl)  |
    ------------------------
 

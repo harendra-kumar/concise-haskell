@@ -193,36 +193,38 @@ Generalized Algebraic Data Type (GADT) Syntax
 |  -XGADTSyntax                                                    |
 +------------------------------------------------------------------+
 | Standard algebraic data type syntax                              |
-|                                                                  |
-| * Each data constructor has the same return type which is        |
-|   implicit and the same as the data type.                        |
-| * The data type parameter scopes over the constructors and is    |
-|   used as a type parameter in the constructors.                  |
 +------------------------------------------------------------------+
 | ::                                                               |
 |                                                                  |
 |  data List a = Empty | Cons a (List a)                           |
 +------------------------------------------------------------------+
+| * Each data constructor has the same return type which is        |
+|   implicit and the same as the data type.                        |
+| * The data type parameter scopes over the constructors and is    |
+|   used as a type parameter in the constructors.                  |
++------------------------------------------------------------------+
 | Generalized (GADT) Syntax                                        |
-|                                                                  |
-| * GADT syntax essentially specifies two things, the arity of the |
-|   type constructor and signatures of all data constructors       |
-|   explicitly.                                                    |
-| * It allows the return type of each data constructor to be       |
-|   different.                                                     |
-| * The data type parameter is only a placeholder and has no scope.|
-|   It indicates only the arity of the type function.              |
-| * Type variables across different constructors are not related.  |
-| * Type variables featuring in the return type of a constructor   |
-|   are implicitly universally quantified.                         |
-| * Type variables not featuring in the return type of a           |
-|   constructor are implicitly existentially quantified            |
 +------------------------------------------------------------------+
 | ::                                                               |
 |                                                                  |
 |  data List a where     -- 'a' has no scope, only a placeholder   |
 |    Empty :: List b                                               |
 |    Cons  :: c -> List c -> List c                                |
++------------------------------------------------------------------+
+| * GADT syntax essentially specifies two things, the arity of the |
+|   type constructor and signatures of all data constructors       |
+|   explicitly.                                                    |
+| * It allows the return type of each data constructor to be       |
+|   different.                                                     |
+| * The data type parameter 'a' is only a placeholder and has no   |
+|   scope. It indicates only the arity of the type function.       |
+| * Type variables across different constructors are not related.  |
+| * Type variables featuring in the return type of a constructor   |
+|   are implicitly universally quantified.                         |
+| * Type variables not featuring in the return type of a           |
+|   constructor are implicitly existentially quantified            |
+| * The actual value of variables 'b' and 'c' is determined by     |
+|   inference based on the usage of the constructors.              |
 +------------------------------------------------------------------+
 | The type of a specific instance must match the return type of a  |
 | constructor which in turn determines the actual signature of the |
@@ -374,6 +376,11 @@ Records
 | even if they clash with field names in other records and even when the      |
 | record is defined in a module which is imported qualified.                  |
 +-----------------------------------------------------------------------------+
+| Note that selector functions are symbols but field names are literals i.e.  |
+| you cannot say x = y and then use x in place of y as a field name. x will   |
+| refer to the selector function, when used as a field name it will refer to  |
+| field named "x" rather than "y".                                            |
++-----------------------------------------------------------------------------+
 | **Construction**                                                            |
 +----------------------------+------------------------------------------------+
 | ``show (R "a" 1)``         | ``show R { y = 1, x = "a" }                    |
@@ -442,6 +449,9 @@ Records
 +----------------------------------+------------------------------------------+
 | ``R {x = "a", y = 1} {x = "b"}`` | ``r { x = "b", y = 2}``                  |
 +----------------------------------+------------------------------------------+
+| ``..`` expands to missing        | ``f (R {x = "a", ..}) = R{x = "b", ..}`` |
+| `in-scope` record fields         |                                          |
++----------------------------------+------------------------------------------+
 | When using `-XDuplicateRecordFields`, disambiguate duplicate fields:        |
 +-----------------------------------------------------------------------------+
 | By field names:                                                             |
@@ -483,7 +493,7 @@ Type Constructor
 ^^^^^^^^^^^^^^^^
 
 +-----------------------------------------------------------------------------------------+
-| A type function to instantiate a new type                                               |
+| A type level function to create a type from existing types                              |
 +----------------------+--------+------------------+--------------------------------------+
 | Type                 |        | Kind             | Description                          |
 +======================+========+==================+======================================+
@@ -505,14 +515,16 @@ Type Constructor
 Data Constructors
 ^^^^^^^^^^^^^^^^^
 
++--------------------------------------------------------------------------------------------------------+
+| A data level function to create a value of the corresponding type                                      |
 +-------------------+--------+-------------------------------+-------------------------------------------+
 | Data Constructor  |        | Type                          | Description                               |
 +===================+========+===============================+===========================================+
-| Empty             | ``::`` | List a                        | Create a new value (empty list)           |
+| Empty             | ``::`` | List a                        | Create a new value (denoting empty list)  |
 +-------------------+--------+-------------------------------+-------------------------------------------+
 | Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
 +-------------------+--------+-------------------------------+-------------------------------------------+
-| The signatures imply that the arguments of contructors must be concrete types of kind ``Type``         |
+| The signatures imply that the arguments of constructors must be concrete types of kind ``Type``        |
 +--------------------------------------------------------------------------------------------------------+
 
 Typeclass Constraints
@@ -557,7 +569,8 @@ Quantification
 +--------------------------------------------------------------------------------------------------------------------+
 | Quantified type variables that appear in arguments but not in the result type for any constructor are              |
 | `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
-| They will typecheck with other instances only within this local scope.                                             |
+| They will typecheck with other instances only within this local scope. In other words, they cannot be unified with |
+| variables outside this scope.                                                                                      |
 +------------------------------------------------------------+-------------------------------------------------------+
 | ::                                                         | ::                                                    |
 |                                                            |                                                       |
@@ -587,171 +600,6 @@ Quantification
 | example, all fields prefixed with ``_`` in the above example are private.                                          |
 +--------------------------------------------------------------------------------------------------------------------+
 
-GADT (Aggregated Type)
-----------------------
-
-* http://www.cs.ox.ac.uk/ralf.hinze/publications/With.pdf Fun with phantom
-  types.
-
-+-----------------------------------------------------------------------------+
-| -XGADTs                                                                     |
-+-----------------------------------------------------------------------------+
-
-+--------------------------------------------------------------------------------+
-| Representing terms in an expression with static typechecking.                  |
-+--------------------------------------------------------------------------------+
-| The type of an evaluated expression depends on the specific expression         |
-| being evaluated.                                                               |
-+--------------------------------------------------------------------------------+
-| ::                                                                             |
-|                                                                                |
-|    eval (Lit 10)                                                 -- Int        |
-|    eval (Succ (Lit 10))                                          -- Int        |
-|    eval (IsZero (Lit 10))                                        -- Bool       |
-|    eval (If (IsZero (Lit 10)) (Lit 0) (Lit 1))                   -- Int        |
-|    eval (If (IsZero (Lit 10)) (IsZero (Lit 0)) (IsZero (Lit 1))) -- Bool       |
-|    eval (Pair (Lit 10) (Lit 20))                                 -- (Int, Int) |
-+--------------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| An expression is represented by a data type which is a collection of terms  |
-| in that expression.                                                         |
-+-----------------------------------------------------------------------------+
-| Since each expression evaluates to a different type `we need what that type |
-| is for each expression`. `We also need a way to somehow propagate this type |
-| information and use it when we evaluate the expression`.                    |
-+-----------------------------------------------------------------------------+
-| The type information for each expression is encoded as the return type of   |
-| the constructor e.g. ``Term Bool`` return type means the expression         |
-| evaluates to a ``Bool`` value.                                              |
-+-----------------------------------------------------------------------------+
-| The type ``Term a`` represents any term i.e. an abstraction for the         |
-| aggregation of the return types of all constructors of this data type.      |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   data Term a where                                                         |
-|     Lit    :: Int -> Term Int                                               |
-|     Succ   :: Term Int -> Term Int                                          |
-|     IsZero :: Term Int -> Term Bool                                         |
-|     If     :: Term Bool -> Term a -> Term a -> Term a                       |
-|     Pair   :: Term a -> Term b -> Term (a,b)                                |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| ``Term a`` admits all constructors types of ``Term``.                       |
-| ``a`` the return type of ``eval``, depends on the specific constructor      |
-| being evaluated e.g. when we evaluate ``Lit`` we know from the GADT         |
-| definition that ``Lit``'s type is ``Term Int`` so ``a`` must be ``Int``.    |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- Explicit signature is required                                          |
-|  -- The return type 'a' of this function is dependent                       |
-|  -- on the type of the constructor passed to it                             |
-|  eval :: Term a -> a                                                        |
-|                                                                             |
-|  eval (Lit i)      = i                                   -- a ~ Int         |
-|  eval (Succ t)     = 1 + eval t                          -- a ~ Int         |
-|  eval (IsZero t)   = eval t == 0                         -- a ~ Bool        |
-|  eval (If b e1 e2) = if eval b then eval e1 else eval e2 -- a ~ a           |
-|  eval (Pair e1 e2) = (eval e1, eval e2)                  -- a ~ (a1, a2)    |
-+-----------------------------------------------------------------------------+
-| In other words a pattern matching instance retrieves the type               |
-| encoded in the constructor return type to determine `a`. The retrieved type |
-| can then be used to write type specific code with proper typechecking.      |
-+-----------------------------------------------------------------------------+
-| The concept inherently requires an explicit type signature in a pattern     |
-| match for the following:                                                    |
-|                                                                             |
-| * scrutinee                                                                 |
-| * entire case expression                                                    |
-| * free variables mentioned in any of the case alternatives                  |
-+-----------------------------------------------------------------------------+
-| `deriving` clause cannot be used                                            |
-+-----------------------------------------------------------------------------+
-
-+------------------------------------------------------------------------------------------------------+
-| A polymorphic type and an aggregated type (GADT) are two opposite concepts.                          |
-+-------------------------------------------------+----------------------------------------------------+
-| A polymorphic type                              | Aggregated type (GADT)                             |
-+-------------------------------------------------+----------------------------------------------------+
-| All constructors return the same type           | One or more constructors return a concrete type    |
-| parameterized by a type variable.               | instance (e.g. Term Int).                          |
-+-------------------------------------------------+----------------------------------------------------+
-| Defines an asbtract type e.g. ``List``.         | Defines the sum type as a group of concrete type   |
-|                                                 | instances.                                         |
-+-------------------------------------------------+----------------------------------------------------+
-| We `instantiate` ``List`` to create concrete    | We `abstract` the group of concrete types          |
-| type instances.                                 | to ``Term a``.                                     |
-+------------------------+------------------------+------------------------+---------------------------+
-| Define Abstract Type   | Create Instances       | Define instances       | Create Abstraction        |
-+------------------------+------------------------+------------------------+---------------------------+
-| List a                 | List Int               | Term Int               | Term a                    |
-|                        +------------------------+------------------------+                           |
-|                        | List Bool              | Term Bool              |                           |
-|                        +------------------------+------------------------+                           |
-|                        | List (Int, Bool)       | Term (a,b)             |                           |
-+------------------------+------------------------+------------------------+---------------------------+
-| A type signature specifies a concrete type      | An explicit type signature specifies the abstract  |
-| instance via explicit specification or          | type ``Term a``. The value of ``a`` is             |
-| inference.                                      | supplied by the typechecker on pattern match.      |
-+-------------------------------------------------+----------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Another way to think about it is to think of                                |
-| `eval` as a polymorphic function representing a whole family of functions   |
-| with `a` ranging over the return types of constructors of `Term`:           |
-| ::                                                                          |
-|                                                                             |
-|  eval :: Term Int -> Int                                                    |
-|  eval :: Term Bool -> Bool                                                  |
-|  eval :: Term (Int, Bool) -> (Int, Bool)                                    |
-|  eval :: Term (Bool, Int) -> (Bool, Int)                                    |
-|                                                                             |
-| The appropriate definition is chosen statically depending on the            |
-| constructor passed to eval.                                                 |
-| ::                                                                          |
-|                                                                             |
-|  eval :: Term Int -> Int                                                    |
-|  eval (Lit i)      = i                                                      |
-|                                                                             |
-| Here the definitions for the recursive calls to eval will be chosen         |
-| depending on the types of b, e1 and e2.                                     |
-| ::                                                                          |
-|                                                                             |
-|  eval :: Term a -> a                                                        |
-|  eval (If b e1 e2) = if eval b then eval e1 else eval e2                    |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Another example.                                                            |
-+-----------------------------------------------------------------------------+
-| Accepting a generic argument (``Int`` or ``Char``) to a function.           |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- Encode type information in constructor return types                     |
-|  data Info a where                                                          |
-|    InfoInt    :: Info Int  -- constructor encoding Int in return type       |
-|    InfoChar   :: Info Char -- constructor encoding Char in return type      |
-|                                                                             |
-|  -- Signature with abstract type (Info a) MUST be supplied by programmer    |
-|  -- Parameter 'a' is automatically determined by the typechecker            |
-|  -- via pattern match on constructors                                       |
-|  incr :: Info a -> a -> Int                                                 |
-|  incr InfoInt  i    = i + 1         -- a ~ Int                              |
-|  incr InfoChar c    = ord c + 1     -- a ~ Char                             |
-|                                                                             |
-|  -- Call the function with varying type argument but explicit type info     |
-|  incr InfoInt 5                                                             |
-|  incr InfoChar 'a'                                                          |
-+-----------------------------------------------------------------------------+
-| Its like constraint solving, the value of ``a`` gets computed by other      |
-| available information rather than being supplied. Of course the type        |
-| signature must be supplied with the unknowns at the right places.           |
-+-----------------------------------------------------------------------------+
-
 Pattern Matching
 ----------------
 
@@ -777,12 +625,12 @@ Refer to the `Basic Syntax` chapter for basic pattern matching.
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| -XBangPatterns: make pattern matching strict by prefixing it with a `!`     |
+| -XBangPatterns: make pattern matching strict by prefixing it with a ``!``   |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
-| f1 !x = True       -- it will always evaluate x                             |
-| f2 (!x, y) = [x,y] -- nested pattern, x will always get evaluated           |
+|  f1 !x = True       -- it will always evaluate x                            |
+|  f2 (!x, y) = [x,y] -- nested pattern, x will always get evaluated          |
 +-----------------------------------------------------------------------------+
 | TODO more on bangpatterns, -XStrictData, -XStrict,                          |
 +-----------------------------------------------------------------------------+
@@ -856,7 +704,7 @@ When a pattern match does not a bind a variable, it is useless.
   Nothing = Just 5
   Nothing = y
 
-Though if you make match strict it can be used as an assert::
+Though if you make the match strict it can be used as an assert::
 
   -- these will fail at runtime
   let !1 = 2 in "hello"
@@ -1077,13 +925,200 @@ newtype
 | closure                    |                        |                               |
 +----------------------------+------------------------+-------------------------------+
 
+GADT (Aggregated Type)
+----------------------
+
+* http://www.cs.ox.ac.uk/ralf.hinze/publications/With.pdf Fun with phantom
+  types.
+
++-----------------------------------------------------------------------------+
+| -XGADTs                                                                     |
++-----------------------------------------------------------------------------+
+
+ADTs are rigid in polymorphism. GADTs allow much more flexibility as each
+constructor can return a different type and therefore polymorphism can be
+restricted to specific types for specific cases. ADTs are just a special case
+of GADTs.
+
++-----------------------------------------------------------------------------+
+| Representing terms in an expression with static typechecking.               |
++-----------------------------------------------------------------------------+
+| The type ``Term a`` represents any term i.e. an abstraction for the         |
+| aggregation of the return types of all constructors of this data type.      |
+| The type 'a' can be restricted to a group of types, potentially one for     |
+| constructor.                                                                |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   data Term a where                                                         |
+|     Lit    :: Int -> Term Int                                               |
+|     Succ   :: Term Int -> Term Int                                          |
+|     IsZero :: Term Int -> Term Bool                                         |
+|     If     :: Term Bool -> Term a -> Term a -> Term a                       |
+|     Pair   :: Term a -> Term b -> Term (a,b)                                |
++-----------------------------------------------------------------------------+
+
++--------------------------------------------------------------------------------+
+| The type of an evaluated expression depends on the specific expression         |
+| being evaluated and is determined by inference.                                |
++--------------------------------------------------------------------------------+
+| ::                                                                             |
+|                                                                                |
+|    eval :: Term a -> a                                                         |
+|                                                                                |
+|    eval (Lit 10)                                                 -- Int        |
+|    eval (Succ (Lit 10))                                          -- Int        |
+|    eval (IsZero (Lit 10))                                        -- Bool       |
+|    eval (If (IsZero (Lit 10)) (Lit 0) (Lit 1))                   -- Int        |
+|    eval (If (IsZero (Lit 10)) (IsZero (Lit 0)) (IsZero (Lit 1))) -- Bool       |
+|    eval (Pair (Lit 10) (Lit 20))                                 -- (Int, Int) |
++--------------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| An expression is represented by a data type which is a collection or sum    |
+| of terms in that expression.                                                |
++-----------------------------------------------------------------------------+
+| Since each expression evaluates to a different type `we need what that type |
+| is for each expression`. `We also need a way to somehow propagate this type |
+| information and use it when we evaluate the expression`.                    |
++-----------------------------------------------------------------------------+
+| The type information for each expression is encoded as the return type of   |
+| the constructor e.g. ``Term Bool`` return type means the expression         |
+| evaluates to a ``Bool`` value.                                              |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| ``Term a`` admits all constructors types of ``Term``.                       |
+| ``a`` the return type of ``eval``, depends on the specific constructor      |
+| being evaluated e.g. when we evaluate ``Lit`` we know from the GADT         |
+| definition that ``Lit``'s type is ``Term Int`` so ``a`` must be ``Int``.    |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- Explicit signature is required                                          |
+|  -- The return type 'a' of this function is dependent                       |
+|  -- on the type of the constructor passed to it                             |
+|                                                                             |
+|  eval :: Term a -> a                                                        |
+|                                                                             |
+|  eval (Lit i)      = i                                   -- a ~ Int         |
+|  eval (Succ t)     = 1 + eval t                          -- a ~ Int         |
+|  eval (IsZero t)   = eval t == 0                         -- a ~ Bool        |
+|  eval (If b e1 e2) = if eval b then eval e1 else eval e2 -- a ~ a           |
+|  eval (Pair e1 e2) = (eval e1, eval e2)                  -- a ~ (a1, a2)    |
++-----------------------------------------------------------------------------+
+| In other words a pattern matching instance retrieves the type               |
+| encoded in the constructor return type to determine `a`. The retrieved type |
+| can then be used to write type specific code with proper typechecking.      |
++-----------------------------------------------------------------------------+
+| The concept inherently requires an explicit type signature in a pattern     |
+| match for the following:                                                    |
+|                                                                             |
+| * scrutinee                                                                 |
+| * entire case expression                                                    |
+| * free variables mentioned in any of the case alternatives                  |
++-----------------------------------------------------------------------------+
+| `deriving` clause cannot be used                                            |
++-----------------------------------------------------------------------------+
+
++------------------------------------------------------------------------------------------------------+
+| A polymorphic type and an aggregated type (GADT) are two opposite concepts.                          |
++-------------------------------------------------+----------------------------------------------------+
+| A polymorphic type                              | Aggregated type (GADT)                             |
++-------------------------------------------------+----------------------------------------------------+
+| All constructors return the same type           | One or more constructors return a concrete type    |
+| parameterized by a type variable.               | instance (e.g. Term Int).                          |
++-------------------------------------------------+----------------------------------------------------+
+| Defines an asbtract type e.g. ``List``.         | Defines the sum type as a group of concrete type   |
+|                                                 | instances.                                         |
++-------------------------------------------------+----------------------------------------------------+
+| We `instantiate` ``List`` to create concrete    | We `abstract` the group of concrete types          |
+| type instances.                                 | to ``Term a``.                                     |
++------------------------+------------------------+------------------------+---------------------------+
+| Define Abstract Type   | Create Instances       | Define instances       | Create Abstraction        |
++------------------------+------------------------+------------------------+---------------------------+
+| List a                 | List Int               | Term Int               | Term a                    |
+|                        +------------------------+------------------------+                           |
+|                        | List Bool              | Term Bool              |                           |
+|                        +------------------------+------------------------+                           |
+|                        | List (Int, Bool)       | Term (a,b)             |                           |
++------------------------+------------------------+------------------------+---------------------------+
+| A type signature specifies a concrete type      | An explicit type signature specifies the abstract  |
+| instance via explicit specification or          | type ``Term a``. The value of ``a`` is             |
+| inference.                                      | supplied by the typechecker on pattern match.      |
++-------------------------------------------------+----------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Another way to think about it is to think of                                |
+| `eval` as a polymorphic function representing a whole family of functions   |
+| with `a` ranging over the return types of constructors of `Term`:           |
+| ::                                                                          |
+|                                                                             |
+|  eval :: Term Int -> Int                                                    |
+|  eval :: Term Bool -> Bool                                                  |
+|  eval :: Term (Int, Bool) -> (Int, Bool)                                    |
+|  eval :: Term (Bool, Int) -> (Bool, Int)                                    |
+|                                                                             |
+| The appropriate definition is chosen statically depending on the            |
+| constructor passed to eval.                                                 |
+| ::                                                                          |
+|                                                                             |
+|  eval :: Term Int -> Int                                                    |
+|  eval (Lit i)      = i                                                      |
+|                                                                             |
+| Here the definitions for the recursive calls to eval will be chosen         |
+| depending on the types of b, e1 and e2.                                     |
+| ::                                                                          |
+|                                                                             |
+|  eval :: Term a -> a                                                        |
+|  eval (If b e1 e2) = if eval b then eval e1 else eval e2                    |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Another example.                                                            |
++-----------------------------------------------------------------------------+
+| Accepting a generic argument (``Int`` or ``Char``) to a function.           |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- Encode type information in constructor return types                     |
+|  data Info a where                                                          |
+|    InfoInt    :: Info Int  -- constructor encoding Int in return type       |
+|    InfoChar   :: Info Char -- constructor encoding Char in return type      |
+|                                                                             |
+|  -- Signature with abstract type (Info a) MUST be supplied by programmer    |
+|  -- Parameter 'a' is automatically determined by the typechecker            |
+|  -- via pattern match on constructors                                       |
+|  incr :: Info a -> a -> Int                                                 |
+|  incr InfoInt  i    = i + 1         -- a ~ Int                              |
+|  incr InfoChar c    = ord c + 1     -- a ~ Char                             |
+|                                                                             |
+|  -- Call the function with varying type argument but explicit type info     |
+|  incr InfoInt 5                                                             |
+|  incr InfoChar 'a'                                                          |
++-----------------------------------------------------------------------------+
+| Its like constraint solving, the value of ``a`` gets computed by other      |
+| available information rather than being supplied. Of course the type        |
+| signature must be supplied with the unknowns at the right places.           |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| If you like Existentially quantified types, you'd probably want to notice   |
+| that they are now subsumed by GADTs. As the GHC manual says, the following  |
+| two type declarations give you the same thing.                              |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  data TE a = forall b. MkTE b (b->a)                                        |
+|  data TG a where { MkTG :: b -> (b->a) -> TG a }                            |
++-----------------------------------------------------------------------------+
+
 Data Families
 -------------
 
 +----------------------------------------------------------------------+
-| A polymorphic type is a type function, it is a `total function`      |
-| which defines the data constructors generically for all values of    |
-| the type parameter.                                                  |
+| A polymorphic type is a `total` type function; it defines data       |
+| constructors for all possible values of the type parameter.          |
 +----------------------------------------------------------------------+
 | ::                                                                   |
 |                                                                      |
@@ -1098,13 +1133,12 @@ Data Families
 +----------------------------------------------------------------------+
 
 +----------------------------------------------------------------------+
-| A data family is a type function, it is a `partial function` defined |
-| only for the members of the family, each providing its own specific  |
-| data constructor definitions. The function is open to extension as   |
-| new instances can be defined later.                                  |
+| A data family is a `partial` type function defined using             |
+| `pattern match` definitions, for the members of the family. The      |
+| function is open to extension as new instances can be defined later. |
 +----------------------------------------------------------------------+
-| Prototype: declare the kind signature of the type function.          |
-| All of the following declarations are equivalent:                    |
+| A data family `prototype` declares the kind signature of the type    |
+| function. All of the following declarations are equivalent:          |
 +----------------------------------------------------------------------+
 | ::                                                                   |
 |                                                                      |
@@ -1112,9 +1146,13 @@ Data Families
 |  data family List a :: Type                                          |
 |  data family List   :: Type -> Type                                  |
 +----------------------------------------------------------------------+
-| Instances: define the type function for specific values of the       |
-| parameters (`a` in the above example) known as members of the family |
-| (comparable to function definitions using pattern match)             |
+| A `data instance` defines the type function for specific values of   |
+| its parameters (`a` in the above example) known as members of the    |
+| family.                                                              |
++----------------------------------------------------------------------+
+| A data instance can be compared to a function definition using       |
+| pattern match. A pattern match extracts the constituent types of a   |
+| member type and they can be used in the RHS of the instacne:         |
 +----------------------------------------------------------------------+
 | ::                                                                   |
 |                                                                      |
@@ -1153,23 +1191,28 @@ Type Synonym Families
 +-------------------------------------------------------------------------------------+
 | Open families (open to extension by adding instances)                               |
 +-------------------------------------------------------------------------------------+
-| Declare the kind signature:                                                         |
+| Declare a type family by specifying the kind signature:                             |
 +-------------------------------------------------------------------------------------+
-| The number of parameters in a type family declaration, is the family’s              |
-| arity. The kind of a type family is not sufficient to determine a family’s          |
-| arity. So we cannot use just the kind signature in declaration like we can          |
-| in data families.                                                                   |
+| The kind of a type family is not sufficient to determine its arity.                 |
+| So unlike data families, we cannot use just the kind                                |
+| signature in the declaration.                                                       |
 +-------------------------------------------------------------------------------------+
 | ::                                                                                  |
 |                                                                                     |
-|  type family F1 c                    -- Arity 1, F  :: Type -> Type                 |
-|  type family F1 c    :: Type         -- Arity 1, F  :: Type -> Type                 |
+|  type family F1 c                    -- Arity 1, F1 :: Type -> Type                 |
+|  type family F1 c    :: Type         -- Arity 1, F1 :: Type -> Type                 |
 |  type family F2 a b  :: Type -> Type -- Arity 2, F2 :: Type -> Type -> Type -> Type |
++-------------------------------------------------------------------------------------+
+| Poly kinded or kind-indexed type families where the family matches both on the kind |
+| and type. The kind is passed as an implicit kind parameter in this case.            |
++-------------------------------------------------------------------------------------+
+| ::                                                                                  |
+|                                                                                     |
 |  type family F3 a    :: k            -- Poly kinded, k is an implicit parameter     |
 +-------------------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
-| Define instances:                                                           |
+| Defining instances:                                                         |
 +-----------------------------------------------------------------------------+
 | ::                                                                          |
 |                                                                             |
@@ -1237,9 +1280,137 @@ Type Synonym Families
 |    G Int = Int                   | G a simplifies to a                      |
 |    G a   = a                     |                                          |
 +----------------------------------+------------------------------------------+
-| Creating an instance of a closed family will result in an error             |
+| Creating an instance of a closed family results in an error                 |
 +-----------------------------------------------------------------------------+
 
 +-----------------------------------------------------------------------------+
 | `-XUndeciableInstances`: allow undecidable type synonym instances.          |
 +-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| -XTypeFamilyDependencies                                                    |
++-----------------------------------------------------------------------------+
+| Define injective type families by functional dependency annotations         |
++----------------------------------+------------------------------------------+
+| ::                               | ::                                       |
+|                                  |                                          |
+|  type family Id a                |  id :: Id t -> Id t                      |
+|  type instance Id Int = Int      |  id x = x                                |
+|  type instance Id Bool = Bool    |                                          |
++----------------------------------+------------------------------------------+
+| Type variable t appears only under type family applications and is thus     |
+| ambiguous to inferencer. A functional dependency removes the ambiguity.     |
++-----------------------------------------------------------------------------+
+| type family Id a = r | r -> a                                               |
++-----------------------------------------------------------------------------+
+
+* http://ics.p.lodz.pl/~stolarek/_media/pl:research:stolarek_peyton-jones_eisenberg_injectivity_extended.pdf
+
+Constraints in types
+--------------------
+
+Constraints are just handled as types of the kind `Constraint`.
+
++-----------------------------------------------------------------------------+
+| Typeclass Constraint (saturated applications to type classes)               |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Implicit parameter constraints (``-XImplicitParams``)                       |
++-----------------------------------------------------------------------------+
+| ``?x :: Int``                                                               |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Equality Constraint (``-XTypeFamilies`` or ``-XGADTs``)                     |
++-----------------------------------------------------------------------------+
+| In the presence of type families, whether two types are equal cannot        |
+| generally be decided locally. Hence, the contexts of function signatures    |
+| may include equality constraints of the form ``t1 ~ t2``, as in the         |
+| following example:                                                          |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  sumCollects :: (Collects c1, Collects c2, Elem c1 ~ Elem c2)               |
+|              => c1 -> c2 -> c2                                              |
++-----------------------------------------------------------------------------+
+| In general, the types t1 and t2 of an equality constraint may be arbitrary  |
+| monotypes; i.e., they may not contain any quantifiers, independent of       |
+| whether higher-rank types are otherwise enabled.                            |
++-----------------------------------------------------------------------------+
+| Equality constraints in class and instance contexts enable a simple         |
+| translation of programs using functional dependencies into programs using   |
+| family synonyms instead essentially giving a name to the functional         |
+| dependency.                                                                 |
++-----------------------------------+-----------------------------------------+
+| ::                                |                                         |
+|                                   |                                         |
+|  class C a b | a -> b             | class (F a ~ b) => C a b where type F a |
++-----------------------------------+-----------------------------------------+
+| ``~~`` denotes kind-heterogeneous equality, which relates two types of      |
+| potentially different kinds. The kinds of ``~`` and ``~~`` are:             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  (~)  :: forall k. k -> k -> Constraint                                     |
+|  (~~) :: forall k1 k2. k1 -> k2 -> Constraint                               |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| Coercible Constraint                                                        |
++-----------------------------------------------------------------------------+
+| The constraint ``Coercible t1 t2`` is similar to ``t1 ~ t2``, but denotes   |
+| representational equality between ``t1`` and ``t2`` in the sense of Roles   |
+| (Roles). It is exported by ``Data.Coerce``.                                 |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| ``-XConstraintKinds``                                                       |
++-----------------------------------------------------------------------------+
+| ``GHC.Exts`` exports the kind ``Constraint``                                |
++-----------------------------------------------------------------------------+
+| Any type of the kind ``Constraint`` can be used as a constraint.            |
+| The following things have kind ``Constraint``:                              |
++-----------------------------------------------------------------------------+
+| Individual constraints described earlier.                                   |
++-----------------------------------------------------------------------------+
+| Tuples, all of whose component types have kind ``Constraint`` e.g.          |
+| ``(Show a, Ord a)``                                                         |
++-----------------------------------------------------------------------------+
+| Constraint synonyms                                                         |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type Stringy a = (Read a, Show a)                                          |
+|  foo :: Stringy a => a -> (String, String -> a)                             |
+|  foo x = (show x, read)                                                     |
++-----------------------------------------------------------------------------+
+| Anything that the user has declared to have kind ``Constraint`` e.g.        |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  type Foo (f :: \* -> Constraint) = forall b. f b => b -> b                 |
+|                                                                             |
+|  type family Typ a b :: Constraint                                          |
+|  type instance Typ Int  b = Show b                                          |
+|  type instance Typ Bool b = Num b                                           |
+|                                                                             |
+|  func :: Typ a b => a -> b -> b                                             |
+|  func = ...                                                                 |
++-----------------------------------------------------------------------------+
+| Permitting more general constraints can cause type checking to loop, you    |
+| must use ``-XUndecidableInstances`` to signal that you don’t mind if the    |
+| type checker fails to terminate.                                            |
++-----------------------------------------------------------------------------+
+
+Data.Type.Equality (base package)
+---------------------------------
+
+* Refl
+* :~:
+
+References
+----------
+
+* https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/icfp12.pdf Equality proofs and deferred type errors
+A compiler pearl

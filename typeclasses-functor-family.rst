@@ -1,5 +1,30 @@
-Functor/Applicative/Monad As composition mechanisms
----------------------------------------------------
+Terminology
+-----------
+
++----------------------------+------------------------------------------------+
+| Positive position          | type variable in result type of a function     |
++----------------------------+------------------------------------------------+
+| Negative position          | type variable in arguments of a function       |
++----------------------------+------------------------------------------------+
+
+Transforms
+~~~~~~~~~~
+
+* Functions | Concrete objects |
+* Functors  | Types            | Type functions, functions
+* Natural transformation |
+
+* Tensors   |
+
+The two maps of the functor -- Haskell-types-to-Haskell-types and
+Haskell-functions-Haskell-functions -- are the type constructor f and the
+function fmap.
+
+An instance of Functor is a type constructor (of kind * -> \*). An example is
+Maybe.
+
+Functors
+--------
 
 We have common basic primitives (functions) and apply them in many different
 ways depending on the type i.e. the behavior is a function of the type on which
@@ -13,27 +38,31 @@ we are applying them. Intuitions:
   existing function. Pitfall - do not stereotype the concept by thinking only about a
   collection type like list.
 * A functor allows reuse of a function from one context to another
-* A normal function could be wrapped in a (applicative) type and applied
-  to values wrapped in the same type. This is another way of composing
-  which is a transformation on normal function application to the peculiar
-  world of the type.
-* An applicative allows you to compose functor applications, monoidal functor
-* A monad allows you to compose by chaining or collecting and using the results
-  in a certain way. A do block in Monad allows you to chain conveniently. In
-  monad you first compose the actions and then run them using an input.
 
 Functor
 -------
 
-A type is a functor if it knows how to apply a function to the type
+A Functor type is a type that acts like a function that modifies another type.
+For example a type ``a`` can be modified into another type ``f a`` by the
+Functor type ``f``.
+
+A type is a functor if we can apply a function to the type
 or value wrapped in it. A type has its own unique way of applying the
-function. Different functors can apply the function in different ways.
+function. A function can be applied to the type in different ways resulting in
+different types of Functors.
 
-fmap      :: (a -> b) -> f a -> f b  -- covariant
-contramap :: (a -> b) -> f b -> f a  -- contravariant
+-- covariant Functor, the values in the Functor are consumed by fmap
+-- prey functor, 'a' is to be eaten. map modifies the value in the functor.
+fmap      :: (a -> b) -> f a -> f b
 
-data WithInt a = WithInt (Int -> a)  -- covariant on a
-data MakeInt a = MakeInt (a -> Int)  -- contravariant on a
+-- contravariant Functor, the values in the Functor will consume values
+-- produced by contramap
+-- predator or hungry functor, will eat 'b' and produce something that will eat
+'a'. contrmap modifies what the functor eats
+contramap :: (a -> b) -> f b -> f a
+
+data WithInt a = WithInt (Int -> a)  -- covariant on 'a'
+data MakeInt a = MakeInt (a -> Int)  -- contravariant on 'a'
 
 When a type variable appears in positive position, the data type is covariant
 with that variable. When the variable appears in negative position, the data
@@ -50,8 +79,19 @@ multiply two negatives, you get a positive. As a result, in (a -> IO ()) -> IO
 (), a is in positive position, meaning that CallbackRunner is covariant on a,
 and we can define a Functor instance.
 
+The value that we are mapping to could be a concrete value or a function. In
+case it is a concrete value the only possibility is to have a covariant
+functor. If it is a function then we can have covariant, contravariant or
+profunctor.
+
+Diagram:
+
+Covariant: v> - >f
+Contravariant: f> - >v
+Profunctor: f1> - >v - >f2
+
 Examples
-^^^^^^^^
+~~~~~~~~
 
 List: A list type is an ordered collection of values. Applying a
 function on a list is applying the function on each item in the list and
@@ -68,79 +108,102 @@ or before output.
 Maybe: apply the function to the value if it exists otherwise stays
 Nothing.
 
-Applicative
+Utility Functors
+----------------
+
+* Identity
+* Const
+
+Profunctors
 -----------
 
-Also called "strong lax monoidal functor". The monoidal formulation is
-more elegant. Apply a function (functor property) and combine (monoidal
-property).
+p a b -- a is in the input position and b in the output position
+      -- i.e. the shape is a -> b
 
-class (Functor f) => Applicative f where
-  pure :: a -> f a
-  zip :: (f a, f b) -> f (a, b)
+The value being mapped to could be concrete or a function. In case of
+profunctor it has to be a function.
 
-A functor type allows you to have function objects wrapped in that type,
-but it does not know how to apply them to values wrapped in the same
-type. Applicative adds that via <*>. An applicative type provides a type
-specific way of applying functions contained in that type to values
-contained in that same type.
+A function is asymmetric, it takes several inputs and produces one output.
+Inputs are also called negative postion and output as positive position.
 
-<*> :: f (a -> b) -> f a -> f b
+A covariant functor has a value in positive position which means the mapped
+function consumes it.
+A contravariant functor has a value in a negative postion which means the
+mapped function produces the value by sucking in some other value.
 
-This is another way of composing analogous to function application.
+A profunctor has two functions to map one to produce and one to consume and
+therefore can be applied at both ends of the target. It is therefore more
+general. It can transform a value on the way in and on the way out.
 
-Examples
-^^^^^^^^
+Sieve p f - (sieve :: p a b -> a -> f b) closes the input end of the profunctor
+and puts the result inside a functor (f b)
 
-List: apply a collection of functions on a collection of values and
-combine the results. Its own unique way of application - apply each
-function to each value and then concatenate the results.
+Star f d c = Star { runStar :: d -> f c } where f is a functor. Star f, has a
+profunctor instance, so this function inside Star can be dimapped.
 
->> [id,id,id] <*> [1,2,3]
-[1,2,3,1,2,3,1,2,3]
+Representable functors:
 
-IO: Apply the function to the values resulting from the IO action. Note
-the function itself is NOT an IO action or something resulting from an
-IO action.
+* functions can be represented as set values (data type)
+* (-> x) is representable
+* if a functor is isomorphic to (-> x) then it must be representable
+* if we can provide two natural transformations from the functor to (-> x)
+  functor and back then we can prove that it is representable.
+* tabulate transforms a (-> x) to our functor for all argument values
+* index takes a value and the representation and transforms it back to (-> x)
+* tabluate . index = id
 
-sz <- (++) <$> getLine <*> getLine
+class Representable f where
+   type Rep f :: *
+   tabulate :: (Rep f -> x) -> f x
+   index    :: f x -> Rep f -> x
 
-Maybe:
+data Stream x = Cons x (Stream x)
 
-Monad
------
+instance Representable Stream where
+    type Rep Stream = Integer
+    tabulate f = Cons (f 0) (tabulate (f . (+1)))
+    index (Cons b bs) n = if n == 0 then b else index bs (n - 1)
 
-A Monad knows how to flatten the same type contained within the same
-type. join eliminates a layer of indirection, the elimination is encoded in a
-type specific manner:
+In particular, it turns out that functors that are based on product types can
+be represented with sum types, and that sum-type functors are not in general
+representable (example: the list functor).
 
-join   :: M (M a) -> M a
+Finally, notice that a representable functor gives us two different
+implementations of the same thing — one a function, one a data structure. They
+have exactly the same content — the same values are retrieved using the same
+keys.
 
-It allows functions of type (a -> m b) to be mapped to the type and results
-collected by joining. Join behavior defines the Monad.
+A Profunctor p is Representable if there exists a Functor f such that p d c is
+isomorphic to d -> f c.
 
-(>>=) :: Monad m => m a -> (a -> m b) -> m b
-m >>= g = join (fmap g m)
+tabulate and sieve form two halves of an isomorphism.
 
-Examples
-^^^^^^^^
+Strong:
+This describes profunctor strength with respect to the product structure of Hask.
+A strong profunctor allows the monoidal structure to pass through.
 
-List: join is concatenation of the resulting list of lists:
-xs >>= f = concat (map f xs) -- concat == join
+Closed:
+A closed profunctor allows the closed structure to pass through.
 
-IO: join is strict evaluation of the IO action (case is strict):
+* https://ocharles.org.uk/blog/guest-posts/2013-12-22-24-days-of-hackage-profunctors.html
+* https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/profunctors
 
-bindIO (IO m) k = IO $ \ s -> case m s of (# new_s, a #) -> unIO (k a) new_s
-join x   = x >>= id
+Free Functor
+------------
 
-Note that for IO '<*> = ap', ap is defined in terms of monadic
-primitives and has a Monad constraint on the type, so even the
-applicative sequencing will also strictly evaluate the IO actions in
-sequence.
+* https://hackage.haskell.org/package/free-functors
 
-Pitfalls: Remember, a monad is much more than IO and IO is much more
-than a Monad.
+The free functor for class c.
 
-Comonad
--------
+Free c a is basically an expression tree with operations from class c and
+variables/placeholders of type a, created with unit. Monadic bind allows you
+to replace each of these variables with another sub-expression.
 
+::
+
+  newtype Free c a = Free { runFree :: forall b. c b => (a -> b) -> b }
+
+References
+----------
+
+* https://bartoszmilewski.com/2015/07/29/representable-functors/

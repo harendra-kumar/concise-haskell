@@ -201,6 +201,15 @@ Multi-parameter Typeclasses
 Functional Dependencies
 ~~~~~~~~~~~~~~~~~~~~~~~
 
+::
+
+  class MonadBase b m => MonadBaseControl b m | m -> b where
+
+We can read ``m -> b`` as ``m determines b``.  The part after ``|`` is a
+functional dependency which says ``m`` uniquely determines ``b`` i.e. for the
+same ``m`` there cannot be more than one ``b``. In other words, ``b`` is a
+function of ``m`` i.e.  ``f m = b`` for some f.
+
 -XAllowAmbiguousTypes can be useful with functional dependencies.
 
 Infix Constructor syntax
@@ -301,8 +310,14 @@ Deriving Instances
 | -XGeneralizedNewtypeDeriving | Everything that the underlying type supports?|
 +------------------------------+----------------------------------------------+
 
+* http://cs.brynmawr.edu/~rae/talks/2013/hiw-roles.pdf GeneralizedNewtypeDeriving is now type-safe
+
 Associated Types
 ----------------
+
+When the types in the type signatures of class functions cannot be mapped to
+the member type directly we can use type functions to map them to the desired
+types.  Such type functions are called associated types.
 
 Data types
 
@@ -331,8 +346,43 @@ Data types
 
 Type synonyms
 
+Examples: Variable argument function
+------------------------------------
+
+We can overload a function based on its signature.
+
+class Signature a where
+  func :: a
+
+instance Signature (String -> String)
+  where func s1 = s1
+
+instance Signature (String -> String -> String)
+  where func s1 s2 = s1 ++ s2
+
+Problem
+-------
+
+
+class AddMod a where
+    addmod :: a
+
+addmod :: x -> z
+addmod :: x -> y -> z
+
+How do we fix return type z in the signature in the class and represent the
+arguments using a variable? Is it even possible?
+
+Can we create a constraint to specify that the return type of a function is
+fixed but arguments can be anything, any number?
+
+* http://okmij.org/ftp/Haskell/polyvariadic.html#polyvar-fn
+* http://chris-taylor.github.io/blog/2013/03/01/how-haskell-printf-works/
+
 References
 ----------
 
 * https://wiki.haskell.org/Typeclassopedia
 * https://ocharles.org.uk/blog/guest-posts/2014-12-15-deriving.html
+* http://stackoverflow.com/questions/8546335/ambiguous-type-variable-a0-in-the-constraints
+* https://stackoverflow.com/questions/12645254/ghc-code-generation-for-type-class-function-calls

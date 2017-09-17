@@ -103,11 +103,52 @@ In general, we should try to restrict ourselves to the pure functional style,
 if that is not enough lift to the applicative style and if that is not powerful
 enough then raise to the monadic style.
 
+Functor | Put a value in a context | Most General | Least Powerful
+Applicative Functor | Apply a function in a context | Less general | More powerful
+Arrow (Composing Functor) | Compose functions in a context | Less general | More powerful
+Monad | Embed computations between function applications in a context | Least general | Most powerful
+
+There are things that arrows can do and monads cannot i.e. the static input.
+There are things that mondas can do but arrows cannot i.e. arrowapply.
+There are things that applicatives can do but monad cannot e.g. parallel
+application.
+
+More types can have a functor instance than Applicatives. More types can have
+an applicative instance than arrows. More types can have an arrow instance than
+Monads.
+
+Monads generalization of CPS?
+-----------------------------
+
+"Recently (1989) Moggi has shown how monads, a notion from category theory,
+generalise the continuation-passing style transformation"
+
+Syntax
+------
+
+Monad:
+    parseTerm = do
+         x <- parseSubterm
+         o <- parseOperator
+         y <- parseSubterm
+         return $ Term x o y
+
+Arrow: (the only difference from Monad is the static input at the tail)
+    parseTerm = proc _ -> do
+         x <- parseSubterm -< ()
+         o <- parseOperator -< ()
+         y <- parseSubterm -< ()
+         returnA -< Term x o y
+
+Applicative:
+
+    parseTerm = Term <$> parseSubterm <*> parseOperator <*> parseSubterm
+
 Composition of Functions
 ------------------------
 
-Keep in mind that applicatives, monads and arrow  types always contain
-functions or actions. They compose functions.
+Keep in mind that applicatives, monads and arrow types compose actions or
+functions.
 
 ::
 
@@ -186,7 +227,16 @@ more flexible as there is no enforcement on the structure. Applicatives enforce
 a structure on the computation determined by the structure of the function
 application. However, applicatives are more composable than Monads.
 Applicatives can be freely composed to create new applicatives whereas monads
-cannot be.
+cannot be. The composition of applicative functors is always applicative,
+but the composition of monads is not always a monad.
+
+Applicative functors are a generalisation of monads. Both allow the expression
+of effectful computations into an otherwise pure language, like Haskell.
+Applicative functors are to be preferred to monads when the structure of a
+computation is fixed a priori. That makes it possible to perform certain kinds
+of static analysis on applicative values.
+
+* https://arxiv.org/pdf/1403.0749.pdf
 
 Examples
 ~~~~~~~~
@@ -205,6 +255,21 @@ IO action::
   sz <- (++) <$> getLine <*> getLine
 
 Maybe:
+
+* https://stackoverflow.com/questions/24668313/arrows-are-exactly-equivalent-to-applicative-functors
+For the difference between Applicative, monadic and arrowized IO
+
+Conclusion
+
+Monads are opaque to static analysis, and applicative functors are poor at
+expressing dynamic-time data dependencies. It turns out arrows can provide a
+sweet spot between the two: by choosing the purely functional and the arrowized
+inputs carefully, it is possible to create an interface that allows for just
+the right interplay of dynamic behaviour and amenability to static analysis.
+
+* Applicative corresponds to product types or product operation or functions.
+  A function or applicative requires all of the arguments to complete the
+  operation while an Alternative may require only some or any of them (choice).
 
 Alternative
 ~~~~~~~~~~~
@@ -239,7 +304,7 @@ Combines applicative actions in the following ways:
 |                           | success, success, failure = sucess [res1, res2] |
 +---------------------------+-------------------------------------------------+
 
-The intuition is that both some and many keep running `v`, collecting its
+The intuition is that both `some` and `many` keep running `v`, collecting its
 results into a list, until it fails; `some v` requires `v` to succeed at least
 once, whereas `many v` does not require it to succeed at all. That is, many
 represents 0 or more repetitions of `v`, whereas some represents 1 or more
@@ -260,9 +325,9 @@ Example: Maybe
 +--------------+--------------------------------------------------------------+
 | many Nothing | Nothing                                                      |
 +--------------+--------------------------------------------------------------+
-| some Just 5  | loop -- because it keeps succeeding every time               |
+| some Just 5  | loops forever -- because it keeps succeeding every time      |
 +--------------+--------------------------------------------------------------+
-| many Just 5  | loop -- because it keeps succeeding every time               |
+| many Just 5  | loops forever -- because it keeps succeeding every time      |
 +--------------+--------------------------------------------------------------+
 
 The problem is that since `Just a` is always "successful", the recursion will
@@ -293,6 +358,9 @@ occurrences of p (i.e. it will parse as many occurrences of p as possible and
 then stop), and many p parses zero or more occurrences.
 
 * http://stackoverflow.com/questions/13080606/confused-by-the-meaning-of-the-alternative-type-class-and-its-relationship-to
+
+* An Alternative corresponds to Sum types the way an Applicative corresponds to
+  product types.
 
 Monad
 -----
@@ -547,6 +615,28 @@ the pure value and the other track handles the side effects. Side effects can
 be sequenced via composition. In IO monad sequencing is one track and passing
 the IO values is another track.
 
+Passing State
+-------------
+
+In a pure functional programming paradigm there are no global variables or
+pointers. Functions are pure so how do we work on global state or pass state
+down to a deeply embedded function. The only way to pass values is via
+arguments and that's how we do it. Monads allow us to separate the state
+passing functions from the pure functions. A monad is a chained computation
+where state is handed over from the previous function to the next. The state
+passing is hiddden from the user of the monad, the user can use pure functions,
+examine or change the state and the state will be passed on made available at
+any point via the moand.
+
+In a continuation passing style we can build higher level functions by
+composing functions. The arguments of a function can be used to create the next
+function in the chain. Therefore CPS is a pretty common (or necessary) style
+used in monad implementations where state has to be passed around.
+
+Example:
+
+Also see the transformers chapter for more details on state passing monads.
+
 Standard Monads
 ---------------
 
@@ -665,13 +755,6 @@ dependencies explicitly.
 You can express effectful sequencing using Applicative whereas you can express
 effectful looping only using Monads.
 
-Free Functor
-------------
-
-::
-
-  newtype Free c a = Free { runFree :: forall b. c b => (a -> b) -> b }
-
 Free Monad
 ----------
 
@@ -681,7 +764,12 @@ through the composed structure and interpreting it.
 
 A Monad mixes the structure and the custom DSL interpreter together. A free
 monad is more modular, it provides only the structure, the interpreter is added
-as a separate layer.
+as a separate layer.  Free monads arise every time an interpreter wants to give
+the program writer a monad, and nothing more. If you are the interpreter and I
+am the program writer, you can push against me and keep your options as free as
+possible by insisting that I write a program using a free monad that you
+provide me. The free monad is guaranteed to be the formulation that gives you
+the most flexibility how to interpret it, since it is purely syntactic.
 
 A Free monad is a data type which is constructed using a Functor. It has all
 the properties of Applicative and Monad without actually defining any explicit
@@ -691,23 +779,30 @@ generically defined for the Free data structure which includes a functor.
 A free monad does not have a handling customized for a specific type but it is
 a monad. That is, it is a bare minimum monad without any custom semantics::
 
-  data Free f a = Pure a | Impure f (Free f a)
+  data Free f a = Pure a | Free (f (Free f a))
 
 f is a functor. This is a recursive data structure which keeps adding one layer
 of functor every time. In our earlier definition of a monad we keep eliminating
-the extra layer using `join`. Here we keep that layer built into the data
+the extra layer using ``join``. Here we keep that layer built into the data
 structure and eliminate them at one go later when we consume this data
 structure.
 
-It is worth noting that free is a recursive sum type dual to cofree which is
-a corecursive product type.  Notice how this structure is like a linked list,
-adding nested layers of functors which are to be joined later using a custom
+It is worth noting that free is a recursive sum type dual to cofree. cofree is
+a corecursive product type.  The structure of ``Free`` is like a linked list,
+adding nested layers of functors which are to be joined later using custom
 semantics::
 
-  f Free --> f Free --> ... --> Pure.
+  Free (f (Free (f ... (Free (f (Pure a))))))
 
-We have put the constraints on the structure directly rather than using natural
-transformations.
+A list is just a special case of a free monad, in fact it is a free monoid. In
+the following type, the Pure value is ``()`` and the functor is a tuple of
+a value of some type ``a`` and the next ``Free`` monad structure. Thus each
+layer of the nested functors embed a value of type ``a``::
+
+  type List a = Free ((,) a) ()
+
+The Free monad structure itself is constrained rather than using natural
+transformations for constraints to make it a monad.
 
 +-------------------------------------+---------------------------------------+
 | Monad                               | Free Monad                            |
@@ -727,6 +822,42 @@ transformations.
 |                                     | significant.                          |
 +-------------------------------------+---------------------------------------+
 
+Free vs Cofree
+--------------
+
+::
+
+    data Free f a = Pure a | Free (f (Free f a))
+
+    It has a recursive structure. Just like a finite list. Each layer of
+    functor can embed values of some type, just as we saw in case of a list
+    above, until we reach the base case.
+
+    Free (f (Free (f ... (Free (f (Pure a))))))
+
+    data Cofree f a = a :< f (Cofree f a)
+
+    It has a corecursive structure. Just like an infinite stream. Here there is
+    no base case and a value is explicitly embedded in each layer.
+    :< a (f (:< a (f (:< a (f (...))))))
+
+
+Free and Cofree Transformers
+----------------------------
+
+Free monad transformer::
+
+  -- | The base functor for a free monad.
+  data FreeF f a b = Pure a | Free (f b)
+  newtype FreeT f m a = FreeT { runFreeT :: m (FreeF f a (FreeT f m a)) }
+  m (Free (f (m (Free (f ... (m (Free (f (m (Pure a))))))))))
+
+  It has multiple layers of functors to get to the base case.
+
+  data CofreeF f a b = a :< f b
+  newtype CofreeT f w a = CofreeT { runCofreeT :: w (CofreeF f a (CofreeT f w a)) }
+  w (:< a (f (w (:< a (f (w ...))))))
+
 Freer Monad
 -----------
 
@@ -741,6 +872,52 @@ generating `FFree g a`.
 
 Monad vs Comonad
 ----------------
+
+Dan Piponi -- whenever you see large datastructures pieced together from
+lots of small but similar computations there's a good chance that we're
+dealing with a comonad.
+
++-------------------------------------------------+-----------------------------------------------------+
+| Monad                                           | Comonad                                             |
++=================================================+=====================================================+
+| return :: a -> m a                              | extract :: w a -> a                                 |
++-------------------------------------------------+-----------------------------------------------------+
+| bind :: (a -> m b) -> (m a -> m b)              | extend :: (w a -> b) -> (w a -> w b)                |
++-------------------------------------------------+-----------------------------------------------------+
+| .. raw:: html                                                                                         |
+|                                                                                                       |
+|    <center>                                                                                           |
+|                                                                                                       |
+| **Laws**                                                                                              |
+|                                                                                                       |
+| .. raw:: html                                                                                         |
+|                                                                                                       |
+|    </center>                                                                                          |
++-------------------------------------------------+-----------------------------------------------------+
+| bind return = id                                | extend extract = id                                 |
++-------------------------------------------------+-----------------------------------------------------+
+| bind f . return = f                             | extract . extend f = f                              |
++-------------------------------------------------+-----------------------------------------------------+
+| bind f . bind g = bind (bind g . f)             | extend f . extend g = extend (f . extend g)         |
++-------------------------------------------------+-----------------------------------------------------+
+| .. raw:: html                                                                                         |
+|                                                                                                       |
+|    <center>                                                                                           |
+|                                                                                                       |
+| **Join and Duplicate**                                                                                |
+|                                                                                                       |
+| .. raw:: html                                                                                         |
+|                                                                                                       |
+|    </center>                                                                                          |
++-------------------------------------------------+-----------------------------------------------------+
+| join :: Monad m => m (m a) -> m a               | duplicate :: Comonad w => w a -> w (w a)            |
++-------------------------------------------------+-----------------------------------------------------+
+| join = bind id                                  | duplicate = extend id                               |
++-------------------------------------------------+-----------------------------------------------------+
+| bind :: Monad m => (a -> m b) -> (m a -> m b)   | extend :: Comonad w => (w a -> b) -> (w a -> w b)   |
++-------------------------------------------------+-----------------------------------------------------+
+| bind f = join . fmap f                          | extend f = fmap f . duplicate                       |
++-------------------------------------------------+-----------------------------------------------------+
 
 ::
 
@@ -829,6 +1006,7 @@ References
 * https://bartoszmilewski.com/2016/11/21/monads-programmers-definition/
 * http://okmij.org/ftp/Computation/free-monad.html
 * https://jaspervdj.be/posts/2012-09-07-applicative-bidirectional-serialization-combinators.html
+* http://okmij.org/ftp/Haskell/zseq.pdf reflection without remorse
 
 * http://www.haskellforall.com/2013/02/you-could-have-invented-comonads.html
 * http://gelisam.blogspot.in/2013/07/comonads-are-neighbourhoods-not-objects.html
@@ -840,3 +1018,6 @@ References
 * https://bartoszmilewski.com/2017/01/02/comonads/
 
 * https://en.wikipedia.org/wiki/Fundamental_theorem_of_software_engineering
+* https://stackoverflow.com/questions/24112786/why-should-applicative-be-a-superclass-of-monad
+
+* http://homepages.inf.ed.ac.uk/wadler/topics/monads.html

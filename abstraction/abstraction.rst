@@ -1529,6 +1529,13 @@ grouping it with a forall keyword. For example::
 | assume that x’s type has no foralls in it.                                  |
 +-----------------------------------------------------------------------------+
 
+Specialization
+~~~~~~~~~~~~~~
+
+TBD
+
+Inlining. Expansion - specialization + inlining.
+
 Type Signatures
 ~~~~~~~~~~~~~~~
 

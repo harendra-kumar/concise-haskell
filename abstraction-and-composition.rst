@@ -1,10 +1,30 @@
-Abstraction, Composition & Polymorphism
+Composition, Abstraction & Polymorphism
 =======================================
 
-The two fundamental operations in computing are `transform` and `combine`.  All
-computing tasks are ultimately performed by a combination of some form of
-transform and combine primitives.  More generally, transform and combine can
-also be represented by the terms `abstraction` and `composition`.
+.. contents:: Table of Contents
+   :depth: 1
+
++------------------------+----------------------------------------------------+
+| ≡                      | Symbol for definition or equivalence               |
++------------------------+----------------------------------------------------+
+| ⊕                      | Symbol representing combining two values in some   |
+|                        | way (direct sum)                                   |
++------------------------+----------------------------------------------------+
+
+Composition and Transformation
+------------------------------
+
+Every computer program is essentially a recipe to `transform` inputs to
+outputs. A simple transformation of a concrete value can be achieved by
+`composing` it with an abstract value that represents the transformation::
+
+  transformation ≡ abstract ⊕ concrete
+
+In Haskell, `composition` is a fundamental and clearly defined
+building block together with `abstraction`.  We will see how each and every
+step in a Haskell program is essentially a composition of values.  Thinking in
+terms of composition and abstraction as fundamental building blocks helps
+in understanding Haskell better.
 
 Abstraction is really a transformation technique. For example, a function, a
 transformation tool, is an abstraction of concrete values.
@@ -15,6 +35,8 @@ monoid allows us to combine a set of objects together. For example, a repeated
 addition can fold a list of integers into a sum of all its elements.
 Composition can be applied to functions as well, we can combine multiple
 functions together to create one combined function.
+
+Composition can also be viewed as a repeated transformation.
 
 Abstraction and composition are the two fundamental and orthogonal tools of
 functional computing. All functional computing is a combination of these two.
@@ -31,16 +53,42 @@ Abstraction
 -----------
 
 Abstraction is applied to both data and type spaces.  The most basic
-abstraction is function. Functions are further abstracted using parametric and
-ad-hoc polymorphism.  Typeclasses and type families provide facilities to
-implement ad-hoc polymorphism in Haskell.
+abstraction is function. In fact, any abstraction can in general be equated
+with a function or mapping.
+
+Functions are further abstracted using parametric and ad-hoc polymorphism.
+Typeclasses and type families provide facilities to implement ad-hoc
+polymorphism in Haskell.
 
 The fundamentals of abstraction are studied formally in a branch of mathematics
 called `lambda calculus`.  Abstraction facilities in Haskell are discussed in
 detail in XYZ.
 
+`Abstraction vs Performance:` An abstraction is also an indirection in terms of
+implementation. An indirection creates a performance overhead when the
+indirection is a runtime indirection and not just compile time. For example a
+function creates an indirection of a function call.  A data constructor creates
+a layer of indirection. A free monad creates another layer of indirection
+compared to a monad.
+
+However, we should note that performance impacts are not always intuitive or
+easily quantified. In a given scenario performance may not be important or the
+impact may not be significant because of the 80/20 rule.
+
 Composition
 -----------
+
+Composition or fold combines multiple things of the same type resulting in a
+single final value. The binary operation we need to fold must have:
+
+f :: a -> a -> a  -- dissolves a into a
+f :: a -> b -> a  -- dissolves b into a
+f :: a -> b -> b  -- dissolves a into b
+
+What happens if we do not have the identity element?
+
+5+0 = 5
+5*1 = 5
 
 We differentiate composition into two basic forms i.e. combine & fold.
 Combining allows you to combine two values using a binary operation. Combining

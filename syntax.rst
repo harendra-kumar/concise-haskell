@@ -212,6 +212,10 @@ Function Application
 | flip f $ x y | f y x                                                        |
 +--------------+--------------------------------------------------------------+
 
+Applying a value to a function (continuations)::
+
+  > map ($ 2) [(2*), (4*), (8*)]
+
 Function Composition (Prelude)
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

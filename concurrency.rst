@@ -242,3 +242,9 @@ References
 * https://www.microsoft.com/en-us/research/publication/tackling-awkward-squad-monadic-inputoutput-concurrency-exceptions-foreign-language-calls-haskell/?from=http%3A%2F%2Fresearch.microsoft.com%2Fen-us%2Fum%2Fpeople%2Fsimonpj%2Fpapers%2Fmarktoberdorf%2F Tackling the Awkward Squad
 * https://www.fpcomplete.com/blog/2016/11/comparative-concurrency-with-haskell
 * http://chimera.labs.oreilly.com/books/1230000000929 Parallel and Concurrent Programming in Haskell By Simon Marlow
+
+* https://github.com/atemerev/skynet 1 million thread benchmark
+* http://benchmarksgame.alioth.debian.org/u64q/performance.php?test=threadring thread ring benchmark
+
+* https://pdfs.semanticscholar.org/f23d/5d8989a3c7fab493e53374b6b85ffa5d57d5.pdf The Essence of Multitasking
+* https://www.cs.indiana.edu/hyplan/dfried/ts.ps Trampolined style

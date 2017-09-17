@@ -258,11 +258,11 @@ The way to combine or fold is of course a monoid.
 |             |              | Monoids in a monoidal category of endofunctors |
 |             |              | using Day convolution as a tensor.             |
 +-------------+--------------+------------------------------------------------+
-| Monad       | Endofunctors | Monoids in a monoidal category of endofunctors |
-|             |              | using composition as a tensor.                 |
-+-------------+--------------+------------------------------------------------+
 | Arrows      | Profunctors  | Strong monoids in a monoidal category of       |
 |             |              | profunctors.                                   |
++-------------+--------------+------------------------------------------------+
+| Monad       | Endofunctors | Monoids in a monoidal category of endofunctors |
+|             |              | using composition as a tensor.                 |
 +-------------+--------------+------------------------------------------------+
 
 The main difference between monads and applicative functors is that the latter
@@ -287,3 +287,5 @@ References
 ----------
 
 * https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/
+* https://stackoverflow.com/questions/43572970/is-coproduct-the-same-as-sum-types
+* https://stackoverflow.com/questions/14249955/why-isnt-there-a-simple-syntax-for-coproduct-types-in-haskell

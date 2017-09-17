@@ -40,7 +40,7 @@ the following text we will only be talking about downstream components:
 Consuming and Producing Actions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We will call a component with at least one opening an `open` component. An
+We will call a component with at least one opening, an `open` component. An
 `open` component with an ``output`` end can ``yield`` and one with an ``input``
 end can ``await``:
 
@@ -55,17 +55,20 @@ end can ``await``:
 Composing Components
 ~~~~~~~~~~~~~~~~~~~~
 
-+-----------------------+---------+-------------------------------------------+
-| A producing component | ``for`` | action consuming the output and producing |
-|                       |         | some component                            |
-+-----------------------+---------+-------------------------------------------+
-| A producing action    | ``~>``  | action consuming the output and producing |
-|                       |         | some component                            |
-+-----------------------+---------+-------------------------------------------+
-| Any component         | ``>~``  | A consuming component                     |
-+-----------------------+---------+-------------------------------------------+
-| A producing component | ``>->`` | A consuming component                     |
-+-----------------------+---------+-------------------------------------------+
++--------------------+------------+-------------------------------------------+
+| Component1         | Combinator | Component2                                |
++====================+============+===========================================+
+| A producing        | ``for``    | action consuming the output and producing |
+| component          |            | some component                            |
++--------------------+------------+-------------------------------------------+
+| A producing        | ``~>``     | action consuming the output and producing |
+| action             |            | some component                            |
++--------------------+------------+-------------------------------------------+
+| Any component      | ``>~``     | A consuming component                     |
++--------------------+------------+-------------------------------------------+
+| A producing        | ``>->``    | A consuming component                     |
+| component          |            |                                           |
++--------------------+------------+-------------------------------------------+
 
 * ``cat``: a pipe that produces whatever it receives.
 
@@ -93,3 +96,11 @@ ListT
   -- a Producer can be converted into a ListT (Select)
   -- and vice-versa (enumerate)
   newtype ListT m a = Select { enumerate :: Producer a m () }
+
+References
+----------
+
+* https://www.schoolofhaskell.com/school/to-infinity-and-beyond/pick-of-the-week/coroutines-for-streaming
+* http://blog.functorial.com/posts/2015-07-31-Stackless-PureScript.html
+* https://themonadreader.files.wordpress.com/2011/10/issue19.pdf Coroutine Pipelines
+* http://spivey.oriel.ox.ac.uk/wiki2/images/a/a1/Copipes.pdf Faster Coroutine Pipelines

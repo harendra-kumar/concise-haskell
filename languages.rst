@@ -53,7 +53,7 @@ Performance Features
 +----------+------------+------------+---------------------+------------------+
 | Language | Efficient  | Concurrent | Parallel            | Distributed      |
 +==========+============+============+=====================+==================+
-| Haskell  | Fast       | base       | parallel            | Static Pointers  |
+| Haskell  | Fast       | base       | parallel            |                  |
 |          |            | stm        | DPH                 | cloud-haskell    |
 |          |            | async      |                     | courier          |
 |          |            | haxl       |                     | hdph             |
@@ -95,6 +95,6 @@ Misc Notes
   * REPL
   * JIT in dev
   * ABI compatible with C
-* Rust: Ownership and borrowing for shared memory anc concurrency
+* Rust: Ownership and borrowing for shared memory and concurrency
 
   * unsafe (unmanaged memory) is possible.

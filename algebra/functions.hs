@@ -20,6 +20,7 @@ main = mainWith
     [ ("invalid", invalid)
     , ("partial", partial)
     , ("total"  , total)
+    , ("structure", structure) -- algebraic structure
     ]
 
 namedText :: String -> Diagram B
@@ -64,3 +65,6 @@ total = func "Total"
     (dom ["a", "b", "c"])
     (dom ["1", "2", "3"])
     [("a", "1"), ("b", "2"), ("c", "3")]
+
+structure :: Diagram B
+structure = circle 1 <> text "Type" # scale 0.25 <> circle 2
