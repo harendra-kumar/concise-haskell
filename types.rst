@@ -821,6 +821,40 @@ Pattern Synonyms
 | Update        | ``(0, 0) { x = 1 } == (1,0)``                               |
 +---------------+-------------------------------------------------------------+
 
+Pattern Synonyms Notes
+----------------------
+
+Give name to unstructured data:
+
+We can use pattern synonyms to give a name to otherwise unidentifiable data
+values. For example, if we have to pattern match on certain integers::
+
+  f 1 = ...
+  f 2 = ...
+  f 3 = ...
+
+Instead we can use::
+
+  pattern One <- 1
+  pattern Two <- 2
+  pattern Three <- 3
+
+  f One = ...
+  f Two = ...
+
+The alternative would be::
+  data MyNums = One Int | Two Int | Three Int
+  toMyNums 1 = One 1
+  toMyNums 2 = Two 2
+
+  fromMyNums One = 1
+
+But this has a runtime cost.
+
+* https://ocharles.org.uk/blog/posts/2014-12-03-pattern-synonyms.html
+* https://www.schoolofhaskell.com/user/icelandj/Pattern%20synonyms
+* https://mpickering.github.io/posts/2014-11-27-pain-free.html
+
 Pattern Match Implementation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
