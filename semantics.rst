@@ -359,6 +359,9 @@ it can be determined at the compile time and GHC actually does that using
 * Graph Reduction or lazy evaluation
 * Need a picture showing bottom up and top down reduction paths in a tree
 
+* http://www.well-typed.com/blog/2017/09/visualize-cbn Visualize lazy
+  evaluation
+
 Expressions and Data
 ~~~~~~~~~~~~~~~~~~~~
 

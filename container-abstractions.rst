@@ -16,6 +16,13 @@ Folds
 
 * http://eprints.eemcs.utwente.nl/7281/01/db-utwente-40501F46.pdf Functional Programming with Bananas, Lenses, Envelopes and Barbed Wire
 
+Streaming folds:
+* http://squing.blogspot.in/2008/11/beautiful-folding.html
+* http://conal.net/blog/posts/another-lovely-example-of-type-class-morphisms
+* http://conal.net/blog/posts/more-beautiful-fold-zipping
+* http://www.haskellforall.com/2013/08/composable-streaming-folds.html
+* https://www.schoolofhaskell.com/user/edwardk/cellular-automata/part-2
+
 Category theory of folds:
 * https://wiki.haskell.org/Catamorphisms
 * https://www.schoolofhaskell.com/user/edwardk/recursion-schemes/catamorphisms
@@ -23,6 +30,8 @@ Category theory of folds:
 
 Traversal & folds using attribute grammar:
 * https://wiki.haskell.org/Attribute_grammar
+
+* the ``foldl`` and ``folds`` packages
 
 Basic Typeclasses
 -----------------
