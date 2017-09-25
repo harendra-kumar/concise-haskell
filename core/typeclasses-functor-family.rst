@@ -53,11 +53,13 @@ different types of Functors.
 
 -- covariant Functor, the values in the Functor are consumed by fmap
 -- prey functor, 'a' is to be eaten. map modifies the value in the functor.
+-- Shall we call it an output functor, it modifies the output
 fmap      :: (a -> b) -> f a -> f b
 
 -- contravariant Functor, the values in the Functor will consume values
 -- produced by contramap
 -- predator or hungry functor, will eat 'b' and produce something that will eat
+-- Shall we call it an input functor, it modifies the input
 'a'. contrmap modifies what the functor eats
 contramap :: (a -> b) -> f b -> f a
 
@@ -193,15 +195,16 @@ Free Functor
 
 * https://hackage.haskell.org/package/free-functors
 
-The free functor for class c.
-
-Free c a is basically an expression tree with operations from class c and
-variables/placeholders of type a, created with unit. Monadic bind allows you
-to replace each of these variables with another sub-expression.
-
 ::
 
-  newtype Free c a = Free { runFree :: forall b. c b => (a -> b) -> b }
+  data Lan g a where
+       Lan :: g x -> (x -> a) -> Lan g a
+
+     instance Functor (Lan g) where
+       fmap f (Lan gx h) = Lan gx (f . h)
+
+     lan :: g a -> Lan g a
+     lan ga = Lan ga id
 
 References
 ----------

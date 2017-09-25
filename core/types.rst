@@ -960,6 +960,54 @@ newtype
 | closure                    |                        |                               |
 +----------------------------+------------------------+-------------------------------+
 
+Type Signatures
+---------------
+
++-----------------------------------------------------------------------------+
+| Type Signatures                                                             |
++-----------------------------------------------------------------------------+
+| Type signatures can be given to a declaration, expression or a pattern      |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XFlexibleContexts                                                         |
++-----------------------------------------------------------------------------+
+| Allow flexibility in declaring in type class constraints.                   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  g :: Eq [a] => ...                                                         |
+|  g :: Ord (T a ()) => ...                                                   |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XAllowAmbiguousTypes                                                      |
++-----------------------------------------------------------------------------+
+|                                                                             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  TBD                                                                        |
++-----------------------------------------------------------------------------+
+| .. class :: center                                                          |
+|                                                                             |
+|  -XKindSignatures                                                           |
++-----------------------------------------------------------------------------+
+| Explicitly-kinded quantification                                            |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  TBD                                                                        |
++-----------------------------------------------------------------------------+
+
+* Bindings and generalisation (TBD)
+* Visible type application
+* Implicit parameters
+
+* Impredicative polymorphism
+* Typed Holes
+* Partial Type Signatures
+
 Constraints in types
 --------------------
 
@@ -1060,8 +1108,8 @@ Constraints are just handled as types of the kind `Constraint`.
 Data.Type.Equality (base package)
 ---------------------------------
 
-* Refl
-* :~:
+Definition of propositional equality (:~:). Pattern-matching on a variable of
+type (a :~: b) produces a proof that a ~ b.
 
 References
 ----------

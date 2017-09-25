@@ -210,3 +210,10 @@ Monoid like set composition tools:
 +-------------+               +----------------------+------------------------+
 | Arrow       |               | Profunctors          | function composition   |
 +-------------+---------------+----------------------+------------------------+
+
+Semigroup Monoid   Accumulate  Recursion    List/Tree finite    open   fold  Sequence/Applicative     Tree/Monad     List
+         CoMonoid  Copy/Split Co-recursion  Stream    infinite  closed fold  Sequence/Co-applicative  Tree/Co-monad  StateMachine
+
+Applicative is a fold of sequences.
+Monad/Comonad are folds of trees.
+

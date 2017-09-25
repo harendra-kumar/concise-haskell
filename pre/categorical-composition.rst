@@ -47,6 +47,20 @@ Terminology
 * tensorial strength - natural transformation preserving certain structure of
   the functor is the strength of the functor.
 
+Definition by relations
+-----------------------
+
+In category theory an object is uniquely defined by its relations with other
+objects. There is nothing absolute, everything is relative. So you do not need
+a reference frame. Things are always in relation to other things and those
+relations define what they are. This true about everything and can be applied
+to things in everyday life and anything in the universe.
+
+That is one of the reasons why we unnderstand concepts better when we think
+about their duals. We think of a concept in relation to its dual. For example
+we understand 0 and infinity better when we think about them both as duals of
+each other rather than when we only think about one and not the other.
+
 Category
 --------
 

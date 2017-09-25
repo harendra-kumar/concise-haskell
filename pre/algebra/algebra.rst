@@ -49,8 +49,8 @@ Larger composite sets can be created by combining primitive sets. Two very
 useful combining operations are `cartesian product` or simply `product`, and
 `coproduct` or `sum`.
 
-Haskell algebraic data types are defined as products or sums of primitive or
-basic data types.
+Algebraic data types (ADT) in Haskell are defined as products or sums of
+primitive or basic data types.
 
 Cartesian Product
 ~~~~~~~~~~~~~~~~~
@@ -59,14 +59,12 @@ Given two sets `A` and `B`, `A × B` is the cartesian product. It represents all
 tuples `(a,b)` where `a` is from set `A` and `b` is from set `B`. If `A` has
 `m` elements and `B` has `n` elements then `A × B` will have `m × n`  elements.
 
-In Haskell a product of two sets (or types) can be represented as a two tuple::
+In Haskell a product of two types (a type represents a set) can be represented
+as a two tuple, the following two forms are equivalent:
 
-  data (a, b) = (a, b)
-
-Or like this, a product of two `Int` values can be represented by a new
-`Product` type::
-
-  data Product = Product Int Int
++-------------------------------+---------------------------------------------+
+| ``data (a, b) = (a, b)``      | ``data Product = Product Int Int``          |
++-------------------------------+---------------------------------------------+
 
 A cartesian product `Int × Int` i.e. `(Int, Int)` type can have values like::
 
@@ -82,19 +80,20 @@ Coproduct or Sum
 
 A coproduct or sum is the disjoint union of two sets. An element of the
 disjoint union of `a` and `b` is either an element of `a` or an element of `b`.
-If the two sets overlap, the disjoint union contains two copies of the common
-part. You can think of an element of a disjoint union as being tagged with an
-identifier that specifies its origin.
+If the two sets overlap, the disjoint union contains two copies of the
+overlapping elements.  Coproduct is a concept from category theory and is a
+dual of product. It is also called a sum.
 
-A coproduct represents a choice. The Haskell data type `Either` is a coproduct
-of data types `a` and `b`::
+The Haskell data type `Either` is a coproduct of data types `a` and `b`::
 
   data Either a b = Left a | Right b
 
-It is also called a `tagged union`, `Left` and `Right` being the tags.
+You can think of an element of a disjoint union as being tagged with an
+identifier that specifies its originating set. Therefore, it is also called a
+`tagged union`, `Left` and `Right` being the tags.
 
-Coproduct is a concept from category theory and is a dual of product. It is
-also called a sum.
+A coproduct represents a choice or disjunction in contrast to product which
+represents a combination or conjunction.
 
 Mappings Between Sets
 ---------------------
@@ -148,39 +147,47 @@ more than one element in codomain.
 Types of Functions
 ------------------
 
-Unary Operation - Transform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Unary Operation
+~~~~~~~~~~~~~~~
 
-A unary operation is a pure transformation which transforms its argument to
-another object::
+A unary operation transforms a type into another type or in other words it maps
+the values from one set (type) to values in another set (type).
 
-  f: X → Y
++-------------------------------+---------------------------------------------+
+| Math Notation                 | Haskell Type                                |
++-------------------------------+---------------------------------------------+
+|  f: X → Y                     | f :: x -> y                                 |
++-------------------------------+---------------------------------------------+
 
-In Haskell::
+Binary Operation
+~~~~~~~~~~~~~~~~
 
-  f :: x -> y
+A binary operation combines two objects of potentially different types into a
+third object of potentially different type. In other words, it maps the
+cartesian product of two sets (types) to a target set (type). In Haskell a
+binary functions are implemented by currying that is applying one argument at a
+time.
 
-Binary Operation - Combine & Transform
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++-------------------------------+---------------------------------------------+
+| Math Notation                 | Haskell Type                                |
++-------------------------------+---------------------------------------------+
+| ::                            | ::                                          |
+|                               |                                             |
+|  f: X → Y → Z                 |  f :: (x, y) -> z                           |
+|                               |  f :: x -> y -> z                           |
+|                               |  f :: x -> (y -> z)                         |
++-------------------------------+---------------------------------------------+
 
-A function on two objects. A binary operation combines two objects into a
-single objects in some way.  A binary operation is the most basic combining
-operations. All other functions with multiple arguments can be represented in
-terms of binary operations.
+N-ary Operations
+~~~~~~~~~~~~~~~~
 
-A function from the cartesian product `X × Y` to `X` is mathematically denoted
-as `f: X × Y → X`.
+An N-ary operation combines `n` objects of potentiall different types into one
+object of potentially different type or in other words it maps the product of n
+sets (types) into a target set. In Haskell, n-ary operations are implemented by
+currying i.e. applying one argument at a time.
 
-In Haskell, assuming type `x` represents set `X` and type `y` represents set
-`Y`, this function can be represented by the following equivalent forms::
-
-  f :: (x, y) -> x   -- tuple or uncurried form
-  f :: x -> y -> x   -- curried form
-  f :: x -> (y -> x) -- two chained functions
-
-
-Algebraic Structure
--------------------
+Algebraic Structures
+--------------------
 
 An algebraic structure is a set (called `carrier set` or underlying set) with
 one or more operations defined on it that satisfies a list of axioms. Some

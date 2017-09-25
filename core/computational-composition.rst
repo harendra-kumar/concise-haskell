@@ -103,10 +103,98 @@ In general, we should try to restrict ourselves to the pure functional style,
 if that is not enough lift to the applicative style and if that is not powerful
 enough then raise to the monadic style.
 
-Functor | Put a value in a context | Most General | Least Powerful
-Applicative Functor | Apply a function in a context | Less general | More powerful
-Arrow (Composing Functor) | Compose functions in a context | Less general | More powerful
-Monad | Embed computations between function applications in a context | Least general | Most powerful
+Classification
+--------------
+
+Each following item in this list is less general but more powerful than the preceding item.
+
+The general principle that we have is that if we can combine two values then we
+can combine any number of values. The two fundamental operations that we need
+are "transform" and "combine". They come in different forms e.g. "pure" and
+"apply" or "return" and "bind" or "arr" and "first" etc. Transform is
+implication (i.e. the function type) and combine is sum or product.
+There are two ways to combine two values, sum and product.
+
+In a non-free way the collect and compose operations are intertwined whereas in
+a free operation these are separated or modularised. A free structre separates
+the pure combining logic from the pure data. The modularisation has a cost
+though.
+
+However, a free structure requires accumulation of the whole structure to see
+the big picture, whereas a binary composition can work locally. Both have pros
+and cons.
+
+The Free structures allow you to construct the structure
+first and then combine rather than doing both the steps at the same time. The
+advantage of the free structures is "static analysis" i.e. you can look at the
+whole structure before combining it, that allows you to make decisions based on
+the big picture rather than only based on the limited information that you have
+when you are combining two things.
+
+A Free structure is pure data without the logic and you can add the logic
+later. So a pure value is a free structure and a unary transformation on it is
+the logic part.
+
+A tuple (a,b) is a free "product" structure and a binary function contains the
+user of the product for implication logic.  A tuple (a,a) or "Either a b", is a
+free "sum" structure where you have the choice of using the first value or the
+second , both are the same type or a replacement of each other. A binary
+function contains the choice logic i.e. it can branch on any part of the sum
+type based on sum logic. Note that a product and sum are different only in the
+intended use for logic i.e.  whether you want to combine two items together or
+you want to choose one of them. It is difference of combining or branching
+(choice).
+
+Therefore a product type can potentially consist of different types, whereas a
+sum consists of the same type or replacements. Instead of saying the same type,
+to make it more general, we can say the values which are intended as different
+choices for the same abstract (logic) operation. Note that the product type can
+also have the same types but they are intended to be used together rather than
+individually in different parts of the logic. In other words, a product
+provides the big picture (static analysis) whereas a sum provides only the
+narrow picture of the given choice. A sum type condenses the data it can store
+multiple possible choices in one place because we know at one time we are going
+to select only one choice. Whereas a product type needs to store all of them
+because we know the combining logic may need all of them at the same time
+before it branches.
+
+Sum types allow us to throw away the information that we do not need when we
+made a certain choice. The big picture has a cost, it requires us to maintain
+more information but allows more powerful logic.
+
+The components of a product are all required at the same time. The components
+of a sum type are required only one at a time.
+
+A common operation on product types would be splitting and distributing, and a
+common operation on sum types would be collecting and folding.
+
++------
+Structure       | Structure Description | Logic Operation | Description
+
+Pure value      | Unary value                   | Unary Function  | Pure unary transformation (a -> b)
+
+Product types and cartesian (conjunctive) composition
+Tuple (a,b)        | binary product of two types     | Binary Function | Pure binary composition (a, b) -> c
+                   |                                 |                 | Curried binary Composition (a,b,c) -> d = (a,b) -> x ; (x,c) -> d
+list [a]           | nary product of the same type   | Uncurried nary function application
+n-tuple (a,b,c...) | nary product of different types | Uncurried nary function application
+
+Coproduct types and monoidal (disjunctive) composition
+either (Either a b)  | Two way choice different types| Real sum type
+Tuple (a,a)          | Two choices of the same type  | actually product, can be used as sum
+list [a]             | n choices of the same type    | actually product, can be used as sum type
+coproduct            | n choices of different types  |
+oneOf package        |
+
+Function with a closure | additional external/static/global inputs for the combine operation | -
+Function sequence       | Categorical Composition | Combines functions in a sequence
+
+Functor             | Contextual value      | fmap            | Contextual unary transformation
+Applicative         | Contextual Sequence of values              | Nary apply
+Alternative         | Contextual choices of values
+Arrow               | Compose tree of functions with additional static inputs
+Monad               | Dependency tree of values | Embed computations between function applications in a context | combines a tree structure
+  Categorical composition like functions in Kliesli category
 
 There are things that arrows can do and monads cannot i.e. the static input.
 There are things that mondas can do but arrows cannot i.e. arrowapply.
@@ -116,6 +204,177 @@ application.
 More types can have a functor instance than Applicatives. More types can have
 an applicative instance than arrows. More types can have an arrow instance than
 Monads.
+
+Everything as Transformation and Continuation
+---------------------------------------------
+
+Transformation
+~~~~~~~~~~~~~~
+
+In what ways can we transform values? The general transformation operations
+are:
+* Unary transformation: a -> b
+** a -> a
+* Binary transformartion (or composition) (a,b) -> c
+** a -> b -> c
+** (a,a) -> a -- special case when types are the same. monoidal folding
+* Nary transformation:
+** built using binary transformation
+*** a -> b -> c...-> d
+*** a -> a -> a...-> a -- special case when types are the same
+** Free Nary transfomation
+*** (a,b,c...) -> d
+*** fold [a] -> a -- special case, folding a free structure using a binary op.
+Note that list is a free structure here and we are folding it using a separate
+"interpreter".
+
+This shows that Monoidal composition is just a simpler, special case of
+applicative composition where the types are the same. Also a free Monoidal
+sequence is easier to represent than a free Applicative sequence since the
+types are the same.  For applicative sequence we need a type-aligned data
+structure. In a general applicative sequence we use an n-ary function to apply
+whereas we can reduce a monoidal sequence by applying a binary function many
+times.
+
+The pure versions of the two kinds of transformations are "function
+application" and "Monoid". The Functor versions are Applicative and Alternative
+and then "Monad" and MonadPlus. Note that the monoid case is just a special
+case of the more general function application case.
+
+Functored Transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Lifting the pure operations in a Functor
+** fmap puts a function inside a functor
+** Applicative applies an n-ary function to its arguments inside a functor
+** Free Applicative, use a separate structure and then apply at once
+** Alternative folds values inside a functor using a binary operation just like
+   Monoids in the pure case.
+** Free Alternative, use a separate structure to hold values and then apply at
+   once.
+
+Continuations
+~~~~~~~~~~~~~
+
+In what ways can we combine the transformation of values? The composition of
+transformation operations or we can call them continuations in general:
+* Categorical composition is a way to combine the most basic form i.e. unary
+  transformation. It is a special, least flexible, case of a general
+  continuation.
+** (a -> b), (b -> c) => a -> c : (b -> c) is the continuation of (a -> b). We
+can call it a pure continuation. This is a useful special case of the more
+general cases described below. This is a "structured" way to compose rather
+than free form. Pass on value from one function to the next. This is a simple
+chain of functions, a one dimensional sequence.
+We can combine them like Monoids using binary composition and the id function.
+* x -> a, y -> b, (a,b) -> c : (x, y) -> c. Pass on values from many functions to the next.
+  This will form a tree of functions passing values forward. No static input is
+  used. We have added the ability to compose "products" so another dimension
+  got added, making this a tree rather than a simple chain.
+* x -> a, b (static input), (a,b) -> c. This will form a tree of functions
+  passing values forward, but also allowing use of static input.
+* ...and so on. In general, there can be many ways in which different types of
+  functions can be combined. N-ary functions (continuations) can take inputs
+  from n different sources.
+
+Functored Continuations
+~~~~~~~~~~~~~~~~~~~~~~~
+
+The next level is pure function continuations abstracted via a Functor.
+* Arrows lift the composition of functions into a functor.
+* A strong profunctor is equivalent to Arrow
+
+Functored Transformation and Continuation: Monad
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A Monad is the most powerful construct.
+
+A monad combines the power of applicative and arrows (without static input)
+i.e. it allows the most powerful ways of combining Functored values. It knows
+function application (products) as well as continuation.
+
+* (a -> m b), (b -> m c) => a -> m c
+* (x -> m a), (y -> m b), (a,b) -> m c => (x, y) -> m c
+
+It forms a tree of functions composed together. A Free monad has just the tree
+of data and then we can apply the functions later i.e. fold the tree using the
+appropriate continuations.
+
+Generalising a Monoid
+---------------------
+
+The monoidal composition does not apply to heterogeneous type combiners because
+it is a way to combine homogeneous types. So ti does nto apply to function
+application, applicatives or the apply aspect of a Monad. However it applies to
+function composition, arrows, alternative and monads.
+
+Pure Monoids
+~~~~~~~~~~~~
+
+The most basic "homogeneous" (sum or choice - a sum type is multiple values of
+the same type) type combiner is the semigroup append <> operator or a monoid
+that appends pure values. The typeclass knows how to append any two values.
+There is no concept of success or failure at a given step since the values are
+pure and there is no second track (side effect track) to indicate a failure.
+Think about the Maybe type for example, it combines the just values,
+Nothing has no impact on the other value.
+
+Similalrly at the function composition level we can combine pure functions
+using a monoid. However pure functions do not have a side-track so there is no
+failure.
+
+Using a Monoid in an Effectful Composition
+------------------------------------------
+
+In effectful compositions we have two tracks a regular composition and a
+side-track composition. On the side-track we can use a Monoidal composition. We
+can choose a pure monoid and use its behavior on the side-track. For example we
+can use Maybe or Either on the side-track.
+
+In effectful computations we combine step-by-step and at each step there can be
+an effect (the side track) that we combine using a Monoidal composition. We can
+use the identity of the Monoid to indicate a terminal condition i.e. failure or
+success. We can use the terminal condition to terminate the effectful
+composition at that step.
+
+We can combine arrows using a Maybe monoid behavior on the side-track and
+terminate the function composition if some step returns Nothing.
+
+We can combine an Alternative using a Maybe monoid behavior on the side track
+and terminate the composition on failure and combine the results on success.
+
+A monad in addition to applying (like applicative) also composes continuations
+like arrows (the join operation is a monoidal operation). Using a Maybe Monoid
+behavior we can terminate the Monad on failure and combine the results on
+success. For example ExceptT has the Either behavior on the effect track.
+
+Performing N tasks in a sequence
+--------------------------------
+
+Binary vs Nary operations for the N tasks. There is an option to fold the tasks
+using a binary operation or an n-ary operation i.e. an operation that takes all
+of them at once and then combine them.
+
+Binary operations allow convenience to the programmer. Programmer does not have
+to build a data structure and then call a function on that. Instead always use
+a binary operation even to fold n tasks. it is simpler. We can use local state
+passing to acheive some sort of limited batching combining only two adjacent
+steps. The context passing in asyncly is an example. The same concept is used
+in the foldl library.
+
+However, N-ary operations can be more efficient. It affords you the full big
+picture across all the tasks. You can batch randomly i.e. shuffle and batch the
+tasks.
+
+Summary: Free structures
+------------------------
+
+Singleton  | pure type
+Tuple      | pure type, tuple, either, list | conjunctive or disjunctive composition via functions
+
+Singleton? | Free Functor
+List       | Free Applicative/Alternative   |
+Tree       | Free Monad
 
 Monads generalization of CPS?
 -----------------------------
@@ -271,6 +530,47 @@ the right interplay of dynamic behaviour and amenability to static analysis.
   A function or applicative requires all of the arguments to complete the
   operation while an Alternative may require only some or any of them (choice).
 
+Free Applicative
+~~~~~~~~~~~~~~~~
+
+Applicative functors [6] are a generalisation of monads. Both allow the
+expression of effectful computations into an otherwise pure language, like
+Haskell [5]. Applicative functors are to be preferred to monads when the
+structure of a computation is fixed a priori. That makes it possible to perform
+certain kinds of static analysis on applicative values. We define a notion of
+free applicative functor, prove that it satisfies the appropriate laws, and
+that the construction is left adjoint to a suitable forgetful functor. We show
+how free applicative functors can be used to implement embedded DSLs which can
+be statically analysed.
+
+Free monads in Haskell are a very well-known and practically used construction.
+Given any endofunctor f, the free monad on f is given by a simple inductive
+definition::
+
+  data Free f a
+  = Return a
+  | Free (f (Free f a))
+
+The typical use case for this construction is creating embedded DSLs (see for
+example [10], where Free is called Term). In this context, the functor f is
+usually obtained as the coproduct of a number of functors representing “basic
+operations”, and the resulting DSL is the minimal embedded language including
+those operations.
+
+One problem of the free monad approach is that programs written in a monadic
+DSL are not amenable to static analysis. It is impossible to examine the
+structure of a monadic computation without executing it.  In this paper, we
+show how a similar “free construction” can be realised in the context of
+applicative functors.
+
+A free applicative requires a list type representation and therefore the most
+efficient way to represent it is perhaps using difference lists as they are the
+most efficient representation of lists.
+
+* https://arxiv.org/pdf/1403.0749.pdf Free Applicative Functors
+* https://www.eyrie.org/~zednenem/2013/05/27/freeapp
+* https://hackage.haskell.org/package/free-4.12.4/docs/Control-Applicative-Free.html
+
 Alternative
 ~~~~~~~~~~~
 
@@ -285,20 +585,20 @@ represents a choice between alternatives.
 Combines applicative actions in the following ways:
 
 +---------------------------+-------------------------------------------------+
-| empty                     | Identity of the monoid                          |
+| empty :: f a              | Identity of the monoid                          |
 +---------------------------+-------------------------------------------------+
 | <\|> :: f a -> f a -> f a | In a sequence of actions composed using '<|>',  |
 |                           | keep performing actions until you get a         |
-|                           | non-empty value.                                |
+|                           | result that is not ``empty``.                   |
 +---------------------------+-------------------------------------------------+
-| some :: f a -> f [a]      | perform an action multiple times, return a list |
-|                           | of non-empty results or an empty value.         |
+| some :: f a -> f [a]      | perform an action multiple times, returns a     |
+|                           | non-empty list of results or ``empty``.         |
 |                           | failure, ...              = failure             |
 |                           | success, failure          = success [res]       |
 |                           | success, success, failure = sucess [res1, res2] |
 +---------------------------+-------------------------------------------------+
 | many :: f a -> f [a]      | perform an action multiple times, return an     |
-|                           | empty list, a list of values or an empty value. |
+|                           | empty list, a list of values.                   |
 |                           | failure, ...              = []                  |
 |                           | success, failure          = success [res]       |
 |                           | success, success, failure = sucess [res1, res2] |
@@ -361,6 +661,28 @@ then stop), and many p parses zero or more occurrences.
 
 * An Alternative corresponds to Sum types the way an Applicative corresponds to
   product types.
+
+A more general Alternative
+--------------------------
+
+Dual representation:
+
+empty/full => failure/success
+
+Sequential composition:
+
+  continue until failure
+  continue until success
+
+  Note that the monoidal/semigroup composition <> can be thought of as a
+  special case of Alternative composition where success is implicit. It is a
+  pure composition.  On the other hand, an action can fail or succeed and
+  therefore a failure/success representation and a failure/success based
+  composition makes sense.
+
+Parallel composition:
+  all - run all actions in parallel and take all results
+  anyone - run all actions in parallel and take the first result
 
 Monad
 -----
@@ -873,9 +1195,109 @@ generating `FFree g a`.
 Monad vs Comonad
 ----------------
 
-Dan Piponi -- whenever you see large datastructures pieced together from
-lots of small but similar computations there's a good chance that we're
-dealing with a comonad.
+A monad and comonad compose functions whose input end or the output end is
+structured by a functor (a -> m b or w a -> b). A monad composes a -> m b, b ->
+m c to a -> m c whereas a comonad composes w a -> b, w b -> c to w a -> c.
+
+A monad structures the computation at the output end (a -> m b). The input end
+is open. In a monad all monadic computations being combined  must have the
+structure m at the output side, their outputs are collapsed or joined by the
+rules of m.  On the other hand a comonad structures the input end (w a -> b),
+the output end is open. The input of all the comonadic computations being
+combined is derived from the same fixed structure w.
+
+In a comonad we start with some existing or "full" state (or a full comonoid)
+in w and the state keeps changing as we compose actions, the new state is
+decided by the comonad duplicating logic, consuming the side effect and
+producing a new state.
+In a monad we start with an empty (or empty Monoid) output state and the output
+state keeps changing as we compose actions, the new state is decided by the
+monad joining logic. That way there is not much difference between a monad and
+comonad except the fact whether the starting point and fusion point is before
+the composition or after.
+
+In other words, in a Monad the side track is a Monoidal structure at the output
+end. In a comonad the side track is a comonoidal structure at the input end of
+the composition.  Monoidal structure is recursive, because we have to have a
+terminal state?  Comonoidal structure is corecursive because there has to be an
+initial state?  For example a writer monad forces collapsing of outputs from
+computations into a Monoidal structure (e.g. list).
+
+Monad and comonad are both continuations, a monad places a continuation at the
+output of the previous one, a comonad places a continuation at the input of the
+previous one.
+
+More succinctly::
+
+  comonad: (final) extract $ f <<= ... f1 <<= f2 <<= f3 ... <<= x (initial)
+  monad: (initial) return x >>= f1 >>= f2 >>= f3 ... >>= f (final)
+
+A comonad keeps adding functions in front of a closed initial state, finally
+when you extract the state you will get a result after applying all these
+functions to the initial state. Notice how closely it resembles to continuation
+passing style. In fact we can use a CPS data type to help us convert a comonad
+to a monad. A monad, on the other hand, puts a state in a one-way open world
+and then allows operating on it in that world, but never allowing anything to
+be retrieved from that world, the final result is after applying all the
+functions.
+
+Using comonad:
+
+Monadic functions take pure values and result in a monadic output which can
+then be composed with other monadic functions using bind. A pure value can be
+converted into monadic using "return". The final result is always a monadic
+value. The last thing in a monadic function is always a "return".
+
+Once a value is inserted (returned) into a monad you cannot get it out as a
+pure value.
+
+A comonadic function always takes a comonadic value as input and results in a
+pure value. The first thing in a comonadic function will be an "extract" to get
+a pure value from the comonadic context and then compose it with other pure
+values finally resulting in a pure value. Two comonadic functions can be
+composed using "extend".
+
+In a comonadic function, do all input args have to be comonadic or one or more?
+
+Once you extract a value from a comonad you cannot put it back.
+
+Examples:
+
+IO is a monad since it is an open world state, effects are a change in the
+state of that open world, we can put values in it i.e. effect a change in it
+but cannot take back.
+
+A comonad on the other hand is a closed world, you can extract values from it
+but cannot put back once extracted. A "Store" comonad is more like an opaque
+type enclosing some state, after the computations are done composing we can
+finally extract the state.
+
+Can we use a comonad where an existential is needed otherwise? See
+https://www.schoolofhaskell.com/user/edwardk/cellular-automata/part-2
+
+Generalising:
+
+A structure that puts the same structure at both ends becomes less powerful.
+For example Arrows (f (a,b) -> f (a -> c) -> f (b -> d) -> f (b,d)) or
+Applicatives (f (a -> b) -> f a -> f b), they both have the same structure on
+input and output ends. But how about something like w a -> m b? or in fact
+(w a, b) -> (c, m d). Does such a thing exist?
+
+Monad vs Comonad
+----------------
+
+A Monad can be likened to a Mealy machine and a comonad to a Moore machine. You
+can always convert a comonad into a monad
+(http://comonad.com/reader/2011/monads-from-comonads/) but vice-versa may not
+be true. It may be easier to think in the way a Moore machine can always be
+converted to a Mealy machine but vice-versa is not always true.
+
+XXX end/coend ~ existential
+
+Converting a comonad to a monad
+
+::
+  newtype Co w a = Co { runCo :: forall r. w (a -> r) -> r }
 
 +-------------------------------------------------+-----------------------------------------------------+
 | Monad                                           | Comonad                                             |
@@ -992,8 +1414,21 @@ dealing with a comonad.
 * A monad is a linked list of functors (note finite) and a comonad is a stream
   of functors (note infinite).
 
+When to use a monad or comonad?
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We can achieve the same thing using a monad or comonad but some things are more
+natural to model as a monad and others as a comonad. For example an infinite
+stream can be represented as an open list or a closed corecursive stream.
+In asyncly we use the Context as a state being passed inside a monad.
+However this can be modeled as a comonad as well. Ekmett modeled the foldl
+library using comonadic folds instead.
+
+* http://blog.sigfpe.com/2006/06/monads-kleisli-arrows-comonads-and.html
+* https://www.schoolofhaskell.com/user/edwardk/cellular-automata
+
 References
-~~~~~~~~~~
+----------
 
 * https://wiki.haskell.org/Typeclassopedia
 * https://en.wikipedia.org/wiki/Monoidal_category
@@ -1021,3 +1456,6 @@ References
 * https://stackoverflow.com/questions/24112786/why-should-applicative-be-a-superclass-of-monad
 
 * http://homepages.inf.ed.ac.uk/wadler/topics/monads.html
+
+* https://stackoverflow.com/questions/33155331/are-and-operators-sufficient-to-make-every-possible-logical-expression
+* https://en.wikipedia.org/wiki/Functional_completeness

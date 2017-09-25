@@ -4,8 +4,8 @@
 
 .. role:: blue
 
-Expressions & Functions
-=======================
+Functions: Abstract Expressions
+===============================
 
 .. contents:: Table of Contents
    :depth: 1
@@ -25,8 +25,6 @@ Terminology
 +------------------------+----------------------------------------------------+
 | Instantiation          | Creating a concrete instance of an abstract thing  |
 +------------------------+----------------------------------------------------+
-| Term                   |                                                    |
-+------------------------+----------------------------------------------------+
 | Parameters             | The variables denoting arguments of a function     |
 +------------------------+----------------------------------------------------+
 | Arguments              | Actual parameter values supplied in a function call|
@@ -44,11 +42,6 @@ Terminology
 |                        | argument at a time and returning another           |
 |                        | function which consumes the rest of the arguments. |
 +------------------------+----------------------------------------------------+
-| Bind                   | assign (bind) a value to a variable                |
-+------------------------+----------------------------------------------------+
-| Type                   | Denotes rules that a value should conform to       |
-|                        | (e.g. Int or String)                               |
-+------------------------+----------------------------------------------------+
 | Concrete               | Represents a value without any unknowns            |
 |                        | (not abstract)                                     |
 +------------------------+----------------------------------------------------+
@@ -56,10 +49,6 @@ Terminology
 +------------------------+----------------------------------------------------+
 | Polymorphic            | Has multiple concrete representations (abstract,   |
 |                        | not concrete)                                      |
-+------------------------+----------------------------------------------------+
-| Type signature         |                                                    |
-+------------------------+----------------------------------------------------+
-| Type annotations       |                                                    |
 +------------------------+----------------------------------------------------+
 
 Abstraction
@@ -96,31 +85,6 @@ Principled here means that higher level abstractions are built using reusable
 lower level abstractions and always conform to certain rules so that you can be
 certain that everything works as expected.
 
-Terms and Expressions
----------------------
-
-An expression is composed of `terms`. The terms in an expression could be
-literals e.g. `42`, `'a'`, `"Hello"` or identifiers e.g. `x`.  Terms can also
-refer to functions when we are using functions as values e.g. `f` and `g` in `f
-. g`.  Terms can be combined to form an expression using an operator
-application e.g. `30 + 12`, `7 * 6` or function application e.g. `even 42`.  By
-combining terms with functions or operators we can create arbitrarily complex
-expressions. An expression can be `evaluated` or `reduced` to a terminal value.
-
-An `equation` or `definition` gives a name to an expression. The LHS of the
-following equation i.e. `v` is also called an `identifier` and we say that we
-are `binding` the expression to the identifier:
-
-+-----------------------------------------------------------------------------+
-| ``v = 10 + 32``                                                             |
-+-----------------------------------------------------------------------------+
-
-A Haskell program is nothing but an expression called `main`:
-
-+-----------------------------------------------------------------------------+
-| ``main = putStrLn "Hello world"``                                           |
-+-----------------------------------------------------------------------------+
-
 Functions: Abstraction of Expressions
 -------------------------------------
 
@@ -136,13 +100,14 @@ values via a process reciprocal to `abstraction` called `reduction`.
   expression |<------- reduction      <------| aka function
                  aka function application
 
-Abstraction: Defining a Function
+Abstracting: Defining a Function
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Writing a haskell program is in fact a process of abstraction that the
-programmer goes through.  The functions defined in a program are a result of
-that abstraction.  This abstraction process is also called `beta abstraction`
-in `lambda calculus` terminology.
+We will now see that functions are a very powerful and convenient tool for
+abstraction.  Writing a haskell program is in fact a process of abstraction
+that the programmer goes through.  The functions defined in a program are a
+result of that abstraction.  This abstraction process is also called `beta
+abstraction` in `lambda calculus` terminology.
 
 +-----------------------------------------------------------------------------+
 | A concrete expression has no unknown parameters in it.                      |
@@ -319,62 +284,204 @@ Function Application
 | This operation is left associative i.e. ``f a b c <=> ((f a) b) c``         |
 +-----------------------------------------------------------------------------+
 
-Types of Terms and Expressions
-------------------------------
+What is a Function?
+~~~~~~~~~~~~~~~~~~~
 
-A common programming mistake in `untyped` or weakly typed languages is using a
-wrong value i.e. use an `orange` in a computation where we were supposed to use
-an `apple`. How do we avoid such mistakes and ensure the correctness of a
-program?
+From an abstraction standpoint a function is an abstraction of an expression.
+From a mathematical standpoint a function is a mapping of values of one type or
+a combination of types (input types) to values of another (output) type. The
+implementation of a function in Haskell is very close to its mathematical
+definition, as we will see we `case analyze` the input types and map the
+individual values or groups of values to output types. But before we can
+understand that we need to understand `Algebraic Data Types`.
 
-Haskell expressions are made of functions applied to terms. Every term in an
-expression has a unique `type` associated with it.  A type is a label that
-determines the legal values that the data can assume.  A function application
-in an expression is the `only way` to combine values and produce new values.
-The typechecker knows what type of arguments a function expects and if the
-types applied to it do not match compilation fails. The type of an expression
-is inferred from the type resulting from the outermost function application in
-the expression. The argument type of the function that consumes this expression
-must match the type of the expression. This process goes on until the whole
-program satisfies the requirement that all appplications are using correct
-types.
+In an expression functions can originate only from two sources, a static
+function definition or as an output of another function. A function can return
+a function when it is partially applied or by defining a new function using a
+`lambda expression` which defines an anonymous function.
 
-A programmer can define new data types e.g. an orange can be assigned an
-`Orange` type and an apple can be assigned an `Apple` type. If a function
-argument is inferred to accept an `Orange` at one place you cannot pass an
-`Apple` to it at another place. This way everything is well-typed and there is
-no chance of passing an incorrectly typed value anywhere in the program.
-Haskell provides very strong type checking guarantees.
+Capturing
+---------
 
-Types can usually be inferred via `type inference` but if there is an ambiguity
-the programmer can explicitly specify the type of an expression or function
-using `type signatures` (also known as `type annotations`).
++-------------------+---------------------------------------------------------+
+| ::                | The variable `x` on RHS is captured by or bound to the  |
+|                   | parameter `x` of `f`                                    |
+|  f x = x          |                                                         |
++-------------------+---------------------------------------------------------+
+| ::                | The `x` in `g x` captures the `x` on RHS. The `x` in    |
+|                   | `f x` is shadowed by the `x` in `g x`.                  |
+|  f x = g          |                                                         |
+|     where g x = x |                                                         |
++-------------------+---------------------------------------------------------+
 
-Type Signatures
-~~~~~~~~~~~~~~~
+Defining Functions
+------------------
 
-Let's take an example of an identifier `v` representing a concrete data value::
+Functions Defined Purely in Terms of Compositions, Applications or Extensions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-     Value              Type
-  +----------+         +----------+
-  |          |         |          |
-  |          |   v     |          |
-  |          |         |          |
-  |   33     |         |   Int    |
-  +----------+         +----------+
+Composed functions are expressions defined purely in terms of composed
+applications of other functions. They pass on their arguments without having to
+know their values and hence do not discriminate the logic based on them.  In
+other words, they treat their parameters as opaque data.  It means that they do
+not need to de-construct the algebraic structure of their arguments.
 
+::
+
+  square x = x * x
+
+This classification is not very interesting as such but it is a value level
+equivalent of function-level parametric polymorphism at the type level. Such
+functions do not discriminate values the way parametrically polymorphic type
+functions do not discriminate types. We can say that a composed function is a
+parametrically polymorphic value.
+
+Ad-hoc Functions
+~~~~~~~~~~~~~~~~
+
+As opposed to composed functions which transform data by just composing other
+functions, ad-hoc functions de-construct the algebraic structure of their
+arguments by using case analysis and map input values to custom output
+values.
+
+The following example de-structures the parameter ``x`` and maps specific
+values (numbers) to specific outputs (number names):
+
+::
+
+  name x =
+        case x of
+          1 -> "one"
+          2 -> "two"
+          3 -> "three"
+
+Note how this looks very similar to a mathematical definition of a function.
+We call this an ad-hoc function as it is a custom or user defined function.
+This is analogous to the way ad-hoc polymorphism defines a custom function for
+each type at function level (typeclasses).
+
+Ad-hoc functions require a knowledge of the structure of the algebraic data to
+de-structure it.
+
+Defining Functions
+~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
-| Types are associated to a value by a `type signature`.                      |
-+---------------------------------+-------------------------------------------+
-| v :: Int                        | Type Level Program (type signature)       |
-+---------------------------------+-------------------------------------------+
-| v = 33                          | Term Level Program (value equation)       |
-+---------------------------------+-------------------------------------------+
-| Identifier `v` represents the value ``33`` of type ``Int``.                 |
-| `Term level program` uses an `=` to bind an identifier to a value while the |
-| `type level program` uses a `::` to bind an identifier to a type.           |
+| We have already seen function application, definition is just the opposite. |
++------------------------------------+----------------------------------------+
+| Application                        | Definition                             |
++====================================+========================================+
+| v = f x y z                        | f a b c = ...                          |
++------------------------------------+----------------------------------------+
+
 +-----------------------------------------------------------------------------+
+| Function definition equations                                               |
++-----------------------------------------------------------------------------+
+| ``square n = n * n``                                                        |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = square x + square y``                                  |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = let square n = n * n in (square x + square y)``        |
++-----------------------------------------------------------------------------+
+| ``sumOfSquares x y = (square x + square y) where square n = n * n``         |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| When the RHS of the equation is a function application then we can omit     |
+| trailing parameters that are identical on both sides.                       |
++-------------------------------------+---------------------------------------+
+| Explicit definition                 | Equivalent definition                 |
++-------------------------------------+---------------------------------------+
+| ``f a b = g a b``                   | ``f = g``                             |
++-------------------------------------+---------------------------------------+
+| ``f a b = g (a + 1) b``             | ``f a = g (a + 1)``                   |
++-------------------------------------+---------------------------------------+
+| When ambiguous always imagine that there are parenthesis around RHS         |
++-------------------------------------+---------------------------------------+
+| ``f a b = g (5 + 5) b``             | ``f = g $ 5 + 5``                     |
++-------------------------------------+---------------------------------------+
+| ``f a = print $ (+) 5 a``           | ``f = print $ (+) 5`` -- INCORRECT    |
+|                                     +---------------------------------------+
+|                                     | ``f = print . (+) 5`` -- CORRECT      |
++-------------------------------------+---------------------------------------+
+
+Anonymous Functions
+^^^^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------+
+| A lambda or an anonymous function is an expression denoting a function. It  |
+| allows you to define a function in-place inside an expression.              |
++-----------------------------------------------------------------------------+
+| ``\a b c -> ...``                                                           |
++-----------------------------------------------------------------------------+
+| ``let sumOfSquares f x y = f x + f y in sumOfSquares (\n -> n * n) 3 4``    |
++-----------------------------------------------------------------------------+
+| Without explicit parentheses, a lambda extends all the way to the end of    |
+| the expression.                                                             |
++-----------------------------------------------------------------------------+
+
+Case-mapped Functions
+---------------------
+
+Previously we defined simple functions that were merely a composition, or
+expressions involving other existing functions. A real primitive function is
+created by a `case analysis` on the input and thereby mapping different values
+of the input data type to different values in the output data type. This
+requires three fundamental tools, `pattern matching` to destruct the input
+data, `case statement` to map inputs to outputs and `data constructors` to
+create new output data type.
+
++--------------------------+---------------------+----------------------------+
+| Data Level               | Bridge              | Type Level                 |
++==========================+=====================+============================+
+| Data construction        |                     |                            |
++--------------------------+                     |                            |
+| Case analysis            | Data declaration    | Algebraic Data Types       |
++--------------------------+---------------------+----------------------------+
+
+Multi Equation Function Definitions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A case-mapped function can be defined more naturally as multiple equations. Each
+equation defines the function for a certain input pattern by using a pattern
+match on its arguments.  This is just a syntactic sugar on a `case` pattern
+match.
+
++--------------------------------------+--------------------------------------+
+| Function                             | Case                                 |
++--------------------------------------+--------------------------------------+
+| ::                                   | ::                                   |
+|                                      |                                      |
+|  name Red   i = "R " ++ show i       |  name c = case c of                  |
+|  name Green i = "G " ++ show i       |    Red   i -> "R " ++ show i         |
+|                                      |    Green i -> "G " ++ show i         |
++--------------------------------------+--------------------------------------+
+| All equations of a function must remain together i.e. no other definition   |
+| can come between them.                                                      |
++-----------------------------------------------------------------------------+
+| Just like `case` alternatives, patterns in equations are matched from top   |
+| to bottom.                                                                  |
++-----------------------------------------------------------------------------+
+| Multi equation functions can also be defined inside `let` and `where`       |
+| clauses.                                                                    |
++-----------------------------------------------------------------------------+
+
+Type Level Programming
+----------------------
+
+The purpose of type level programming is to generate concrete types to be used
+in the data level program.  Just like at data level we create `data functions`
+representing `asbtract` or `polymorphic data`, the same way at the type level
+we can create `type functions` representing abstract or `polymorphic types`.
+Type functions can be used to compose types together to generate more complex
+types from simple concrete types.
+
+Note that the type assigned to any data level value is always `concrete`.  The
+type of a data value can never be a type function. Type functions only exist at
+the type level. See the kinds section for details.
+
+Function Type Signatures
+~~~~~~~~~~~~~~~~~~~~~~~~
 
 Now, let's take an example of a function::
 
@@ -405,35 +512,76 @@ Now, let's take an example of a function::
 | ``Char``.                                                                   |
 +-----------------------------------------------------------------------------+
 
-Type Checking
-~~~~~~~~~~~~~
+Generating function types
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
-The onus of assigning unique types to different data items is on the programmer
-so that distinct types of values cannot accidentally be used in place of each
-other.  The types are analyzed at compile time by the `typechecker`.  It
-essentially checks if the types used in the program are consistent and we are
-not using one type in place of another. Type checks include:
+What is the type of a function value? A function with one argument is different
+from a function with two arguments. A function accepting an `Int` argument is
+different from a function accepting `Char` argument. The same applies to return
+values as well. The combinations are huge, so how do we represent so many types
+uniquely?
 
-* `functions`: The type of the function input must match the type of the value
-  being fed to the function.
++-----------------------------------------------------------------------------+
+| We generate function types using a type level operator denoted by           |
+| ``->``. A function of multiple arguments is represented by consuming one    |
+| argument at a time.                                                         |
++------------------+----------------------------------------------------------+
+| (->) a b         | Returns a concrete type representing a data function     |
++------------------+ which takes a data level value of type `a` as argument   |
+| a -> b           | and returns a data level value of type `b`.              |
++------------------+----------------------------------------------------------+
+| (->) a ((->) b c)| Returns a concrete type representing a data function     |
++------------------+ which takes a data value of type `a` as argument and     |
+| a -> (b -> c)    | returns a function of type ``(b -> c)``, note that the   |
++------------------+ operator is right associative.                           |
+| a -> b -> c      |                                                          |
++------------------+----------------------------------------------------------+
+| For example                                                                 |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  add :: (->) Int ((->) Int Int)  -- function form                           |
+|  add :: Int -> (Int -> Int)      -- explicit right associative form         |
+|  add :: Int -> Int -> Int        -- commonly used infix form                |
+|  add x y = x + y                                                            |
++-----------------------------------------------------------------------------+
 
-* `Equations`: When two values can be substituted in place of each other then
-  they must have the same type.
+TBD - deduplicate this with the table in the syntax chapter
 
-Term & Type Level Programming
------------------------------
+Type Operator ``->``
+~~~~~~~~~~~~~~~~~~~~
 
-A Haskell program is an expression consisting of terms and function
-applications. The terms or functions used in an expression may be defined by
-independent equations.  We will call building this expression and parts of it
-as the `term level program`.
-
-Each term and function used in the expression has a type associated with it.
-The types are specified via type signatures. We can call these type annotations
-collectively as the `type level program`. The type level programming can be as
-advanced as the term level programming itself as we will see later.
++-----------------------------------------------------------------------------+
+| Type level expressions representing complex types can be created by         |
+| combining simple types using type level operators.                          |
++-----------------------------------------------------------------------------+
+| ``->`` is a right associative type operator which is used to generate type  |
+| signatures of functions. ``->`` generates a function's type from the        |
+| function's `argument type` and `return type`.                               |
++-----------------------------------------------------------------------------+
+| A function taking an `Int` argument `x` and returning an `Int`:             |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  inc :: (->) Int Int    -- function form                                    |
+|  inc :: Int -> Int      -- operator form                                    |
+|  inc x = x + 1                                                              |
++-----------------------------------------------------------------------------+
+| A multi argument function is really a single argument function returning    |
+| another function which consumes the rest of the arguments.                  |
+| A function taking two `Int` arguments `x` and `y` and returning an `Int`:   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  add :: (->) Int ((->) Int Int)  -- function form                           |
+|  add :: Int -> (Int -> Int)      -- explicit right associative form         |
+|  add :: Int -> Int -> Int        -- commonly used infix form                |
+|  add x y = x + y                                                            |
++-----------------------------------------------------------------------------+
 
 References
 ----------
 
 * https://www.schoolofhaskell.com/school/starting-with-haskell/basics-of-haskell/8_Parser
+* http://conal.net/blog/posts/everything-is-a-function-in-haskell
+

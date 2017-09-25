@@ -40,6 +40,16 @@ State Sharing Monads
 State, Reader, Writer monads are defined in terms of Identity monad and the
 corresponding monad transformer.
 
+Other Monad Transformers
+------------------------
+
+* EitherT
+* ExceptT
+* ContT
+* IdentityT
+* MaybeT
+* ListT
+
 Stateless vs Stateful
 ---------------------
 
