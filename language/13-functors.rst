@@ -7,6 +7,11 @@ Terminology
 | Negative position          | type variable in arguments of a function       |
 +----------------------------+------------------------------------------------+
 
+* functors vs functions, args
+* output vs input vs both side functors
+* covariant bifunctors
+* all kinds of functors
+
 Transforms
 ~~~~~~~~~~
 

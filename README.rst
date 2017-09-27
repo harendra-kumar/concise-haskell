@@ -7,28 +7,58 @@ Table of Contents
 -----------------
 
 * `Preface <preface.rst>`_
+
+Concepts
+~~~~~~~~
+
 * Why Haskell
-* `Abstraction, Polymorphism & Composition <abstraction-and-composition.rst>`_
-* `Algebra <algebra/algebra.rst>`_
-* `Data Abstraction: Functions <abstraction/abstraction.rst>`_
-* `Basic Syntax <syntax.rst>`_
-* Denotational & Operational Semantics
-* Polymorphism
+* `Algebra <concepts/algebra.rst>`_
+* Category Theory
+* Type Theory
+
+Haskell Language
+~~~~~~~~~~~~~~~~
+
+* Expressions and Equations
+* Evaluating Expressions
+* Transformation and Composition
+* Functions
+* Polymorphic Functions
+
+* Recursion
+* Folds (Semigroups and Monoids)
+* Composing Functions
+* Functors
+* Composing Functors (Duals and Free)
+* Applicatives
+* Arrows
+* Monads
+
 * Typeclasses
-* `Advanced Types <types.rst>`_
-* Composition of Concrete Values: Monoids
-* Composition of Functions: Categories
-* Higher Order Abstraction: Functors
-* Composition of Computations: Applicatives & Monads
-* `Container Abstractions <container-abstractions.rst>`_
+* Record Types
+* Type Families and GADT
+* Kinds
+
+Data Structures and Libraries
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 * Basic Data Structures
+* Container Abstractions
 * Advanced Data Structures
-* Packages
+
+Performance
+~~~~~~~~~~~
+
 * Inside Haskell
+
+Appendix
+~~~~~~~~
+
 * Syntax Cheat Sheet
+* Packages
 * Glossary
 * Learning Resources
-* Other Resources
+* Programming Languages
 
 Contributions
 -------------

@@ -260,6 +260,37 @@ Equation Indentation Rule
 | A `do` expression block has a few more rules described later.               |
 +-----------------------------------------------------------------------------+
 
+Recursive Equations
+-------------------
+
+Equations provide a way to implement recursion, if there are no equations there
+won't be recursion.  An equation can be defined recursively by referring to the
+value being defined within the body of the definition.  Any recursive
+definition can be reduced to the following normalized version::
+
+  x = f x -- implies f :: a -> a
+
+We can see `x` unfold clearly by repeatedly substituting the term `x` in the
+expression for its own definition::
+
+  f x
+  f (f x)           -- after substituting x by (f x)
+  f (f (f x))       -- after substituting x by (f x)
+  ...
+
+You can see that this looks like iteration i.e. applying a function repeatedly
+on the previous result. Recursion and iteration are in fact duals of each
+other.  Such a recursive non-function definition never terminates if `f` is
+strict in its argument.  If `f` discards `x` then the definition just reduces
+to a trival non-recursive one.  For example::
+
+    x = f x where f = const 10 -- x = 10
+
+We will see later that non-terminating recursive expression equations can also
+be useful.  However, recursion is used most often with functions which are in
+fact abstracted expression equations.  It is a very powerful and commonly used
+abstraction tool for functions.
+
 Structure of a Haskell Program
 ------------------------------
 

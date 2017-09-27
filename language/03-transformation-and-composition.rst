@@ -4,8 +4,8 @@
 
 .. role:: blue
 
-Algebraic Data Types
-====================
+Basic Computing Primitives
+==========================
 
 .. contents:: Table of Contents
    :depth: 1
@@ -649,24 +649,82 @@ Case: Extended Syntax
 |  case e of { }                       |  \case { }                           |
 +--------------------------------------+--------------------------------------+
 
-Case Type Checking
-~~~~~~~~~~~~~~~~~~
+Transformation and Composition
+------------------------------
 
-A case expression maps one type to another.  All the values `mapped from` must
-have one type and all the values `mapped to` must have one type.
+Transforming one type into another and composing multiple objects of different
+types together are two fundamental computing operations. Any logic program can
+be implemented using these two fundamental primitives.
 
-Building Blocks
----------------
+Algebraic data constructors are the essence of composition and case expression
+is the essence of transformation.
 
-Case is the essence of a mathematical definition of a function.  Note that case
-is the fundamental branching primitive in Haskell.  Algebraic Data Types and
-case analysis are the fundamental building blocks that are capable of
-expressing any logic program.  Functions add abstraction and recursion
-facilities that make programming more convenient.
++---------------------------------+-------------------------------------------+
+| Transformation                  | Case Analysis                             |
++---------------------------------+-------------------------------------------+
+| Composition                     | Constructors                              |
++---------------------------------+-------------------------------------------+
+
+Transformation
+~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| Transformation is a unary operation that maps one type to another.          |
+| The type being mapped from can potentially be a product type.               |
++===================================+=========================================+
+| Input (Consume)                   | Output (Produce)                        |
++-----------------------------------+-----------------------------------------+
+| The fundamental instrument of transformation is a case expression.          |
+| Transformation starts with destruction of the source type and proceeds with |
+| construction of the destination type.                                       |
++-----------------------------------------------------------------------------+
+
+Case is the only fundamental construct involving two different types, an input
+type and an output type, mapping the input to the output.  It destructures the
+input type using pattern match on its constructors and then constructs the
+output type using its constructors.  Therefore, all the output expressions in
+the following table must have the same type which is the output type of the
+case expression.
+
++-----------------------------------------------------------------------------+
+| Case type checking                                                          |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  case <input expr> of                                                       |
+|    C1 a b c ... -> <output expr1>                                           |
+|    C2 a b c ... -> <output expr2>                                           |
+|    x            -> <output expr3>                                           |
+|    ...                                                                      |
++-----------------------------------------------------------------------------+
+
+Case is the essence of a mathematical definition of a function. All other
+abstractions including functions, boolean operations, branching etc. are built
+on top of case and algebraic data constructors.
+
+Composition
+~~~~~~~~~~~
+
+Composition is a general way of combining multiple objects of potentially
+different types into a single object. Pure basic composition is just putting
+types together as a product type using a constructor. Later we will discuss
+higher level abstractions like functions and more that compose and transform
+types in interesting ways.
+
++-----------------------------------------------------------------------------+
+| Composes a finite number (not a stream) of  objects of potentially          |
+| different types.                                                            |
++================+============================================================+
+| N-ary          | A constructor just stores multiple data types together as  |
+| constructor    | a product type.                                            |
+|                +------------------------------------------------------------+
+|                | ``C :: A -> B -> C``                                       |
++----------------+------------------------------------------------------------+
 
 Basic Algebraic Data Types (Prelude)
 ------------------------------------
 
+* Lists should be introduced after we explain recursion
 * TODO: provide links to the definitions in base
 * Provide the definitions as well
 

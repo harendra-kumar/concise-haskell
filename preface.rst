@@ -22,6 +22,33 @@ model in his head.
 In this text we are presenting Haskell from the top down perspective assuming
 you have learnt the basics.
 
+Building Intuition
+------------------
+
+This text goes from the basic first principles to higher level abstractions
+incrementally, builder higher level stuff on lower level stuff. We want to
+create a deeper understanding of the concepts and inculcate intuition about
+abstractions and how they are built in the first place so that the reader can
+easily apply the same process to novel situations.
+
+In addition to systematically building new concepts on top of the previous
+concepts we also try to discuss the dual concpets alongside each other for a
+better and deeper understanding.
+
+Haskell is overwhelming, there is too much to imbibe. However it is
+overwhelming because the boon of Haskell is also the curse of Haskell. It has
+systematic building blocks and you can use any permutations or combinations of
+those and as they multiply the numbers increase rapidly. However, if we know
+the building blocks, correspondences, duals etc.  systematically we can just
+abstract out most of stuff  and derive it rather than remembering in an ad-hoc
+manner. That is the approach we are taking in this book.
+
+For example if we applicatives, arrows and monads, their duals, free/cofree
+versions it easily becomes tens of concepts to learn but in fact they are all
+manifestations of some sort of transformation and composition and if we know
+how they relate to the basic concepts and to each other they are easy to
+remember.
+
 GHC Haskell reference
 ---------------------
 

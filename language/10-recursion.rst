@@ -161,9 +161,9 @@ Functions just help abstract any of those representations.
 When are these conversions useful?
 
   * data   <-> data
-  * codata <-> codata
   * data   <-> codata
   * codata <-> data
+  * codata <-> codata
 
 
 When we use a function to represent codata, the function output has to be
@@ -243,6 +243,10 @@ non-recursive seed structure, it is called corecursion.
 | data                                | codata                                |
 +-------------------------------------+---------------------------------------+
 | algebra                             | coalgebra                             |
++-------------------------------------+---------------------------------------+
+| Mealy machine                       | Moore machine                         |
++-------------------------------------+---------------------------------------+
+| Monad                               | Comonad                               |
 +-------------------------------------+---------------------------------------+
 
 Note the duality: in structural recursion we 'deconstruct' the argument and
@@ -714,3 +718,5 @@ Recursion schemes:
 
 * http://cgi.csc.liv.ac.uk/~grant/PS/thesis.pdf Algebraic Data Types and Program Transformation
 * http://dl.acm.org/citation.cfm?id=2034807 A hierarchy of mendler style recursion combinators: taming inductive datatypes with negative occurrences".
+
+* https://en.wikipedia.org/wiki/Computability_theory recursion theory

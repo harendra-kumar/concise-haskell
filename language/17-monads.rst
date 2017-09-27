@@ -6,6 +6,14 @@ Terminology
 |                   | which are not wrapped in a monad type.                  |
 +-------------------+---------------------------------------------------------+
 
+Monads is the most general composition of functors. Monads have the full
+power of functions in the pure world. They allow something like
+continuations for functors.  They allow product-like composition i.e. a
+tree structured composition. They are like the case analysis for
+functors. We draw from a functor the way we draw from an argument in a
+pure function and then compose it with something drawn from another
+functor object. Bind is the cross product.
+
 * TBD - define actions, effects, effectful computation etc.
 * Three types of values, abstract value (with holes), pure concrete value
   (neutral), effects (produce a side effect).

@@ -1,3 +1,18 @@
+.. raw:: html
+
+  <style> .blue {color:blue} </style>
+
+.. role:: blue
+
+Composing Functions
+===================
+
+.. contents:: Table of Contents
+   :depth: 1
+
+Terminology
+-----------
+
 +------------------------+----------------------------------------------------+
 | First order function   | None of the arguments is a function                |
 +------------------------+----------------------------------------------------+
@@ -5,7 +20,7 @@
 +------------------------+----------------------------------------------------+
 
 Functions as Transformations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 A function is a transformation that has one or more inputs and precisely one
 output. However a multi-input function can be represented as a single input
@@ -45,7 +60,7 @@ level abstractions, let us first see how we can define, slice and dice
 functions.
 
 Higher Arity/Order Functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+----------------------------
 
 A higher arity function produces a function as output and a higher order
 function accepts a function as input.
@@ -72,6 +87,10 @@ different, it accepts one argument which is a function.
 
 Operations on Functions
 -----------------------
+
+* semigroupoid, monoid (category) composition
+* continuation
+* n-ary composition
 
 In this section we will look at ways to combine functions and values together.
 There are three fundamental ways to combine functions and values:
