@@ -19,21 +19,38 @@ Concepts
 Haskell Language
 ~~~~~~~~~~~~~~~~
 
+* Composition
+* Data Flow Model
+
+Basics
+^^^^^^
+
 * Expressions and Equations
 * Evaluating Expressions
-* Transformation and Composition
-* Functions
-* Polymorphic Functions
+* Transform and Combine
 
+Functions
+^^^^^^^^^
+
+* Functions
 * Recursion
-* Folds (Semigroups and Monoids)
+* Unary and Binary
+* Recursive Folds
 * Composing Functions
+
+Functors
+^^^^^^^^
+
 * Functors
-* Composing Functors (Duals and Free)
+* Composing Functors
 * Applicatives
 * Arrows
 * Monads
 
+Type System
+^^^^^^^^^^^
+
+* Polymorphic Functions
 * Typeclasses
 * Record Types
 * Type Families and GADT

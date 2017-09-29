@@ -12,6 +12,23 @@ Terminology
 * covariant bifunctors
 * all kinds of functors
 
+Context of Data
+---------------
+
+Any data object is in a certain context or a certain world. The world consists
+of data and operations on data. The type of the data defines the world or
+context of the data.
+
+Transforming the context of data
+--------------------------------
+
+Functors are the transformation in our transformation/composition duo.
+
+A functor is a type level transformation, transforming the type or the context
+of a value. Just like a function is a value level transformation.
+
+* Functor | Data that can be transformed | requires single object, enables transformation (change of context) of a single object
+
 Transforms
 ~~~~~~~~~~
 
@@ -210,6 +227,73 @@ Free Functor
 
      lan :: g a -> Lan g a
      lan ga = Lan ga id
+
+Functors
+--------
+
+* Functor
+
+  * Covariant - producers ( f a --> producer of a)
+
+    * Applicative - combines producers
+
+      * Alternative
+  * Contravariant - consumers ( f a --> consumer of a)
+
+    * Divisible - combines consumers
+
+      * Decidable
+
++-----------------------------------------------------------------------------------+
+| Product (a,b)                                                                     |
++-----------------------------------+-----------------------------------------------+
+| Applicative                       | Divisible                                     |
++===================================+===============================================+
+| pure :: a -> f a                  | conquer :: f a                                |
+|                                   |                                               |
+|                                   | conquer :: (a -> ()) -> f a -- theoretically  |
++-----------------------------------+-----------------------------------------------+
+| (<*>) :: f (a -> b) -> f a -> f b | divide :: (a -> (b, c)) -> f b -> f c -> f a  |
++-----------------------------------+-----------------------------------------------+
+
++---------------------------------------------------------------------------------------+
+| Sum (Either a b)                                                                      |
++--------------------------------+------------------------------------------------------+
+| Alternative                    | Decidable                                            |
++================================+======================================================+
+| ``empty :: f a``               | ``lose :: (a -> Void) -> f a``                       |
++--------------------------------+------------------------------------------------------+
+| ``(<|>) :: f a -> f a -> f a`` | ``choose :: (a -> Either b c) -> f b -> f c -> f a`` |
++--------------------------------+------------------------------------------------------+
+
+* Profunctor (pipes - producer as well as consumer)
+    (p a b --> consumer of a and producer of b)
+
++-----------------------------------------+------------------------------------------+
+| Product (a,b)                                                                      |
++-----------------------------------------+------------------------------------------+
+| Strong                                  | Costrong                                 |
++-----------------------------------------+------------------------------------------+
+| ``first' :: p a b -> p (a, c) (b, c)``  | ``unfirst :: p (a, d) (b, d) -> p a b``  |
++-----------------------------------------+------------------------------------------+
+| ``second' :: p a b -> p (c, a) (c, b)`` | ``unsecond :: p (d, a) (d, b) -> p a b`` |
++-----------------------------------------+------------------------------------------+
+
++----------------------------------------------------------------------------------------------------------+
+| Sum (Either a b)                                                                                         |
++----------------------------------------------------+-----------------------------------------------------+
+| Choice                                             | Cochoice                                            |
++----------------------------------------------------+-----------------------------------------------------+
+| ``left' :: p a b -> p (Either a c) (Either b c)``  | ``unleft :: p (Either a d) (Either b d) -> p a b``  |
++----------------------------------------------------+-----------------------------------------------------+
+| ``right' :: p a b -> p (Either c a) (Either c b)`` | ``unright :: p (Either d a) (Either d b) -> p a b`` |
++----------------------------------------------------+-----------------------------------------------------+
+
+  * Closed
+    closed :: p a b -> p (x -> a) (x -> b)
+
+  * Strong + Choice = Traversing
+  * Traversing + Closed = Mapping
 
 References
 ----------

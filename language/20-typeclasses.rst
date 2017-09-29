@@ -7,6 +7,43 @@ Terminology
 * Dictionary
 * Superclass
 
+A Bare Type
+-----------
+
+Any type creates an indirection or a context in which the value is to be
+interpreted. It says you cannot directly operate on me, you will have to use my
+way of doing things.  A value wrapped in a type cannot be operated directly or
+accidentally. No existing function will operate on a newly born type.  We have
+to define type specific operations for it.
+
+A bare type is pure data definition isolated from the world. We need to connect
+it to the world by defining operations on it.
+
+Adding it to typeclasses
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Standard operations are bundled in typeclasses.  Typeclasses are also a way of
+advertising (via constraints) that this type supports these operations and you
+can use those operations. So the new type can fit into a lot of existing
+infrastructure automatically - existing hihger level typeclasses can use it,
+existing operations can use it.  Some typeclass operations can be automatically
+defined using deriving.
+
+Defining Operations
+~~~~~~~~~~~~~~~~~~~
+
+We can also define operations on a type without making it a member of
+typeclasses.
+
+
+TBD - picture of a bare type, then with operations, typeclass oeprations
+
+Deriving
+--------
+
+GeneralizedNewTypeDeriving - how do you know what all instances can be derived
+automatically by GHC?
+
 Typeclass Definition
 --------------------
 

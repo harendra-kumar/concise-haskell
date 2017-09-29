@@ -317,6 +317,15 @@ Capturing
 Defining Functions
 ------------------
 
+Function classes
+----------------
+
+Parameter structure independent functions (pure composition)
+Parameter structure aware functions (ad-hoc)
+
+Parameter type independent functions (parametric polymorphism)
+Parameter type aware functions (ad-hoc polymorphism)
+
 Functions Defined Purely in Terms of Compositions, Applications or Extensions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 

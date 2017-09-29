@@ -26,14 +26,15 @@ Building Intuition
 ------------------
 
 This text goes from the basic first principles to higher level abstractions
-incrementally, builder higher level stuff on lower level stuff. We want to
-create a deeper understanding of the concepts and inculcate intuition about
-abstractions and how they are built in the first place so that the reader can
-easily apply the same process to novel situations.
-
-In addition to systematically building new concepts on top of the previous
-concepts we also try to discuss the dual concpets alongside each other for a
-better and deeper understanding.
+incrementally, building higher level stuff on lower level stuff.  Each chapter
+is self contained and has a comprehensive reference for everything related to
+that concept.  In addition to systematically building new concepts on top of
+the previous concepts we also try to discuss the dual concpets alongside each
+other for a better and deeper understanding.  We want to create a deeper
+understanding of the concepts and inculcate intuition about abstractions and
+how they are built in the first place so that the reader can easily apply the
+same process to novel situations.  You will basically learn how to learn
+Haskell.
 
 Haskell is overwhelming, there is too much to imbibe. However it is
 overwhelming because the boon of Haskell is also the curse of Haskell. It has
@@ -48,6 +49,11 @@ versions it easily becomes tens of concepts to learn but in fact they are all
 manifestations of some sort of transformation and composition and if we know
 how they relate to the basic concepts and to each other they are easy to
 remember.
+
+One important aspect to building a deeper understanding is knowing the big
+picture and how things relate to each other. For example how recursion, folds,
+lists, monoids are related? When we know the precise relationships it is easier
+to understand them better and remember them easily.
 
 GHC Haskell reference
 ---------------------

@@ -177,3 +177,6 @@ References
 * http://raganwald.com/2010/12/01/oop-practiced-backwards-is-poo.html
 * http://blog.jot.fm/2010/08/26/ten-things-i-hate-about-object-oriented-programming/comment-page-2/
 * http://www.yegor256.com/2016/08/15/what-is-wrong-object-oriented-programming.html
+
+* http://www.youscience.com/what-is-sequential-reasoning-and-why-does-it-matter/
+* http://www.erasmatazz.com/library/the-mind/history-of-thinking/033d91601d1f41bdbb9d/verbal-reasoning.html

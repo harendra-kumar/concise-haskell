@@ -291,6 +291,14 @@ be useful.  However, recursion is used most often with functions which are in
 fact abstracted expression equations.  It is a very powerful and commonly used
 abstraction tool for functions.
 
+Tying the Knot - Cycles
+~~~~~~~~~~~~~~~~~~~~~~~
+
+  x = x
+
+  -- infinite loop
+  x
+
 Structure of a Haskell Program
 ------------------------------
 

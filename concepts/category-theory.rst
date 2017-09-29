@@ -47,6 +47,30 @@ Terminology
 * tensorial strength - natural transformation preserving certain structure of
   the functor is the strength of the functor.
 
+Layman description
+------------------
+
+The key point is that there is a correspondence (which
+implies difference as well) between parallel worlds. And we derive an
+operation in a world from an operation in another one by just
+defining a transformation because there is a correspondence. This
+allows reuse.
+
+Illustrate category theory with an example of the number system. How we can
+apply a solution from one field to another by abstracting it. How relationships
+among different objects/concepts are important and the specific details of the
+objects are just noise.
+
+Morphisms and Galois Connections
+--------------------------------
+
+Morphisms are exact one to one correspondence whereas Galois Connections
+are correspondence of one object to multiple in another world. Both are
+relations or correspondences only the rules of correspondence are
+different. Or in other words a Galois Connections defines an object
+which is an approximate or reduction of multiple objects in another
+world.
+
 Definition by relations
 -----------------------
 
@@ -60,6 +84,58 @@ That is one of the reasons why we unnderstand concepts better when we think
 about their duals. We think of a concept in relation to its dual. For example
 we understand 0 and infinity better when we think about them both as duals of
 each other rather than when we only think about one and not the other.
+
+Objects are immaterial
+----------------------
+
+In categories we have nothing to do with the objects per se they are opaque to
+us. Objects are only the endpoints of functions. We are only operating on the
+functions more generally known as morphisms in category theory.
+
+Universal Construction
+~~~~~~~~~~~~~~~~~~~~~~
+
+There is a common construction in category theory called the universal
+construction for defining objects in terms of their relationships. It is
+universal because the objects do not matter. The construction holds for any
+object. As long as the relationships are the same we have the same
+construction. Its a generalized construction irrespective of what our objects
+are. It is an abstraction, meaning the objects do not matter we have an
+abstract concept defined just by the relationships among objects.
+
+For example a product type for sets is defined as:
+
+data (a, b) = (a, b)
+
+The relationships or morphisms or functions between the constituent sets a and
+b and the product (a,b) are:
+
+fst (a, b) = a
+snd (a, b) = b
+
+Now, if any opaque object satisfies the same relationships then we have a
+generalized product construction. Does not matter what the objects are if they
+satisfy fst and snd type of relationships we have a product of the two objects.
+
+A product of two objects a and b is the object c equipped with two projections
+such that for any other object c’ equipped with two projections there is a
+unique morphism m from c’ to c that factorizes those projections.
+
+coproduct is the dual of product.
+
+A coproduct of two objects a and b is the object c equipped with two injections
+such that for any other object c’ equipped with two injections there is a
+unique morphism m from c to c’ that factorizes those injections.
+
+A product behaves like multiplication, with the terminal object playing the
+role of one; whereas coproduct behaves more like the sum, with the initial
+object playing the role of zero. In particular, for finite sets, the size of
+the product is the product of the sizes of individual sets, and the size of the
+coproduct is the sum of the sizes.
+
+------
+
+left :: a -> Either a b is the dual of the projection fst :: (a,b) -> a
 
 Category
 --------
@@ -110,8 +186,8 @@ Examples
 Morphisms
 ~~~~~~~~~
 
-Morphisms are more general than functions. For example a morphism
-could be a relation (e.g. greater than) rather than a function.
+Morphisms are more general than functions. For example a morphism could be a
+relation (e.g. a "greater than" relationship) rather than a function.
 
 +--------------+--------------+------------------+----------------------------+
 | Morphism     | Function Eq. | Rule             | Description                |
@@ -258,7 +334,7 @@ Notions of Computation
 ----------------------
 
 Computation involves combining or folding functions or computations together.
-The way to combine or fold is of course a monoid.
+The most convenient and powerful way to fold is using a monoid.
 
 +-----------------------------------------------------------------------------+
 | Each one of the three well-known notions of computations in Haskell are a   |

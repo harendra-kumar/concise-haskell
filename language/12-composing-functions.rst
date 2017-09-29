@@ -19,6 +19,13 @@ Terminology
 | Higher order functions | One or more argument is a function                 |
 +------------------------+----------------------------------------------------+
 
+Category - Combining functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Combining the transformations themselves:
+
+* Functions + Monoid = Category | How to combine two objects | two objects
+
 Functions as Transformations
 ----------------------------
 

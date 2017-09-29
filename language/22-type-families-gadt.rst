@@ -28,6 +28,30 @@ Generalized Type Polymorphism
 | Generalization: data families                  |     | Generalization: GADTs                                             |
 +------------------------------------------------+-----+-------------------------------------------------------------------+
 
+GADT
+----
+
+A GADT type is sum of types of a sum type. one or more constructors can return
+a specialized constituent type. It gives a stricter type checking since these
+constituent types can be independently used instead of using one type for all.
+Thus an ADT sum type is a special case of a GADT sum type.
+
+However if we can represent subsets of possiblities with different types we can
+statically decide which possiblities we want to deal with in a given instance
+of code. We can statically (compile time) preclude some possiblities and allow
+others, providing us much more fine grained control over the sum type.
+
+Instead of carrying the whole sum type always, we can now just allow parts of
+it and reject other parts through static types.
+
+There are two ways this will help:
+
+* Writing functions which work upon only certain possibilites
+* Allow more interesting construction of recursive data types. In ADT when we
+  use a data type it represents the whole sum always. But now we can build the
+  recursive structure allowing certain parts of the whole at some places and
+  other at other places.
+
 Generalized Algebraic Data Types (GADTs)
 ----------------------------------------
 

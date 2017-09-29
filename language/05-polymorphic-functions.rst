@@ -28,6 +28,101 @@ variable (``a`` in the following example)::
 The type can be `instantiated` for a specific value of the variable `a`, for
 example the type ``Pair Int`` is equivalent to the definition ``Pair Int Int``.
 
+Polymorphic Algebraic Data Types
+--------------------------------
+
+Data Type Declaration
+~~~~~~~~~~~~~~~~~~~~~
+
++------------------------------------------------+-----+-------------------------------------------------------------------+
+| .. class:: center                              |     | .. class:: center                                                 |
+|                                                |     |                                                                   |
+| Type Level Function                            |     | Data Constructor Templates                                        |
++=========+=====================+================+=====+=====================+=======+=====================================+
+|         | Type Constructor    |      Parameter |     | Data Constructor    |       | Data Constructor                    |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+| data    | :red:`L`:blk:`ist`  | `a`            |  =  | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
++---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
+
+Type Constructor
+^^^^^^^^^^^^^^^^
+
++-----------------------------------------------------------------------------------------+
+| A type level function to create a type from existing types                              |
++----------------------+--------+------------------+--------------------------------------+
+| Type                 |        | Kind             | Description                          |
++======================+========+==================+======================================+
+| List                 | ``::`` | ``Type -> Type`` | Polymorphic type or type constructor |
++----------------------+--------+------------------+--------------------------------------+
+| The signature implies that the parameter `a` must be a concrete type of kind ``Type``   |
++-----------------------------------------------------------------------------------------+
+| .. class:: center                                                                       |
+|                                                                                         |
+| Instances                                                                               |
++----------------------+--------+------------------+--------------------------------------+
+| List Int             | ``::`` | ``Type``         | Concrete type (list of Ints)         |
++----------------------+--------+------------------+--------------------------------------+
+| List (Maybe Int)     | ``::`` | ``Type``         | Concrete type (list of Maybe Ints)   |
++----------------------+--------+------------------+--------------------------------------+
+| :strike:`List Maybe` |        |                  | Kind mismatch                        |
++----------------------+--------+------------------+--------------------------------------+
+
+Data Constructors
+^^^^^^^^^^^^^^^^^
+
++--------------------------------------------------------------------------------------------------------+
+| A data level function to create a value of the corresponding type                                      |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Data Constructor  |        | Type                          | Description                               |
++===================+========+===============================+===========================================+
+| Empty             | ``::`` | List a                        | Create a new value (denoting empty list)  |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
++-------------------+--------+-------------------------------+-------------------------------------------+
+| The signatures imply that the arguments of constructors must be concrete types of kind ``Type``        |
++--------------------------------------------------------------------------------------------------------+
+
+Quantification
+~~~~~~~~~~~~~~
+
++--------------------------------------------------------------------------------------------------------------------+
+| .. class:: center                                                                                                  |
+|                                                                                                                    |
+| -XExistentialQuantification                                                                                        |
++--------------------------------------------------------------------------------------------------------------------+
+| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
+| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
+| They will typecheck with other instances only within this local scope. In other words, they cannot be unified with |
+| variables outside this scope.                                                                                      |
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Foo = forall a.                                     |   data Foo where                                      |
+|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
+|                                                            |                                                       |
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|   data Counter a = forall self.                            |   data Counter a where                                |
+|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
+|     { _this    :: self                                     |     { _this    :: self                                |
+|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
+|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
+|     , tag      :: a                                        |     , tag      :: a                                   |
+|     }                                                      |     } -> Counter a                                    |
++------------------------------------------------------------+-------------------------------------------------------+
+| The type of an existential variable is fixed during construction based on the type used in the constructor call.   |
++--------------------------------------------------------------------------------------------------------------------+
+| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
+| `where` bindings.                                                                                                  |
++--------------------------------------------------------------------------------------------------------------------+
+| The extracted value can be consumed by any functions in the scope of the existential.                              |
+| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
+| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
++--------------------------------------------------------------------------------------------------------------------+
+| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
+| example, all fields prefixed with ``_`` in the above example are private.                                          |
++--------------------------------------------------------------------------------------------------------------------+
+
 Polymorphic Functions
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -244,8 +339,8 @@ grouping it with a forall keyword. For example::
 | assume that x’s type has no foralls in it.                                  |
 +-----------------------------------------------------------------------------+
 
-Specialization
-~~~~~~~~~~~~~~
+Specializing Polymorphic Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 TBD
 

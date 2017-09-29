@@ -1,5 +1,5 @@
-Composition, Abstraction & Polymorphism
-=======================================
+Composition, Abstraction & Combining
+====================================
 
 .. contents:: Table of Contents
    :depth: 1
@@ -8,8 +8,83 @@ Composition, Abstraction & Polymorphism
 | ≡                      | Symbol for definition or equivalence               |
 +------------------------+----------------------------------------------------+
 | ⊕                      | Symbol representing combining two values in some   |
-|                        | way (direct sum)                                   |
+|                        | way (direct sum or direct product)                 |
 +------------------------+----------------------------------------------------+
+
+Overview
+--------
+
+In this chapter we do not elaborate the concepts introduced in detail. Just
+treat this chapter as a roadmap to find your way and get organized. This is
+more of a classifiation of concepts in a systematic manner building upon each
+other. This is how the whole book has been organized.
+
+As you go through the chapters in order, these concpets will become clearer and
+then you can go through the composition chapter for a detailed summary and
+illustration of all the abstract concepts and a full roadmap of all the
+concepts introduced in the book.
+
+Abstraction ~ transformation (from input domain to output domain)
+Composition = Abstraction + Combining
+Abstraction = Term level (functions), Type level (Polymorphism)
+Combining = Product, Sum
+
+Composition
+-----------
+
+A unary operation and a binary operation combined together are widely useful in
+composing a set of values in a general manner.
+
+transform + combine = compose
+
+So how do we transform and combine? We use these two:
+* a binary operation combines
+* identity + combine = transform
+
+Identity allows a very important special case to be handled in a generalized
+manner.
+
+A binary number system can express all numbers using two digits "0" and "1".
+The same way a unary operation and binary operation together can express a
+generalized n-ary operation. The unary operation, transform is our digit 0 and
+the binary operation combine is the digit 1.
+
+It is a very common pattern in Haskell.
+
+Transformation and Combining, Distributive?
+-------------------------------------------
+
+Composition is an operation on data
+Transformation is an operation on functions i.e. co-data
+They get entangled with each other the same way construction and destruction
+get entangled with each other.
+
+N-ary function:
+  put n things together : map the composite to another
+
+We can first compose and then map. Is it possible to first map and then
+compose?
+  a x b -> c               -- just like NOT (a AND b) = (NOT a) OR (NOT b)
+  (a -> c) + (b -> c)      -- that's why NOT is always needed and one of and/or
+  i.e. mapping of a product is a sum of mappings
+  this is just for intuition. It may not be possible for a map like a
+  -> c to even exist even though (a, b) -> c exists.
+
+  Is this possible to prove it this way?
+    when we give a to a x b -> c it produces b -> c
+    when we give b to a x b -> c it produces a -> c
+    Now that we have given both the inputs separately and got the results we
+    can combine the two complementary results to arrive at the final result.
+Abstraction & Polymorphism
+--------------------------
+
+The process of supplying the values of parameters to create a concrete form is
+sometimes called `instantiation` of the polymorphic form or creating an
+`instance`.  Instantiation process is the opposite of abstraction.
+
+::
+
+  red ball, green ball, blue ball => ball + color => instances
 
 Composition and Transformation
 ------------------------------
@@ -217,3 +292,24 @@ Semigroup Monoid   Accumulate  Recursion    List/Tree finite    open   fold  Seq
 Applicative is a fold of sequences.
 Monad/Comonad are folds of trees.
 
+------
+
+Correspondences:
+
+Sum and product are the most basic fundamental and dual concepts. Every type of
+operation can be expressed in terms of sums or products, they help function map
+from one type to another. They can also be called conjunction and disjunction
+in logic programming. These concepts are fully pervasive in Haskell and can be
+found in some form everywhere in every aspect, at every layer.
+
+| Product | (a,b)      | pattern match | Function | Applicative | Monad     | Conjunction
+| Sum     | Either a b | case map      | Function | Alternative | MonadPlus | Disjunction
+
+* Note a product of types can be defined in terms of other types.
+* A sum type is a sum of data constructors and not a sum of other types. A sum
+  of other types would be called a coproduct.
+* However the only way to define a sum type in terms of other types (i.e. a
+  coproduct of types) is Either. Either is a product type that represents a sum
+  of two types!
+* dependent-sum package generalizes either
+* dependent-map?

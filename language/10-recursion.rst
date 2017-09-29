@@ -258,6 +258,27 @@ guarded recursion with codata. With that rule, we're guaranteed that our
 recursions will always be safe, and yet that we can still have open-ended loops
 in our code. Sometimes these are called recursion and corecursion respectively.
 
+Recursive Algebraic Data Types
+------------------------------
+
+Algebraic data types can be defined recursively. For example a list of `Int`
+can be defined as:
+
+::
+
+  data List = Empty | Cons Int List
+
+  +--------+-------+      +--------+-------+      +--------+
+  |  100   |  n2   |----->|  200   |  n1   |----->|  Empty |
+  +--------+-------+      +--------+-------+      +--------+
+
+All types in Haskell are defined either as primitive sum types or composite
+types defined in terms of sums and products of other types.
+
+The product data type is somewhat analogous to `record` types (e.g. `struct` in
+C) in other languages. Similarly a sum type is analogous to enumerated types
+(e.g. `enum` in C).
+
 Recursive Expressions
 ---------------------
 

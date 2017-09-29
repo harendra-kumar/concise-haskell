@@ -1,52 +1,164 @@
-Container Abstractions
-======================
+Recursive Folds
+---------------
 
-The common operations that you perform on containers are folds and traversals.
+Combining Data
+~~~~~~~~~~~~~~
 
-base | distributive | mono-traversable | lens | lens-action
+Combining data requires assistance of a function because combining operation is
+after all a dynamic transformation. To combine data we require imposition of a
+certain abstract static structure on the data and an associated function to
+assist combining that structure.
 
-Conventions
------------
+Composing a set of values into a single value
+---------------------------------------------
 
-TBD - need to decide whether arrows should be is-a or inverse of that.
-Higher level stuff above and lower level below?
+Assume that we have a collection of values of the same type, for example a list
+of integers [1, 2, 3, 4, 5]. If we have a binary operation `f :: a -> a -> a`
+
+Composing Two or More Values
+----------------------------
+
+When we have a collection of two or more values we can just use the binary
+operation to compose them.
+
+Folding or Sum Composition
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A special and interesting case of composition occurs when all the objects to be
+combined are of the same type.  Just like a sum type represents many choices,
+here the many objects of the same type represent different choices from the
+same type. We combine them all into an output type.  We call such a composition
+a fold or sum.
+
+::
+  A, A, A, ...
+
+Using a binary product composition constructor or function we can fold any
+number of objects of the same type recursively. For recursion we necessarily
+need the output of the transformation to be the same as one of its inputs so
+that we can feed back the output into the input.
+
+C :: A -> B -> B
+
+Recursive Construction
+^^^^^^^^^^^^^^^^^^^^^^
+
+* A list is just a binary recursive composition of the same type using a
+  constructor.
+* A tree is a binary recursive composition of two different types
+  using a constructor.
+
+Recursive Fold
+^^^^^^^^^^^^^^
+
+For combining arbitrary number of objects of the same type we can use a binary
+product composition function recursively.
+
+Semigroup Composition
+^^^^^^^^^^^^^^^^^^^^^
+
+When the objects being combined are of different types the only way to compose
+is using a funciton or constructor. But when the objects being combined are of
+the same type we have a convenient special case of general composition.  We can
+now use a binary composition function to combine arbitrary number of objects.
+
+Monoidal Composition
+^^^^^^^^^^^^^^^^^^^^
+
+When the type has an identity we can have a more general composition where we
+can combine 0 to n number of objects in the same way.
+
+Monoid
+------
+
+::
+
+  mempty   :: a
+  mappend  :: a -> a -> a
+  you can fold t a : t a -> a
+
+  Generalized:
+    initial :: b
+    combine :: a -> b -> b
+  you can fold t a : t a -> b
+
+Semigroup
+^^^^^^^^^
+
+Enables folding of two or more objects of the same type.
+A semigroup can combine two or more objects using a binary operation. A
+semigroup is a non-empty container since there is no way to represent an empty
+value. A semigroup can be made a Monoid by using Option as a wrapper around it.
+
+Monoid
+^^^^^^
+
+Enables folding of 0 or more objects of the same type.
+A monoid adds the concept of empty to the semigroup. It is a convenience over
+semigroup with a built-in representation of the absence of a value (mempty).
+That is we do not need an Option wrapper for that.
+
+Some types have an in-built representation of mempty and therefore a semigroup
++ Option will not work for them e.g. integers with sum operation have 0 as an
+empty value. They are natural monoids.
+
+A monoid is useful where the concept of empty or absence of a value is
+important. Just like Maybe. For example as a sink where we want to start empty
+and collect 0 or more objects. A stream may yield 0 or more objects, collecting
+and folding a stream requires a monoid unless we have an initial object to fold
+with. A monoid is therefore useful in more cases because it can be used where a
+semigroup can be used unless we specifically want to preclude the empty state.
+
+The same code that requires two objects to combine can work with just one
+object by supplying the other one as empty. This simplifies code over
+semigroup.
+
+* Semigroup | Data that can be combined | minimum two objects, enables operations on containers of objects
+
+  * Monoid
+
+    * Foldable
+
+* Functor + Foldable = Traversable
+
+Lists
+-----
+
+Lists are a result of pure combining of data without logic.
+
++----------+----------------------------------+-------------------------------+
+| Type     | Values                           | Description                   |
++==========+==========+==========+============+===============================+
+| [a]      | []       | 1 : []   | 1 : 2 : [] | List of Int                   |
+|          |          |          |            | Explicit constructor syntax   |
+|          +----------+----------+------------+-------------------------------+
+|          | []       | [1]      | [1,2]      | Sugared syntax                |
+|          +----------+----------+------------+-------------------------------+
+|          | []       | ['a']    | ['a','b']  | List of chars (String)        |
+|          +----------+----------+------------+-------------------------------+
+|          | ""       | "a"      | "ab"       | String literals               |
++----------+----------+----------+------------+-------------------------------+
+
+Lists
+~~~~~
+
+::
+
+  data []   a = []    | :    a (List a)                -- Recursive
+
+Note that Haskell's built-in list is not really a special syntax it is a user
+defined data type, '[]' is the empty list constructor and ':' is the Cons
+constructor. Though there is a syntactic sugar to specify lists in a more
+convenient way [1, 2] is equivalent to 1 : 2 : [].
+
+* List comprehensions
+* See prelude for list functions
 
 Folds
 -----
 
-* http://eprints.eemcs.utwente.nl/7281/01/db-utwente-40501F46.pdf Functional Programming with Bananas, Lenses, Envelopes and Barbed Wire
-
-Streaming folds:
-* http://squing.blogspot.in/2008/11/beautiful-folding.html
-* http://conal.net/blog/posts/another-lovely-example-of-type-class-morphisms
-* http://conal.net/blog/posts/more-beautiful-fold-zipping
-* http://www.haskellforall.com/2013/08/composable-streaming-folds.html
-* https://www.schoolofhaskell.com/user/edwardk/cellular-automata/part-2
-
-Category theory of folds:
-* https://wiki.haskell.org/Catamorphisms
-* https://www.schoolofhaskell.com/user/edwardk/recursion-schemes/catamorphisms
-* https://ulissesaraujo.wordpress.com/2007/12/19/catamorphisms-in-haskell/
-
-Traversal & folds using attribute grammar:
-* https://wiki.haskell.org/Attribute_grammar
-
-* the ``foldl`` and ``folds`` packages
-
-Basic Typeclasses
------------------
-
-Traversable -> Distributive  -- function application (fmap, functor) and fold (foldable) results
-|                            -- unfold a value and distribute as argument for consumption
-|
-v
-Functor, Foldable   -- values folded as pure data (does not require functor instance)
-
-Foldable
---------
-
-Typeclass Functions
-~~~~~~~~~~~~~~~~~~~
+General Folds
+~~~~~~~~~~~~~
 
 fold:
 
@@ -154,346 +266,46 @@ i.e. result type is the same as the right argument e.g. ``1 : (2 : [])``.
 | container            |                                                      |
 +----------------------+------------------------------------------------------+
 
-::
-
-  fold $ map Sum [1,2,3]
-  foldMap Sum [1,2,3]
-
-+--------+------+--------+------+---------+---------+-----+---------+
-| toList | null | length | elem | maximum | minimum | sum | product |
-+--------+------+--------+------+---------+---------+-----+---------+
-
-Other Functions
-~~~~~~~~~~~~~~~
-
-+---------+-----------+-----+----+-----+-----+-----------+-----------+
-| concat  | concatMap | and | or | any | all | maximumBy | minimumBy |
-+---------+-----------+-----+----+-----+-----+-----------+-----------+
-
-+---------+-----------+
-| notElem | find      |
-+---------+-----------+
-
-Fold Actions
-~~~~~~~~~~~~
-
-+--------------------------------------------------------------------+
-| Fold actions - ignore results                                      |
-+--------------------+---------------------+-------------------------+
-|                    | Applicative         | Monadic                 |
-+--------------------+---------------------+-------------------------+
-| Map & evaluate     | ``traverse_/for_``  | ``mapM_/forM_``         |
-+--------------------+---------------------+-------------------------+
-| Evaluate           |  ``sequenceA_``     | ``sequence_``           |
-+--------------------+---------------------+-------------------------+
-| Sum                | ``asum``            | ``msum``                |
-+--------------------+---------------------+-------------------------+
-
-Traversable & Distributive
---------------------------
-
-Traversable and Distributive are duals of each other
-
-+---------------------------------------------------------------------------------+
-| sequence and distribute are duals of each other.                                |
-+------------+----------------------------------+---------------------------------+
-| sequence   | Collect the outputs of,          | ``sequence [print 1, print 2]`` |
-|            | producers in the container, to   |                                 |
-|            | produce a single output          |                                 |
-+------------+----------------------------------+---------------------------------+
-| distribute | Consume a single input and       |                                 |
-|            | distribute it to the consumers   | ``distribute [(+1), (+2)] 1``   |
-|            | in the container                 |                                 |
-+------------+----------------------------------+---------------------------------+
-
-+-----------------------------------------------------------------------------------+
-| traverse and cotraverse are duals of each other.                                  |
-+------------+----------------------------------+-----------------------------------+
-| traverse   | maps a function over the members |                                   |
-|            | of container before `sequence`   | ``traverse print [1,2]``          |
-+------------+----------------------------------+-----------------------------------+
-| cotraverse | applies a function to the        |                                   |
-|            | container after `distribute`     | ``cotraverse sum [(+1), (+2)] 1`` |
-+------------+----------------------------------+-----------------------------------+
-
-Traversable
------------
-
-+--------------------------------------------------------+
-| Traversable (Functor, Foldable) - Collect the outputs  |
-| of producers in a container.                           |
-+-------------------+------------------------------------+
-| Applicative       | Monadic                            |
-+-------------------+------------------------------------+
-|  ``traverse/for`` | ``mapM/forM``                      |
-|                   |                                    |
-+-------------------+------------------------------------+
-|  ``sequenceA``    | ``sequence``                       |
-+-------------------+------------------------------------+
-
-Distributive
-------------
-
-To be distributable a container will need to have a way to consistently zip a
-potentially infinite number of copies of itself. This effectively means that
-the holes in all values of that type, must have the same cardinality, fixed
-sized vectors, infinite streams, functions, etc. and no extra information to
-try to merge together.
-
-+-----------------------------------------------------------------------------+
-| Distributive (Functor) - Distribute input to consumers in a container.      |
-+----------------------------------------+------------------------------------+
-| Functor                                | Monadic                            |
-+----------------------------------------+------------------------------------+
-|                                        | ``collectM``                       |
-| ``collect f = distribute . fmap f``    |                                    |
-+----------------------------------------+------------------------------------+
-| ``cotraverse f = fmap f . distribute`` | ``comapM``                         |
-|                                        |                                    |
-+----------------------------------------+------------------------------------+
-| ``distribute``                         | ``distributeM``                    |
-|                                        |                                    |
-+----------------------------------------+------------------------------------+
-
-::
-
-  Distributive g
-
-  sequenceA  :: Applicative f => t (f a) -> f (t a)
-  distribute :: Functor f     => f (g a) -> g (f a)
-
-  traverse   :: Applicative f => (a -> f b) -> t a -> f (t b)
-  cotraverse :: Functor f     => (f a -> b) -> f (g a) -> g b
-
-::
-
-  Distributive ((->) e) -- function application is distributive
-
-  distribute [(+1), (+2)] 1
-  collect id [(+1), (+2)] 1
-  collect ((+1) . ) [(+1), (+2)] 1
-
-  sequence_ $ distributeM [print, putStrLn] "5"
-
-lens
-----
-
-* http://hackage.haskell.org/package/lens-tutorial-1.0.2
-
-Lenses allow you to magnify and view a small part of a big structure. They
-allow you to traverse or fold all or a part of any data structure not just
-containers like lists but even monomorphic type data structures. Lenses can be
-composed to create more sophisticated traversal or fold mechanisms.
-
-Lens:
-* Source object: s
-* The part inside the source that we are focusing on: a
-
-A lens encodes enough information so that we can generically adapt it to view,
-set, over functions. A lens is just a type synonum of a function.
-
-Lens is a function specific to source. If you provide it a way to transform a
-type into a functor, it will give you a way to transform the source into the
-same functor. It does not matter which functor. The functor provides another
-level of abstraction for the transformation so that it can work for pure
-transformations as well as side effects. For pure values we can put them
-Identity functor to make this work and then take them out.
-
-type Lens s a = Functor f => (a -> f a) -> (s -> f s)
-
-The functor can be provided by the adapter functions like `over`.
-
-over :: Lens s a -> (a -> a) -> (s -> s). We can read that as: Given a lens
-focusing on an a inside of an s, and a function from a to a, and an s, I can
-give you back a modified s from applying the function to the focus point of the
-lens.
-
-over is a generic function, you just give it a lens and corresponding value
-transfomer it will provide you the source transfomer:
-over: Lens s a -> Transformer a -> Transformer s
-
-over is a higher rank function. It is like a broker or adapter fitting multiple
-compatible things together.
-
-view :: Lens s a -> s -> a. We can read this as: Given a lens that focuses on
-an a inside of an s, and an s, I can give you an a.
-
-view ln s = getConst $ ln Const s
-
+Comonoid
 --------
 
-type Lens' s a = Functor f => (a -> f a) -> s -> f s
-type Lens s t a b = Functor f => (a -> f b) -> s -> f t
--- you can change the type of the focus and the type of the source as well as a
-result of an update.
--- Setter also has similar type except that f is Settable instead of a Functor
+The dual of Monoid. The way a Monoid (e.g. writer) accumulates a comonoid
+duplicates. Like a monoid has mempty a comonoid would have a "mfull".  A monoid
+keeps adding stuff to empty. A comonoid would keep distributing stuff from
+"mfull". For example a copy constructor of an object in C++ duplicates itself,
+it is a comonoid.
 
-Notice that Lens or Setter is a generalization of a Functor:
-* fmap transforms (a ->   b) -> (f a -> f b)
-* Lens transforms (a -> f b) -> (  s -> f t)
-
-* sets or setting takes a fmap like function
-* The Setter mapped is merely "sets fmap"
-* "over mapped" is just "fmap"
-
-Types::
-
-  s (contains) a
-  |            | changes to
-  v            v
-  t (contains) b
-
-+----------------+------------------------------------------------------------+
-| instrument     | is also a                                                  |
-+================+============================================================+
-| iso            | lens, prism (invertible i.e. s t a b | a b s t)            |
-+----------------+------------------------------------------------------------+
-| prism          | (getter b t) | traversal s t a b                           |
-| (dual of lens?)|                                                            |
-+----------------+------------------------------------------------------------+
-| lens           | getter, traversal                                          |
-+----------------+------------------------------------------------------------+
-| getter         | fold, action                                               |
-+----------------+------------------------------------------------------------+
-| traversal      | setter, fold                                               |
-+----------------+------------------------------------------------------------+
-
-* lens is a traversal AND a getter
-* prism is a traversal OR a reverse getter
-
-::
-
-  Iso  ->  Prism -- (re) --> review (reverse getter)
-  |           |
-  v           v
-  Lens -> Traversal -> Setter
-  |           |
-  v           v
-  Getter -> Fold
-  |           |
-  v           v
-  Action -> MonadicFold
-
-Put the above diagram in a tree form.
-Provide links to hackage docs.
-
-Types::
-
-  type Iso   s t a b = forall p f. (Profunctor p, Functor f) => p a (f b)  -> p s (f t)
-  type Prism s t a b = forall p f. (Choice p, Applicative f) => p a (f b)  -> p s (f t)
-  type Lens  s t a b = forall f.   Functor f                 => (a -> f b) -> s -> f t
-
-Prism examples
-
-+------------------------------------+--------------------------------+
-| ``Left "hello" & _Left %~ length`` | ``Left 5``                     |
-+------------------------------------+--------------------------------+
-| ``re _Left :: Contravariant f => LensLike' f a (Either a c)``       |
-+------------------------------------+--------------------------------+
-| ``5^.re _Left``                    | ``Left 5`` -- contravariant    |
-+------------------------------------+--------------------------------+
-
-Operators
-~~~~~~~~~
-
-* ('<&>') = 'flip' 'fmap'
-* flip argument order of composite functions
-* fab ?? a = fmap ($ a) fab
-
-* Lens combinators are left associative
-  (10,20) & _2  +~ 1 & _1 -~ 1
-  ((((10,20) & _2)  +~ 1) & _1) -~ 1
-
-* Lens combinators compose in the opposite direction to "."
-
-* TODO: verify and add more operators from
-  https://hackage.haskell.org/package/lens-4.15/docs/Control-Lens-Lens.html
-
-+-----------------------------------------------------------+
-| A ^ prefix implies view/fold operations                   |
-+=======================================+===================+
-| view (a)                              | ``^.``            |
-+---------------------------------------+-------------------+
-| iview ((i, a))                        | ``^@.``           |
-+---------------------------------------+-------------------+
-| safe retrieval (Maybe a)              | ``^?``            |
-+---------------------------------------+-------------------+
-| unsafe retrieval (a)                  | ``^?!``           |
-+---------------------------------------+-------------------+
-| toListOf ([a])                        | ``^..``           |
-+---------------------------------------+-------------------+
-| Actions & Monadic folds (^@ for indexed versions)         |
-+---------------------------------------+-------------------+
-| action                                | ``^! ^@!``        |
-+---------------------------------------+-------------------+
-| MonadicFold collect all results       | ``^!! ^@!!``      |
-+---------------------------------------+-------------------+
-| MonadicFold collect leftmost result   | ``^!? ^@!?``      |
-+---------------------------------------+-------------------+
-
-+-----------------------------------------------------------------------------+
-| Set or traversal ops                                                        |
-+=============================================================================+
-| A ~ or = suffix implies set or traversal ops                                |
-+-----------+-------------------+--------------------------+------------------+
-| Suffix ~  | set pure          | ``(10,20) & _2  +~ 1``   | ``(10,21)``      |
-+-----------+-------------------+--------------------------+------------------+
-| Suffix =  | set state monad   | ``execState (do _2 += 1) | ``(10,21)``      |
-|           |                   | (10,20)``                |                  |
-+-----------+-------------------+--------------------------+------------------+
-| May optionally have a prefix which is either < or <<                        |
-+-----------+-------------------+--------------------------+------------------+
-| Prefix <  | return the result | ``(10,20) & _2 <+~ 1``   | ``(21,(10,21))`` |
-+-----------+-------------------+--------------------------+------------------+
-| Prefix << | return the old    |                                             |
-|           | value             |                                             |
-+-----------+-------------------+---------------------------------------------+
-
-+-------------------------------------------+
-| Set or traversal operations               |
-+===========================================+
-| Supporting ~ = < << suffixes              |
-+-------------------+-----------------------+
-| set               | ``.``                 |
-+-------------------+-----------------------+
-| over              | ``%``                 |
-+-------------------+-----------------------+
-| Supporting ~ = < suffixes                 |
-+-------------------+-----------------------+
-| iover             | ``%@``                |
-+-------------------+-----------------------+
-| Math              | ``+ - * // ^ ^^ **``  |
-+-------------------+-----------------------+
-| Logic             | ``|| &&``             |
-+-------------------+-----------------------+
-| Monoid            | ``<>``                |
-+-------------------+-----------------------+
-| Bits              | ``.|. .&.``           |
-+-------------------+-----------------------+
-| FilePath          | ``</> <.>``           |
-+-------------------+-----------------------+
-| Supporting ~ = suffixes only              |
-+-------------------+-----------------------+
-| iset              | ``.@``                |
-+-------------------+-----------------------+
-| traverseOf        | ``%%``                |
-+-------------------+-----------------------+
-| Indexed traverse  | ``%%@``               |
-+-------------------+-----------------------+
-
-mono-traversable
-~~~~~~~~~~~~~~~~
+See how Comonoid relates to a Comonad the way a Monoid relates to a Monad.
 
 References
 ----------
 
 * https://en.wikipedia.org/wiki/Fold_(higher-order_function)
-* http://blog.jakubarnold.cz/2014/07/30/foldable-and-traversable.html
-* http://lens.github.io/tutorial.html
-* http://blog.jakubarnold.cz/2014/07/14/lens-tutorial-introduction-part-1.html
-* http://blog.jakuba.net/2014/08/06/lens-tutorial-stab-traversal-part-2.html
-* https://artyom.me/lens-over-tea-4
-
 * https://groups.google.com/forum/#!topic/elm-discuss/ehsV6-YveFA fold function argument order
 * http://www.cs.nott.ac.uk/~pszgmh/fold.pdf A tutorial on the universality and
   expressiveness of fold
+
+* http://eprints.eemcs.utwente.nl/7281/01/db-utwente-40501F46.pdf Functional Programming with Bananas, Lenses, Envelopes and Barbed Wire
+
+Streaming folds:
+* http://squing.blogspot.in/2008/11/beautiful-folding.html
+* http://conal.net/blog/posts/another-lovely-example-of-type-class-morphisms
+* http://conal.net/blog/posts/more-beautiful-fold-zipping
+* http://www.haskellforall.com/2013/08/composable-streaming-folds.html
+* https://www.schoolofhaskell.com/user/edwardk/cellular-automata/part-2
+
+Category theory of folds:
+* https://wiki.haskell.org/Catamorphisms
+* https://www.schoolofhaskell.com/user/edwardk/recursion-schemes/catamorphisms
+* https://ulissesaraujo.wordpress.com/2007/12/19/catamorphisms-in-haskell/
+
+Traversal & folds using attribute grammar:
+* https://wiki.haskell.org/Attribute_grammar
+
+* A comonoid in a monoidal category is a monoid in the dual category, what is
+  the problem?
+* https://stackoverflow.com/questions/23855070/what-does-a-nontrivial-comonoid-look-like
+* https://stackoverflow.com/questions/15418075/the-reader-monad/15419213#15419213
+* http://hackage.haskell.org/package/monad-supply-0.3/docs/Control-Monad-Supply.html
+* http://hackage.haskell.org/package/monoid-subclasses-0.1/docs/Data-Monoid-Factorial.html
+* http://hackage.haskell.org/package/monoid-subclasses

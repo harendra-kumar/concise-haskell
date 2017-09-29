@@ -296,8 +296,89 @@ mathematical terms:
 * Infinite data structures
 * undefined values (lazy eval)
 
+Bottom - Denotation for special cases
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We say that ⊥ is the completely "undefined" value or function. Every basic data
+type like Integer or () contains one ⊥ besides their usual elements. So the
+possible values of type Integer are
+{\displaystyle \bot ,0,+1,-1,+2,-2,+3,-3,\dots } \bot
+,0,+1,-1,+2,-2,+3,-3,\dots
+
+Adding ⊥ to the set of values is also called lifting.
+
+As another example, the type () with only one element actually has two
+inhabitants:
+{\displaystyle \bot ,()} \bot ,()
+
+Now, {\displaystyle \bot } \bot  (bottom type) gives us the possibility to
+denote partial functions:
+{\displaystyle f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}} f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}
+
+Partial order picture with bottom at the bottom.
+
+Alegbraic data construction
+
+In a strict language, all constructors are strict by default, i.e. Just ⊥ = ⊥
+As a consequence, all domains of a strict language are flat.
+
+But in a non-strict language like Haskell, constructors are non-strict by
+default and Just ⊥ is a new element different from ⊥, because we can write a
+function that reacts differently to them:
+
+f (Just _) = 4
+f Nothing  = 7
+
+This gives rise to non-flat domains as depicted in the former graph. What
+should these be of use for?
+In the context of Graph Reduction, we may also think of ⊥ as an unevaluated
+expression. Thus, a value x = Just ⊥ may tell us that a computation (say a
+lookup) succeeded and is not Nothing, but that the true value has not been
+evaluated yet.
+
 Operational Aspects
 -------------------
+
+Lazy vs Eager Evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+I have come to the conclusion that neither an eager (a/k/a strict, e.g. most languages) nor lazy (a/k/a total, e.g. Haskell) language is vastly superior to the other. They each have tradeoffs, because they are categorical duals.
+
+Eager is an *inductive* evaluation model, meaning we run the leaves as we as build the nested function tree of runtime possibilities.
+
+Lazy is a *coinductive* evaluation model, meaning we run the leaves as needed from the nested function tree of runtime possibilities.
+
+Eager can't instantiate coinductive types, such as bottom (i.e. the entire Universe) or any infinite type, but it can instantiate inductive types such as the natural numbers.
+
+Lazy can instantiate coinductive types, such as bottom and infinite types, but it can't instantiate inductive types such as the natural numbers.
+
+See Harper's explanation:
+
+http://existentialtype.wordpress.com/2011/04/24/the-real-point-of-laziness/#comment-798
+
+Eager does not have conjunctive products, so we can't do general function composition (e.g. or . map p) without potentially doing evaluation that is not shared (i.e. required) by the conjunctive result.
+
+Lazy does not have disjunctive sums, so we can't do logic such as:
+
+((if ... then 1 else 2),3) == if ... then (1,3) else (2,3)
+
+For example, if we only evaluate the second element in a lazy language and if ... has an exception, then the left version will not generate the exception, but the right version will.
+
+I suppose most people think rather inductively.
+
+'''Space & Latency Indeterminism'''
+
+Lazy also has latency indeterminism (relative to the imperative world, e.g. IO monad).
+
+My point is that with eager, debugging the changes in the program's state machine at any function step, will be bounded to the function hierarchy inside the body of the function, so the programmer can correlate changes in the state machine to what the function is expected to do.
+
+Whereas, with lazy any function may backtrack into functions that were in the argument hierarchy of the current function, and inside functions called an indeterminant time prior. Afaics, lazy debugging should be roughly analogous to debugging random event callbacks, and reverse engineering the state machine in a blackbox event generation module.
+
+As I understand from Filinksi's thesis, eager and lazy are categorical duals in terms of the induction and coinductive values in the program. Eager doesn't have products (e.g. conjunctive logic, "and") and lazy doesn't have coproducts (e.g. disjunctive, "or"). So this means that lazy imposes imperative control logic incorrectness from the outside-in, because coinductive types are built from observations and their structure (coalgebra) is not known until the finality when the program ends. Whereas, eager's incorrectness is from the inside-out, because inductive types have a a priori known structure (algebra) built from an initiality. Afaics, this explains why debugging eager has a known constructive structure and debugging lazy is analogous to guessing the structure of a blackbox event callback generation module.
+
+'''Parallel Execution'''
+
+For a compiler strategy that dynamically subdivided map for parallel execution on multiple cores requires it not be lazy.
 
 Data Dependencies - Lazy vs Eager Evaluation
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

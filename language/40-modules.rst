@@ -338,6 +338,7 @@ References
 * https://www.haskell.org/onlinereport/haskell2010/ The Haskell Specification
 * http://blog.ploeh.dk/2015/08/17/when-x-y-and-z-are-great-variable-names/
 * http://degoes.net/articles/insufficiently-polymorphic Descriptive Variable Names: A Code Smell
+* https://wiki.haskell.org/Import
 
 * Its a good idea to get familiar with Prelude and then other modules in the
   base package after you are familiar with the basic syntax.

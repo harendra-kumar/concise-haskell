@@ -59,6 +59,47 @@ Terminology
 |                            | (e.g. closed type families)                                     |
 +----------------------------+-----------------------------------------------------------------+
 
+Bottom Type
+-----------
+
+In type theory, a theory within mathematical logic, the bottom type is the type
+that has no values. It is also called the zero or empty type, and is sometimes
+denoted with falsum (⊥).
+A function whose return type is bottom cannot return any value.
+
+To signal that a function or computation diverges; in other words, does not
+return a result to the caller. (This does not necessarily mean that the program
+fails to terminate; a subroutine may terminate without returning to its caller,
+or exit via some other means such as a continuation.)
+
+Haskell does not support empty data types. However, in GHC, there is a flag
+-XEmptyDataDecls to allow the definition data Empty (with no constructors). The
+type Empty is not quite empty, as it contains non-terminating programs and the
+undefined constant. The undefined constant is often used when you want
+something to have the empty type, because undefined matches any type (so is
+kind of a "subtype" of all types), and attempting to evaluate undefined will
+cause the program to abort, therefore it never returns an answer.
+
+How to think about types
+------------------------
+
+It helps to think about the following about any type:
+* what are the constructors for a type i.e. how to get into a type
+* What are the eliminators for a type i.e. how to get out of the type into any
+  other type.
+* operations which operate from the same type to the same type.
+
+When you are programming you usually need to convert from some type to this type
+then you need to look for constructors. when you want to generate some other
+type from this one then look for destructors or eliminators.
+
+Type Conversions
+----------------
+
+* lossy conversion?
+* explain fromInteger et al
+* type coercion, dynamic types, cast etc.
+
 Lifted Types
 ------------
 
@@ -307,226 +348,6 @@ Misc Data Construction Syntax
 |  data T a    -- T :: Type -> Type                                                                                  |
 +--------------------------------------------------------------------------------------------------------------------+
 
-Records
--------
-
-+-----------------------------------------------------------------------------+
-| `-XNoTraditionalRecordSyntax` (7.4.1) -- to disable the record syntax       |
-+=============================================================================+
-| .. class :: center                                                          |
-|                                                                             |
-| Records                                                                     |
-+----------------------+------------------------------------------------------+
-| ::                   | ::                                                   |
-|                      |                                                      |
-|  data R =            |   data R where                                       |
-|    R {               |     R :: {                                           |
-|        x :: String   |         x  :: String                                 |
-|      , y :: Int      |       , y  :: Int                                    |
-|    } deriving (Show) |       } -> R                                         |
-|                      |     deriving (Show)                                  |
-+----------------------+------------------------------------------------------+
-| Selector functions to extract a field from a record data structure are      |
-| automatically generated for each record field::                             |
-|                                                                             |
-|  x :: R -> String                                                           |
-|  y :: R -> Int                                                              |
-+-----------------------------------------------------------------------------+
-| Until the brain gets trained, it is pretty confusing that the types of the  |
-| selector functions are different from what they seem to be from the code:   |
-+-----------------------------------+-----------------------------------------+
-| ::                                | ::                                      |
-|                                   |                                         |
-|  data R =                         |  --                                     |
-|    R {                            |                                         |
-|        x :: String                |  x  :: R -> String                      |
-|      , y :: Int                   |  y  :: R -> Int                         |
-|    }                              |                                         |
-+-----------------------------------+-----------------------------------------+
-| `-XDuplicateRecordFields` (8.0.1) allows using identical fields in different|
-| records even in the same module. Selector functions and updates are         |
-| disambiguated using the type of the field or the record.                    |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  data S =                                                                   |
-|    S {                                                                      |
-|        x :: String                                                          |
-|      , z :: Int                                                             |
-|    } deriving (Show)                                                        |
-+-----------------------------------------------------------------------------+
-| Exporting and importing selector functions:                                 |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  Module M (y)    where ...     -- only when y is unambiguous field          |
-|  Module M (R(x)) where ...     -- even when x is ambiguous field            |
-|                                                                             |
-|  import M (y)                  -- only when y is unambiguous field          |
-|  import M (R(x))               -- even when x is ambiguous field            |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Construction and pattern matching                                           |
-+=============================================================================+
-| Record constructor brackets {} have a higher precedence than function       |
-| application.                                                                |
-+-----------------------------------------------------------------------------+
-| `-XDisambiguateRecordFields` allows using record fields x and y unqualified |
-| even if they clash with field names in other records and even when the      |
-| record is defined in a module which is imported qualified.                  |
-+-----------------------------------------------------------------------------+
-| Note that selector functions are symbols but field names are literals i.e.  |
-| you cannot say x = y and then use x in place of y as a field name. x will   |
-| refer to the selector function, when used as a field name it will refer to  |
-| field named "x" rather than "y".                                            |
-+-----------------------------------------------------------------------------+
-| **Construction**                                                            |
-+----------------------------+------------------------------------------------+
-| ``show (R "a" 1)``         | ``show R { y = 1, x = "a" }                    |
-|                            | -- Note precedence of {}``                     |
-+----------------------------+------------------------------------------------+
-| ``r = R "a" 1``            | ``r = R { y = 1, x = "a" }``                   |
-+----------------------------+------------------------------------------------+
-| `-XRecordWildCards`        | ``let {x = "a"; y = 2} in R {..}               |
-|                            | -- R {x = x, y = y}``                          |
-+----------------------------+------------------------------------------------+
-| **Pattern matching**                                                        |
-+----------------------------+------------------------------------------------+
-| ``f (R _ _)   = ...``      | ``f R {}                 = ...                 |
-|                            | -- Note precedence of {}``                     |
-+----------------------------+------------------------------------------------+
-| ``f (R "a" 1) = ...``      | ``f R {x = "a", y = 1}   = ...``               |
-+----------------------------+------------------------------------------------+
-| ``f (R a b) = ...``        | ``f (R {x = a, y = b})   = a ++ show b``       |
-+----------------------------+------------------------------------------------+
-| `-XNamedFieldPuns`         | ``f (R {x, y})           = ...                 |
-|                            | -- f (R {x = x, y = y})``                      |
-|                            +------------------------------------------------+
-|                            | ``f (R {x, y = b})       = ...                 |
-|                            | -- f (R {x = x, y = b})``                      |
-|                            +------------------------------------------------+
-|                            | ``f (R {M.x, M.y})       = ... -- M is module  |
-|                            | qualifier``                                    |
-+----------------------------+------------------------------------------------+
-| `-XRecordWildCards`        | ``f (R {..})             = ...                 |
-|                            | -- f (R {x = x, y = y})``                      |
-| ``..`` expands to missing  +------------------------------------------------+
-| `in-scope` record fields   | ``f (R {x = "a", ..})    = ...                 |
-|                            | -- f (R {x = "a", y = y})``                    |
-|                            +------------------------------------------------+
-|                            | ``import R(y)``                                |
-|                            |                                                |
-|                            | ``f (R {..})             = ...                 |
-|                            | -- f (R {y = y})``                             |
-+----------------------------+------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| Access and update                                                           |
-+=============================================================================+
-| **Accessing field 'x' using its selector function**                         |
-+----------------------------------+------------------------------------------+
-| ``x R {x = "a", y = 1}``         | ``x r``                                  |
-+----------------------------------+------------------------------------------+
-| When using `-XDuplicateRecordFields` disambiguate selectors:                |
-+-----------------------------------------------------------------------------+
-| By inferred or explicit type of the selector function (e.g. ``x``).         |
-+-----------------------+-------------------+---------------------------------+
-| ``v = x :: S -> Int`` | ``v :: S -> Int`` | ``f :: (S -> Int) -> _``        |
-|                       |                   |                                 |
-|                       | ``v = x``         | ``f x``                         |
-+-----------------------+-------------------+---------------------------------+
-| By explicit but not inferred type of the record being accessed (e.g. ``s``).|
-+-----------------------+-----------------------------------------------------+
-| ``ok s = x (s :: S)`` | ``bad :: S -> Int``                                 |
-|                       |                                                     |
-|                       | ``bad s = x s        -- Ambiguous``                 |
-+-----------------------+-----------------------------------------------------+
-| If only one of the conflicting selectors is imported by a module then it    |
-| can be used unambiguously.                                                  |
-+-----------------------------------------------------------------------------+
-| **Updating one or more fields**                                             |
-+----------------------------------+------------------------------------------+
-| ``R {x = "a", y = 1} {x = "b"}`` | ``r { x = "b", y = 2}``                  |
-+----------------------------------+------------------------------------------+
-| ``..`` expands to missing        | ``f (R {x = "a", ..}) = R{x = "b", ..}`` |
-| `in-scope` record fields         |                                          |
-+----------------------------------+------------------------------------------+
-| When using `-XDuplicateRecordFields`, disambiguate duplicate fields:        |
-+-----------------------------------------------------------------------------+
-| By field names:                                                             |
-+-----------------------------------------------------------------------------+
-| ``s {z = 5} -- field z occurs only in record type S``                       |
-+-----------------------------------------------------------------------------+
-| By the inferred or explicit type of the update application                  |
-| (e.g. ``s {x = 5}``).                                                       |
-+------------------------+-------------------+--------------------------------+
-| ``v = s {x = 5} :: S`` | ``v :: S -> S``   | ``f :: S -> _``                |
-|                        |                   |                                |
-|                        | ``v = s {x = 5}`` | ``f (s {x = 5})``              |
-+------------------------+-------------------+--------------------------------+
-| By the explicit but not inferred type of the record being updated           |
-| (e.g. ``s``).                                                               |
-+-----------------------------+-----------------------------------------------+
-| ``ok s = (s :: S) {x = 5}`` | ``bad :: S``                                  |
-|                             |                                               |
-|                             | ``bad s = s {x = 5} -- Ambiguous``            |
-+-----------------------------+-----------------------------------------------+
-
-Polymorphic Algebraic Data Types
---------------------------------
-
-Data Type Declaration
-~~~~~~~~~~~~~~~~~~~~~
-
-+------------------------------------------------+-----+-------------------------------------------------------------------+
-| .. class:: center                              |     | .. class:: center                                                 |
-|                                                |     |                                                                   |
-| Type Level Function                            |     | Data Constructor Templates                                        |
-+=========+=====================+================+=====+=====================+=======+=====================================+
-|         | Type Constructor    |      Parameter |     | Data Constructor    |       | Data Constructor                    |
-+---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
-| data    | :red:`L`:blk:`ist`  | `a`            |  =  | :red:`E`:blk:`mpty` | ``|`` | :red:`C`:blk:`ons`  a   (List a)    |
-+---------+---------------------+----------------+-----+---------------------+-------+-------------------------------------+
-
-Type Constructor
-^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------------------+
-| A type level function to create a type from existing types                              |
-+----------------------+--------+------------------+--------------------------------------+
-| Type                 |        | Kind             | Description                          |
-+======================+========+==================+======================================+
-| List                 | ``::`` | ``Type -> Type`` | Polymorphic type or type constructor |
-+----------------------+--------+------------------+--------------------------------------+
-| The signature implies that the parameter `a` must be a concrete type of kind ``Type``   |
-+-----------------------------------------------------------------------------------------+
-| .. class:: center                                                                       |
-|                                                                                         |
-| Instances                                                                               |
-+----------------------+--------+------------------+--------------------------------------+
-| List Int             | ``::`` | ``Type``         | Concrete type (list of Ints)         |
-+----------------------+--------+------------------+--------------------------------------+
-| List (Maybe Int)     | ``::`` | ``Type``         | Concrete type (list of Maybe Ints)   |
-+----------------------+--------+------------------+--------------------------------------+
-| :strike:`List Maybe` |        |                  | Kind mismatch                        |
-+----------------------+--------+------------------+--------------------------------------+
-
-Data Constructors
-^^^^^^^^^^^^^^^^^
-
-+--------------------------------------------------------------------------------------------------------+
-| A data level function to create a value of the corresponding type                                      |
-+-------------------+--------+-------------------------------+-------------------------------------------+
-| Data Constructor  |        | Type                          | Description                               |
-+===================+========+===============================+===========================================+
-| Empty             | ``::`` | List a                        | Create a new value (denoting empty list)  |
-+-------------------+--------+-------------------------------+-------------------------------------------+
-| Cons              | ``::`` | Cons :: a -> List a -> List a | Compose two values (`a` and `List a`)     |
-+-------------------+--------+-------------------------------+-------------------------------------------+
-| The signatures imply that the arguments of constructors must be concrete types of kind ``Type``        |
-+--------------------------------------------------------------------------------------------------------+
-
 Typeclass Constraints
 ~~~~~~~~~~~~~~~~~~~~~
 
@@ -558,322 +379,6 @@ Typeclass Constraints
 | * Pattern match `provides` ``Eq a``: insert a (MkSet as) | a :red:`\`elem\`` as = MkSet as                         |
 | * Note: Haskell98 `requires` instead of `providing` ``Eq a`` in pattern match.                                     |
 +--------------------------------------------------------------------------------------------------------------------+
-
-Quantification
-~~~~~~~~~~~~~~
-
-+--------------------------------------------------------------------------------------------------------------------+
-| .. class:: center                                                                                                  |
-|                                                                                                                    |
-| -XExistentialQuantification                                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+
-| Quantified type variables that appear in arguments but not in the result type for any constructor are              |
-| `existentials`. The existence, visibility or scope of these type variables is localized to the given constructor.  |
-| They will typecheck with other instances only within this local scope. In other words, they cannot be unified with |
-| variables outside this scope.                                                                                      |
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|   data Foo = forall a.                                     |   data Foo where                                      |
-|     Show a => Foo a (a -> a)                               |     Foo :: Show a => a -> (a -> a) -> Foo             |
-|                                                            |                                                       |
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|   data Counter a = forall self.                            |   data Counter a where                                |
-|     Show self => NewCounter                                |     NewCounter :: Show self =>                        |
-|     { _this    :: self                                     |     { _this    :: self                                |
-|     , _inc     :: self -> self                             |     , _inc     :: self -> self                        |
-|     , _display :: self -> IO ()                            |     , _display :: self -> IO ()                       |
-|     , tag      :: a                                        |     , tag      :: a                                   |
-|     }                                                      |     } -> Counter a                                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| The type of an existential variable is fixed during construction based on the type used in the constructor call.   |
-+--------------------------------------------------------------------------------------------------------------------+
-| Existentials can be extracted by pattern match but only in `case` or `function definition` and not in `let` or     |
-| `where` bindings.                                                                                                  |
-+--------------------------------------------------------------------------------------------------------------------+
-| The extracted value can be consumed by any functions in the scope of the existential.                              |
-| The typeclass constraint when specified, is available as usual on pattern match. You can use the existential       |
-| type's typeclass functions on it: ``f NewCounter {_this, _inc} = show (_inc _this)``                               |
-+--------------------------------------------------------------------------------------------------------------------+
-| Record fields using existentials are `private`. They will not get a selector function and cannot be updated. For   |
-| example, all fields prefixed with ``_`` in the above example are private.                                          |
-+--------------------------------------------------------------------------------------------------------------------+
-
-Pattern Matching
-----------------
-
-Refer to the `Basic Syntax` chapter for basic pattern matching.
-
-+-----------------------------------------------------------------------------+
-| A lazy pattern match does not force evaluation of the scrutinee.            |
-| For example `f undefined` will work on the following:                       |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   f ~(x,y) = 1    -- will not evaluate the tuple                            |
-+-----------------------------------------------------------------------------+
-| Since it does not evaluate the scrutinee it always matches i.e. it is       |
-| irrefutable. Therefore any patterns after a lazy pattern will always be     |
-| ignored. For this reason, lazy patterns work well only for single           |
-| constructor types e.g. tuples.                                              |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  f ~(Just x) = 1                                                            |
-|  f Nothing   = 2    -- will never match                                     |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| -XBangPatterns: make pattern matching strict by prefixing it with a ``!``   |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  f1 !x = True       -- it will always evaluate x                            |
-|  f2 (!x, y) = [x,y] -- nested pattern, x will always get evaluated          |
-+-----------------------------------------------------------------------------+
-| TODO more on bangpatterns, -XStrictData, -XStrict,                          |
-+-----------------------------------------------------------------------------+
-
-
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| -XPatternGuards: deconstruct a value inside a guard                         |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- boolean guards can be freely mixed with pattern guards                  |
-|  f x | [(y,z)] <- x                                                         |
-|      , y > 3                                                                |
-|      , Just i <- z                                                          |
-|      = i                                                                    |
-+-----------------------------------------------------------------------------+
-| Inside a guard expression, pattern guard ``<pat> <- <exp>`` evaluates       |
-| ``<exp>`` and then matches it against the pattern ``<pat>``:                |
-|                                                                             |
-| * If the match fails then the whole guard fails                             |
-| * If it succeeds, then the next condition in the guard is evaluated         |
-| * The variables bound by the pattern guard scope over all the remaining     |
-|   guard conditions, and over the RHS of the guard equation.                 |
-+-----------------------------------------------------------------------------+
-| -XViewPatterns: Pattern match after applying an expression to the incoming  |
-| value                                                                       |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  example :: Maybe ((String -> Integer,Integer), String) -> Bool             |
-|  example Just ((f,_), f -> 4) = True -- left match can be used on right     |
-|                                                                             |
-|  example :: (String -> Integer) -> String -> Bool                           |
-|  example f (f -> 4) = True           -- left args can be used on right      |
-+-----------------------------------------------------------------------------+
-| Inside any pattern match, a view pattern ``<exp> -> <pat>`` applies         |
-| ``<exp>`` to whatever we’re trying to match against, and then match the     |
-| result of that application against ``<pat>``:                               |
-|                                                                             |
-| * In a single pattern, variables bound by patterns to the left of a view    |
-|   pattern expression are in scope.                                          |
-| * In function definitions, variables bound by matching earlier curried      |
-|   arguments may be used in view pattern expressions in later arguments      |
-| * In mutually recursive bindings, such as let, where, or the top level,     |
-|   view patterns in one declaration may not mention variables bound by other |
-|   declarations.                                                             |
-| * If ⟨exp⟩ has type ⟨T1⟩ -> ⟨T2⟩ and ⟨pat⟩ matches a ⟨T2⟩, then the whole   |
-|   view pattern matches a ⟨T1⟩.                                              |
-+-----------------------------------------------------------------------------+
-| -XNPlusKPatterns                                                            |
-+-----------------------------------------------------------------------------+
-|  TBD                                                                        |
-+-----------------------------------------------------------------------------+
-
-Useless pattern matches
-~~~~~~~~~~~~~~~~~~~~~~~
-
-When a pattern match does not a bind a variable, it is useless.
-
-::
-
-  x = 2
-  y = Just 5
-
-  -- pattern matches without producing a binding:
-  1 = 2
-  1 = x
-
-  Nothing = Just 5
-  Nothing = y
-
-Though if you make the match strict it can be used as an assert::
-
-  -- these will fail at runtime
-  let !1 = 2 in "hello"
-  let !Nothing = y in "hello"
-
-Pattern Synonyms
-----------------
-
-+-----------------------------------------------------------------------------+
-| `-XPatternSynonyms` (7.8.1)                                                 |
-+=============================================================================+
-| A pattern synonym is a function that generates a pattern or a constructor   |
-+---------------------+-------------------------------------------------------+
-| Match only          | ::                                                    |
-|                     |                                                       |
-|                     |  -- match the head of a list                          |
-|                     |                                                       |
-|                     |  pattern HeadP x <- x : xs  -- define                 |
-|                     |  let HeadP x = [1..]        -- match                  |
-+---------------------+-------------------------------------------------------+
-| Match and construct or `bidirectional` pattern synonyms:                    |
-|                                                                             |
-| * all the variables on the right-hand side must also occur on the left-hand |
-|   side                                                                      |
-| * wildcard patterns and view patterns are not allowed                       |
-+---------------------+-------------------------------------------------------+
-| Match and construct | ::                                                    |
-| (Symmetric)         |                                                       |
-|                     |  -- match or construct a singleton list               |
-|                     |  pattern Singleton x  =  [x]  -- define               |
-|                     |                                                       |
-|                     |  let single = Singleton 'a'   -- construct            |
-|                     |  let Singleton x = [1]        -- match                |
-+---------------------+-------------------------------------------------------+
-| Match and construct | ::                                                    |
-| (Asymmetric)        |                                                       |
-|                     |  pattern Head x <- x:xs where   -- define match       |
-|                     |      Head x = [x]               -- define construct   |
-|                     |                                                       |
-|                     |  let list = Head 'a'            -- construct          |
-|                     |  let Head x = [1..]             -- match              |
-+---------------------+-------------------------------------------------------+
-| * Bidirectional patterns can be used as expressions                         |
-| * You can use view patterns in pattern synonyms                             |
-+---------------------+-------------------------------------------------------+
-| A pattern synonym:                                                          |
-|                                                                             |
-| * starts with an uppercase letter just like a constructor.                  |
-| * can be defined only at top level and not as a local definition.           |
-| * can be defined as infix as well.                                          |
-| * can be used in another pattern synonym or recursively                     |
-+-----------------------------------------------------------------------------+
-| Import and export                                                           |
-+-----------------------------------------------------------------------------+
-| Standalone                                                                  |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  module M (pattern Head) where ... -- export, only the pattern              |
-|  import M (pattern Head)           -- import, only the pattern              |
-|  import Data.Maybe (pattern Just)  -- import, only data constructor 'Just'  |
-|                                    -- but not the type constructor 'Maybe'  |
-+-----------------------------------------------------------------------------+
-| Bundled with type constructor                                               |
-| (must be same type as the type constructor)                                 |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  module M (List(Head)) where ...     -- bundle with List type constructor   |
-|  module M (List(.., Head)) where ... -- append to all currently bundled     |
-|                                      -- constructors                        |
-+-----------------------------------------------------------------------------+
-| Expressing the types of pattern synonyms                                    |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- General type signature                                                  |
-|  pattern P ::                                                               |
-|            CReq                 -- constraint required to match the pattern |
-|         => CProv                -- constraint provided on pattern match     |
-|         => t1 -> t2 -> ...      -- parameters                               |
-|  pattern P var1  var2  ... <- pat                                           |
-|                                                                             |
-|  -- Type signature with CProv omitted                                       |
-|  pattern P :: CReq => ...                                                   |
-|                                                                             |
-|  -- Type signature with Creq omitted                                        |
-|  pattern P :: () => CProv => ...                                            |
-|                                                                             |
-|  -- When using a bidirectional pattern synonym as an expression,            |
-|  -- it has the following type:                                              |
-|  (CReq, CProv) => t1 -> t2 -> ...                                           |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| A record pattern synonym behaves just like a record.                        |
-| (Does not seem to work before 8.0.1)                                        |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  pattern Point :: Int -> Int -> (Int, Int)                                  |
-|  pattern Point {x, y} = (x, y)                                              |
-+-----------------------------------------------------------------------------+
-| All record operations can be used on this definition now.                   |
-+-----------------------------------------------------------------------------+
-| A pattern match only record pattern synonym defines record selectors as well|
-+---------------+---------------------------+---------------------------------+
-| Construction  | ``zero = Point 0 0``      | ``zero = Point { x = 0, y = 0}``|
-+---------------+---------------------------+---------------------------------+
-| Pattern match | ``f (Point 0 0) = True``  | ``f (Point { x = 0, y = 0 })``  |
-+---------------+---------------------------+---------------------------------+
-| Access        | ``x (0,0) == 0``                                            |
-+---------------+-------------------------------------------------------------+
-| Update        | ``(0, 0) { x = 1 } == (1,0)``                               |
-+---------------+-------------------------------------------------------------+
-
-Pattern Synonyms Notes
-----------------------
-
-Give name to unstructured data:
-
-We can use pattern synonyms to give a name to otherwise unidentifiable data
-values. For example, if we have to pattern match on certain integers::
-
-  f 1 = ...
-  f 2 = ...
-  f 3 = ...
-
-Instead we can use::
-
-  pattern One <- 1
-  pattern Two <- 2
-  pattern Three <- 3
-
-  f One = ...
-  f Two = ...
-
-The alternative would be::
-
-  data MyNums = One Int | Two Int | Three Int
-  toMyNums 1 = One 1
-  toMyNums 2 = Two 2
-
-  fromMyNums One = 1
-
-But this has a runtime cost.
-
-* https://ocharles.org.uk/blog/posts/2014-12-03-pattern-synonyms.html
-* https://www.schoolofhaskell.com/user/icelandj/Pattern%20synonyms
-* https://mpickering.github.io/posts/2014-11-27-pain-free.html
-
-Pattern Match Implementation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Given a data element, a pattern match essentially identifies the individual
-constructor if it is a sum type and then branches to a target code based on the
-constructor. The target code can then break it down into its components if it
-is a product constructor.
-
-A data element of a given type is physically represented by a closure on heap.
-When a type has 8 or fewer constructors the lowest three bits of the heap
-pointer (pointer tag) are used to store a constructor identifier (0-7)
-otherwise the constructor id is kept inside the closure requiring an
-additional memory lookup.
-
-Once the constructor is identified we need to jump to the target branch of a
-case statement based on the constructor id. Depending on the number of
-constructors and sparseness of the jump table it is either implemented as a
-lookup table (array indexing) or as a binary search.
 
 Type Synonyms
 -------------
@@ -1008,6 +513,19 @@ Type Signatures
 * Typed Holes
 * Partial Type Signatures
 
+Typeclass Constraints
+---------------------
+
+Constraint specification:
+* Constraints are specified on type variables.
+
+Constraint providers:
+* Any function with a constraint in signature will require the constraint at the
+call site. That is the caller function or its caller must have the constraint
+specified for that variable in its signature. In other words the caller
+provides the constraint.
+* In a pattern match constraint can also be provided by the data type declaration
+
 Constraints in types
 --------------------
 
@@ -1110,6 +628,71 @@ Data.Type.Equality (base package)
 
 Definition of propositional equality (:~:). Pattern-matching on a variable of
 type (a :~: b) produces a proof that a ~ b.
+
+Fun With Types
+--------------
+
+Smart Constructors
+~~~~~~~~~~~~~~~~~~
+
+Runtime validations on type constructions.
+
+Function wrappers around constructors.
+
+* Type system is limited in expressing restrictions on types
+* For example how do you represent a positive number less than 10?
+* To overcome the limitation we wrap the type constructors in "smart
+  constructors" which are nothing but functions with additional checks on the
+  constructed value. The original type constructors are not exported so the
+  only way to construct is via smart constructors which check additional rules.
+
+For example::
+
+    data LessThanTen = LTT Int
+    mkLTT n = if n < 0 || n >= 10
+      then error "Invalid value"
+      else LTT n
+
+Phantom Types
+~~~~~~~~~~~~~
+
+::
+
+  data T = TI Int | TS String
+  plus :: T -> T -> T
+  concat :: T -> T -> T
+
+  data T a = TI Int | TS String
+  plus :: T Int -> T Int -> T Int
+  concat :: T String -> T String -> T String
+
+Dictionary Reification
+~~~~~~~~~~~~~~~~~~~~~~
+
++------------------------------------------------------------+-------------------------------------------------------+
+| ::                                                         | ::                                                    |
+|                                                            |                                                       |
+|  data NumInst a = Num a => MkNumInst                       |   data NumInst a where                                |
+|                                                            |    MkNumInst :: Num a => NumInst a                    |
++------------------------------------------------------------+-------------------------------------------------------+
+| We can pattern match on ``MkNumInst`` instead of using a ``Num`` constraint on ``a``::                             |
+|                                                                                                                    |
+|  plus :: NumInst a -> a -> a -> a                                                                                  |
+|  plus MkNumInst p q = p + q                                                                                        |
++--------------------------------------------------------------------------------------------------------------------+
+
+Controlled access to data
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+* Expose smart constructors, hide original constructors
+* Use pattern synonyms
+
+  * constructor synonyms - control construction
+  * pattern match synonyms - control pattern match
+
+Type level:
+* Use existential quantification - create a local scope for type variables
+* Type synonyms - specialize a type by fixing certain parameters
 
 References
 ----------

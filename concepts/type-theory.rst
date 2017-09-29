@@ -33,6 +33,13 @@ Terminology
 |                                 | expressing computation based on function abstraction and        |
 |                                 | application using variable binding and substitution.            |
 +---------------------------------+-----------------------------------------------------------------+
+| Introduction rule               | When a constructor is used on the RHS to construct,             |
+|                                 | it is called an `introduction rule` in type theory.             |
++---------------------------------+-----------------------------------------------------------------+
+| Elimination rule                | When a constructor is used on the LHS to pattern                |
+|                                 | match or destruct a data structure, it is called                |
+|                                 | an `elimination rule` in type theory.                           |
++---------------------------------+-----------------------------------------------------------------+
 
 Curry-Howard Isomorphism
 ------------------------
