@@ -77,3 +77,5 @@ References
 ----------
 
 * http://cs.brynmawr.edu/~rae/papers/2012/singletons/paper.pdf Dependently Typed Programming with Singletons
+* https://www.cs.ox.ac.uk/people/jeremy.gibbons/publications/aplicative.pdf
+  APLicative Programming with Naperian Functors

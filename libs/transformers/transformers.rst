@@ -40,6 +40,28 @@ State Sharing Monads
 State, Reader, Writer monads are defined in terms of Identity monad and the
 corresponding monad transformer.
 
+The Reader monad provides a read-only shared environment. Readers are actions
+that are consumers of the shared, read-only environment.
+
+Ekmett:
+* https://www.reddit.com/r/haskell/comments/4nc19n/cross_section_of_the_monad_and_traversable_class/
+ReaderT uses the fact that (->) e can be pulled 'out' of any functor. e.g. you
+can write m (e -> a) -> e -> m a.
+
+WriterT uses the fact that (,) e can be pushed 'into' any functor. e.g. you can
+write (e, m a) -> m (e, a).
+
+StateT uses both the (->) e, and (,) e distributive laws together, and arises
+from sandwiching a monad inside of an adjunction being a monad.
+
+EitherT uses the fact that Either e ca be pushed into any Monad. You can write
+Either e (m a) -> m (Either e a). Now it isn't a distributive law for functors,
+but monads.
+
+ContT on the other hand does something completely different to get a lifting of
+m a -> (a -> m r) -> m r.
+etc.
+
 Other Monad Transformers
 ------------------------
 

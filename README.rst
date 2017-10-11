@@ -8,26 +8,19 @@ Table of Contents
 
 * `Preface <preface.rst>`_
 
-Concepts
-~~~~~~~~
-
-* Why Haskell
-* `Algebra <concepts/algebra.rst>`_
-* Category Theory
-* Type Theory
-
 Haskell Language
 ~~~~~~~~~~~~~~~~
 
-* Composition
+* Why Haskell
+* Denotational Composition
 * Data Flow Model
 
 Basics
 ^^^^^^
 
 * Expressions and Equations
-* Evaluating Expressions
 * Transform and Combine
+* Evaluating Expressions
 
 Functions
 ^^^^^^^^^
@@ -50,11 +43,17 @@ Functors
 Type System
 ^^^^^^^^^^^
 
-* Polymorphic Functions
+* Polymorphic Data & Functions
 * Typeclasses
 * Record Types
 * Type Families and GADT
 * Kinds
+
+Modules and Packages
+~~~~~~~~~~~~~~~~~~~~
+
+* Modules
+* Packages
 
 Data Structures and Libraries
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -62,11 +61,19 @@ Data Structures and Libraries
 * Basic Data Structures
 * Container Abstractions
 * Advanced Data Structures
+* Generics
 
-Performance
-~~~~~~~~~~~
+.. Performance
+  ~~~~~~~~~~~
 
-* Inside Haskell
+  * Inside Haskell
+
+Theory
+~~~~~~
+
+* `Algebra <concepts/algebra.rst>`_
+* Category Theory
+* Type Theory
 
 Appendix
 ~~~~~~~~

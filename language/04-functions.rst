@@ -61,7 +61,8 @@ varying parts with variable `parameters`.  This common form is called an
 `abstraction`.  Abstraction essentially separates the common part from variable
 parts allowing us to reuse the common part instead of duplicating it.  We can
 also call an abstract form a `polymorphic form` since it is a representation of
-many different concrete forms.
+many different concrete forms. However the term polymorphic is commonly used
+only when we are talking about abstraction of types instead of terms.
 
 The variable parameters of an abstract form can later be replaced with specific
 values to recover a particular concrete form. By using different values of the
@@ -84,6 +85,17 @@ are the powerful and principled `abstraction` and `composition` facilities.
 Principled here means that higher level abstractions are built using reusable
 lower level abstractions and always conform to certain rules so that you can be
 certain that everything works as expected.
+
+Instantiation
+~~~~~~~~~~~~~
+
+The process of supplying the values of parameters to create a concrete form is
+sometimes called `instantiation` of the polymorphic form or creating an
+`instance`.  Instantiation process is the opposite of abstraction.
+
+::
+
+  red ball, green ball, blue ball => ball + color => instances
 
 Functions: Abstraction of Expressions
 -------------------------------------
@@ -237,8 +249,8 @@ Reduction: Function Application
 | of evaluation of a program.                                                 |
 +-----------------------------------------------------------------------------+
 
-Function Application
---------------------
+Function Application: Currying
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | Function application                                                        |
@@ -278,7 +290,7 @@ Function Application
 | `a` to produce a more concrete value.                                       |
 +-----------------------------------------------------------------------------+
 | Function application is an asymmetric operation because `f` and `a`         |
-| have different roles, which means the operation is not commutative i.e.     |
+| have distinct roles, which means the operation is not commutative i.e.      |
 | `f a` is not the same as `a f`                                              |
 +-----------------------------------------------------------------------------+
 | This operation is left associative i.e. ``f a b c <=> ((f a) b) c``         |
@@ -300,25 +312,18 @@ function definition or as an output of another function. A function can return
 a function when it is partially applied or by defining a new function using a
 `lambda expression` which defines an anonymous function.
 
-Capturing
----------
-
-+-------------------+---------------------------------------------------------+
-| ::                | The variable `x` on RHS is captured by or bound to the  |
-|                   | parameter `x` of `f`                                    |
-|  f x = x          |                                                         |
-+-------------------+---------------------------------------------------------+
-| ::                | The `x` in `g x` captures the `x` on RHS. The `x` in    |
-|                   | `f x` is shadowed by the `x` in `g x`.                  |
-|  f x = g          |                                                         |
-|     where g x = x |                                                         |
-+-------------------+---------------------------------------------------------+
+.. By its mathematical definition, the domain of a function is more general,
+  i.e. has equal or more choices than the codomain that is being mapped to.
+  Therefore the domain is an abstraction or generalisation of the codomain.
+  When we map using a function the target choices will always be less than or
+  equal to the choices in the source.  Therefore, transformation and
+  abstraction are opposite processes and may not be reversible.
 
 Defining Functions
 ------------------
 
 Function classes
-----------------
+~~~~~~~~~~~~~~~~
 
 Parameter structure independent functions (pure composition)
 Parameter structure aware functions (ad-hoc)
@@ -414,6 +419,19 @@ Defining Functions
 |                                     | ``f = print . (+) 5`` -- CORRECT      |
 +-------------------------------------+---------------------------------------+
 
++-----------------------------------------------------------------------------+
+| Variables capture and shadowing (terminology)                               |
++-------------------+---------------------------------------------------------+
+| ::                | The variable `x` on RHS is captured by or bound to the  |
+|                   | parameter `x` of `f`                                    |
+|  f x = x          |                                                         |
++-------------------+---------------------------------------------------------+
+| ::                | The `x` in `g x` captures the `x` on RHS. The `x` in    |
+|                   | `f x` is shadowed by the `x` in `g x`.                  |
+|  f x = g          |                                                         |
+|     where g x = x |                                                         |
++-------------------+---------------------------------------------------------+
+
 Anonymous Functions
 ^^^^^^^^^^^^^^^^^^^
 
@@ -430,7 +448,7 @@ Anonymous Functions
 +-----------------------------------------------------------------------------+
 
 Case-mapped Functions
----------------------
+~~~~~~~~~~~~~~~~~~~~~
 
 Previously we defined simple functions that were merely a composition, or
 expressions involving other existing functions. A real primitive function is
@@ -449,7 +467,7 @@ create new output data type.
 +--------------------------+---------------------+----------------------------+
 
 Multi Equation Function Definitions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 A case-mapped function can be defined more naturally as multiple equations. Each
 equation defines the function for a certain input pattern by using a pattern
@@ -475,8 +493,8 @@ match.
 | clauses.                                                                    |
 +-----------------------------------------------------------------------------+
 
-Type Level Programming
-----------------------
+Type Level Syntax
+-----------------
 
 The purpose of type level programming is to generate concrete types to be used
 in the data level program.  Just like at data level we create `data functions`
@@ -588,9 +606,295 @@ Type Operator ``->``
 |  add x y = x + y                                                            |
 +-----------------------------------------------------------------------------+
 
+Products, Exponentials and Logarithms
+-------------------------------------
+
+Pure Combine: Free Products
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A pure product data type of two types can be called a "free product". For
+example a free product of two integers can be written as::
+
+  data Pair = Pair Int Int
+
+``Pair`` is free from any "interpretation" and we can write our own interpreter
+or specific implementation of the product::
+
+  add (Pair a b) = a + b
+  multiply (Pair a b) = a * b
+
+`add` and `multiply` are two different ways to interpret the free product type
+``Pair``, we can have many more. `Pair` is pure data and the interpretation
+adds logic to interpret that data.
+
+In contrast to a free product are interpreted products or just curried
+functions. Every multiple argument function is a product of its arguments. For
+example the function ``(+) a b`` generates a type that is a product of input
+types but it is not a free product because it has an interpretation of adding
+two numbers, built into it.
+
+Pure Transform: Exponentials
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A unary function.
+
+Transform and Combine Adjunction
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+We are using the term adjunciton loosely here but we will use it more formally
+when we talk about functors.
+
+N-ary function:
+  put n things together : map the composite to another
+
+..
+  We can first compose and then map. Is it possible to first map and then
+  compose?
+    a x b -> c               -- just like NOT (a AND b) = (NOT a) OR (NOT b)
+    (a -> c1) + (b -> c2)    -- that's why NOT is always needed and one of and/or
+                             -- sum of partial applications
+    i.e. c = c1 + c2         -- Function is like the log operation?
+
+    We can illustrate the above with an example - (Color, Size) and convert
+    that to strings e.g. "big red".
+
+    i.e. mapping of a product is a sum of mappings
+    this is just for intuition. It may not be possible for a map like a
+    -> c to even exist even though (a, b) -> c exists.
+
+    Is this possible to prove it this way?
+      when we give a to a x b -> c it produces b -> c
+      when we give b to a x b -> c it produces a -> c
+      Now that we have given both the inputs separately and got the results we
+      can combine the two complementary results to arrive at the final result.
+
+    Yoneda Lemma says values are functions and functions are values. Using
+    representable we can translate between the two. (->) is representable
+    (distributive) as we know by definition it is mapping from values to values
+    which is the representation.
+
+  Transformation and Combining, Nesting?
+  --------------------------------------
+
+  f = (g x (h y (k z)))
+  f x = (h y (k z))
+  f x y = (k z)
+  f x y z = ...
+
+  A multi-arity function is nested transformations. Each value has an associated
+  transformation. We apply the value and its transformation and then over all
+  the resulting values we apply another transformation modulated by another value
+  and so on.
+
+  Therefore a product type embodies the idea of nesting. A multi-arity function
+  corresponds to a product, it applies nested transformations. We see the dual of
+  this nesting when we use funciton arguments to a function.
+
+  Currying basically removes one nest layer and then returns the rest of the
+  nesting i.e. a function with one less argument.
+
+  The two ways
+  ------------
+
+  A function can be thought of in two different ways, in one you transform and
+  collapse in each step and the other you transform all and then combine all.
+  Notice the similarity between the collapsing of a nest layer with a Monad.
+
+  transform, transform, transform => combine (sum) all components monoidally
+  transform, combine, transform, combine, transform - this is more monadic style
+  in nature as you can transform and combine in lockstep.
+  So there are two distinct logic components here, one for transform and the
+  other for combine.
+
+  Product style nesting or sum style folding
+  -------------------------------------------
+
+  There are two ways of thinking about composing and both of them commute into
+  each other. Any abstraction can be thought of in any of these two ways. Either
+  nested transform and combine operations or a series of transforms followed by a
+  series of sums. So the basic operations are transform and (sum or product).
+
+  N-ary functions
+  ~~~~~~~~~~~~~~~
+
+  Free application vs. curried application.
+  An n-ary function as a nested case construct.
+
+Consumers and Producers
+-----------------------
+
+In pure programming there are either functions that consume one or more inputs
+and produce one output or there are values (non-functions) that neither consume
+nor produce.
+
+.. TBD depict with pictures.
+
++---------+---------+------------------------+
+| Consume | Produce | Object                 |
++=========+=========+========================+
+| N       | N       | Non-function value     |
++---------+---------+------------------------+
+| N       | Y       | Does not exist         |
++---------+---------+------------------------+
+| Y       | N       | Does not exist         |
++---------+---------+------------------------+
+| Y       | Y       | function               |
++---------+---------+------------------------+
+
+Unary Transforms
+----------------
+
+A `transform` operation is an abstract notion, and the simplest possible
+operation on a single value.  It transforms or maps a value in one domain to a
+corresponding value in another domain.
+
+An example of such the operation is `colorCode` that maps a color from the
+`Color` domain to a number in `Integer` domain::
+
+  colorCode :: Color -> Integer
+
+  colorCode Red   = 1
+  colorCode Green = 2
+  colorCode Blue  = 3
+
+Another example is the operation `succ` that returns the successor of a number.
+It maps a number from the `Integer` domain to its successor in the same domain::
+
+  succ :: Integer -> Integer
+
+  succ 1 = 2
+  succ 2 = 3
+  ...
+
+Think about ``colorCode`` and ``succ`` as abstract notions representing a
+mapping or transformation from one type of value to another type. We call them
+`unary functions` or `unary operations` in mathematical parlance.
+
+General Unary Functions
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In Haskell, the domains are Haskell types. A general unary function would
+transform a type `a` into another type `b`.  We can represent such a function
+by the following type signature::
+
+  f :: a -> b
+  f :: a -> a
+
+What can we do with them?
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+It is interesting to see how we can use a function without knowing the specific
+type of values that it works on.
+
+In what ways can a unary operation be useful? What can we do with a single
+value? We can apply a unary operation to transform it.
+
+Single function, single value
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+`f :: a -> b` can just transform a value in another type and that's it.
+`f :: a -> a` is more interesting. Since the output is of the same type we can
+use the same function on output again. This is called iteration. If we keep on
+feeding the output to the same function we will either converge or not. We
+can only converge if f x = x for some x. This is called the fixed point of the
+function.
+
+Set of functions, single value
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+We can apply another unary operation on the resulting value to transform it
+again and so on. For example::
+
+  colorCode Green => 2
+  succ 2          => 3
+
+Single function, Set of values
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+If we have a collection of values of a given type we can think of transforming
+the whole collection into a new collection of a different type. For example::
+
+  colorCode <$> [Red, Green, Blue] => [1, 2, 3]
+  succ      <$> [1, 2, 3]          => [2, 3, 4]
+
+Binary functions
+----------------
+
+In Haskell we usually build bigger structures using binary operations. For
+example the canonical product and sum types are (a,b) and Either a b
+respectively. We can build bigger product and sum types by just combining them
+using these two types! For example, functions are composed in a binary fashion
+using currying. async package combines fork in a binary fashion to implement
+parallel applicative or race alternative.
+
+Combine Two
+~~~~~~~~~~~
+
+A combine operation is an abstract notion, that takes two values from two
+domains and combines them in some way to produce a value in a third domain. In
+other words, it transforms a combination of two values to a third value in
+another domain.
+
+A simple example of a binary operation is an addition operation which adds two
+numbers, both in the number domain, and produces a third number which is called
+the sum of the two numbers, also in the number domain::
+
+  add :: Integer -> Integer -> Integer
+
+  add 1 1 = 2
+  add 1 2 = 3
+  ...
+  add 2 1 = 3
+  add 2 2 = 4
+  ...
+
+Another example, is a tuple operation::
+
+  tuple :: String -> Integer -> (String, Integer)
+
+  tuple "a" 1 = ("a",1)
+  tuple "b" 2 = ("b",2)
+  ...
+
+Think about ``add`` and ``tuple`` as abstract notions combining two types of
+values into a value of third type. We call them `binary functions` or `binary
+operations` in mathematical parlance.
+
+In Haskell, a general binary function would transform a type `a` and a type `b`
+into third type `c`.  We can represent such a function by the following type
+signature::
+
+  f :: a -> b -> c
+
+Any two types or all the three types could be different or the same::
+
+  f :: a -> a -> a
+  f :: a -> a -> b
+  f :: a -> b -> a
+  f :: a -> b -> b
+
+How is a binary operation useful?
+Operational Aspects
+-------------------
+
+Currying
+~~~~~~~~
+
+Operational aspects, how currying is implemented.
+Implications of curried functions vs fully applied functions on performance.
+Currying is like a binary operation, and uncurried like a free operation.
+Currying is like repeated transformation.
+
+The way full application can provide better performance in certain situations a
+free structure should be able to provide better performance compared to
+a non-free structure. What are those for applicative/monad? The function
+application impl is different because we can pass the arguments in registers
+when fully applied and passing arguments one at a time with currying could be
+expensive.
+
 References
 ----------
 
 * https://www.schoolofhaskell.com/school/starting-with-haskell/basics-of-haskell/8_Parser
 * http://conal.net/blog/posts/everything-is-a-function-in-haskell
-
+* http://www.cs.ox.ac.uk/jeremy.gibbons/publications/dgp.pdf Datatype-Generic Programming

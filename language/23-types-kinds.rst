@@ -541,6 +541,9 @@ Kind Constraints
 Type-Level Literals
 -------------------
 
+* GHC.TypeLits
+* GHC.TypeNats
+
 References
 ----------
 

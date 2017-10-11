@@ -10,6 +10,8 @@ Composing Functions
 .. contents:: Table of Contents
    :depth: 1
 
+.. sectnum::
+
 Terminology
 -----------
 
@@ -18,16 +20,23 @@ Terminology
 +------------------------+----------------------------------------------------+
 | Higher order functions | One or more argument is a function                 |
 +------------------------+----------------------------------------------------+
+| Positive position      | type variable in result type of a function         |
++------------------------+----------------------------------------------------+
+| Negative position      | type variable in arguments of a function           |
++------------------------+----------------------------------------------------+
 
-Category - Combining functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Functions as First Class Values
+-------------------------------
 
-Combining the transformations themselves:
-
-* Functions + Monoid = Category | How to combine two objects | two objects
+Functions are first class values. Till now we have only used functions by
+applying them to some values. However we can combine function together and
+create new functions, without applying them to values. We can pass functions to
+functions and return functions from functions. A function is like a pipe and we
+can joing many of them to create an aribtrarily complex network of pipelines.
+This is very powerful and modular way to compose programs.
 
 Functions as Transformations
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A function is a transformation that has one or more inputs and precisely one
 output. However a multi-input function can be represented as a single input
@@ -69,8 +78,8 @@ functions.
 Higher Arity/Order Functions
 ----------------------------
 
-A higher arity function produces a function as output and a higher order
-function accepts a function as input.
+A higher arity (n-ary i.e. not unary) function produces a function as output
+and a higher order function accepts a function as input.
 
 An n-ary function provides a way to the values of parameters to
 in the function definition expression::
@@ -92,15 +101,11 @@ Note that ``->`` is right associative and therefore ``f :: a -> (b -> c)`` is
 the same as ``f :: a -> b -> c``. However ``f :: (a -> b) -> c`` is entirely
 different, it accepts one argument which is a function.
 
-Operations on Functions
+Categorical Composition
 -----------------------
 
-* semigroupoid, monoid (category) composition
-* continuation
-* n-ary composition
-
-In this section we will look at ways to combine functions and values together.
-There are three fundamental ways to combine functions and values:
+Combining pure (unary) transformations themselves:
+semigroupoid, monoid (category) composition.
 
 * `Composition`: When the input type of a function matches the output type of
   another function, the two functions can be chained together by feeding the
@@ -130,9 +135,11 @@ There are three fundamental ways to combine functions and values:
      k :: a -> d
      k x = g (f x)
 
-* `Application` or `Currying`: A value matching one of the inputs of a function
-  can be fed to the function to generate a lower order function or a data
-  value::
+Function Applications (Currying)
+--------------------------------
+
+`Application` or `Currying`: A value matching one of the inputs of a function
+can be fed to the function to generate a lower order function or a data value::
 
     -- reduces the arity
     f :: a -> b -> c
@@ -143,17 +150,6 @@ There are three fundamental ways to combine functions and values:
     x :: b
     g :: b -> c
     g x = f (\_ -> x)
-
-* `Extension`: Like an application reduces the arity, an extension increase the
-  order of a function. A function and a value can be used such that the input
-  of the function is modified to accept a function whose output matches the
-  input of original function::
-
-     -- increases the order
-     f :: a -> b
-     x :: c
-     g :: (c -> a) -> b
-     g k = f (k x)
 
 Currying first order functions
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -215,6 +211,17 @@ flips the consumed or produced roles of the arguments of the function.
 +=================================+========================+
 | g :: a -> b                     | x :: a                 |
 +---------------------------------+------------------------+
+
+Positive and Negative Positions
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In the context of higher order functions the positive and negative position
+terminology is quite useful when we have a nesting deeper than one level. What
+a function consumes (consumable) is negative position and what it produces
+(product) is positive position (mnemonic - produce and positive both start with
+p). As we will see later the sign of the position allows us to quickly
+determine consumable or producer role of an argument by using multiplication of
+signs.
 
 Example: Two level nesting
 ^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -302,16 +309,25 @@ Nesting with Currying
          h^^^^^^^
   f :: m -> (((a -> b) -> c) -> d) -> e -- f x g h
 
-Positive and Negative Positions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-It is easier to understand this by using a positive and negative position
-terminology. What a function consumes (consumable) is negative position and
-what it produces (product) is positive position (mnemonic - produce and positive
-both start with p). Now, (a -> b) is in negative position in f and a is in
+It is easier to explain this using the positive and negative positions
+terminology. We can see that, (a -> b) is in negative position in f and a is in
 negative position in 'a -> b', it follows a multiplication rule and ``negative
 x negative`` becomes positive, therefore `a` is in positive position in `f`.
 Similarly, `b` is in negative position in `f` and is therefore consumed by `f`.
+
+Function Extensions
+-------------------
+
+`Extension`: Like an application reduces the arity, an extension increase the
+order of a function. A function and a value can be used such that the input
+of the function is modified to accept a function whose output matches the
+input of original function::
+
+     -- increases the order
+     f :: a -> b
+     x :: c
+     g :: (c -> a) -> b
+     g k = f (k x)
 
 Extensions
 ~~~~~~~~~~
@@ -445,39 +461,4 @@ their result type is the same as the result type of the whole computation.
     | Yield o (Plan k o a) -- runPlanT supplies o and m r to (o -> m r -> m r)
     | forall z. Await (z -> Plan k o a) (k z) (Plan k o a)
     | Fail
-
-Kan Extensions
-~~~~~~~~~~~~~~
-
-::
-
-  -- Right Kan Extension
-  newtype Ran g h a = Ran (forall b. (a -> g b) -> h b)
-
-  -- Left Kan Extension
-  data Lan g h a = Lan (forall b. (g b -> a) (h b))
-
-* http://comonad.com/reader/2008/kan-extensions/
-
-Codensity
-~~~~~~~~~
-
-A special case of right Kan Extension where g and h are the same::
-
-  newtype Codensity m a = Codensity (forall b. (a -> m b) -> m b)
-
-* Reference: Asymptotic Improvement of Computations over Free Monads
-
-Yoneda
-~~~~~~
-
-::
-
-  type Yoneda = Ran Identity
-  newtype Yoneda m a = Yoneda (forall b. (a -> b) -> m b)
-
-* http://blog.sigfpe.com/2006/11/yoneda-lemma.html
-* http://www.math.harvard.edu/~mazur/preprints/when_is_one.pdf When is one
-  thing equal to some other thing?
-
 

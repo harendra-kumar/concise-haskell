@@ -1,3 +1,27 @@
+.. raw:: html
+
+  <style> .red {color:red} </style>
+  <style> .blk {color:black} </style>
+  <style> .center { text-align: center;} </style>
+  <style> .strike { text-decoration: line-through;} </style>
+
+.. role:: strike
+.. role:: center
+
+.. role:: red
+.. role:: blk
+
+Polymorphic Data and Functions
+==============================
+
+.. contents:: Table of Contents
+   :depth: 1
+
+.. sectnum::
+
+Terminology
+-----------
+
 +------------------------+----------------------------------------------------+
 | Monotype               | A monomorphic type                                 |
 +------------------------+----------------------------------------------------+
@@ -17,8 +41,8 @@ Parametric Polymorphism
 When the parameters of a function are of a variable type i.e. polymorphic then
 the function is known as parametrically polymorphic function.
 
-Polymorphic Types
-~~~~~~~~~~~~~~~~~
+Polymorphic Data Types
+----------------------
 
 A parametrically polymorphic type is a type function parameterized by a type
 variable (``a`` in the following example)::
@@ -27,9 +51,6 @@ variable (``a`` in the following example)::
 
 The type can be `instantiated` for a specific value of the variable `a`, for
 example the type ``Pair Int`` is equivalent to the definition ``Pair Int Int``.
-
-Polymorphic Algebraic Data Types
---------------------------------
 
 Data Type Declaration
 ~~~~~~~~~~~~~~~~~~~~~
@@ -124,7 +145,7 @@ Quantification
 +--------------------------------------------------------------------------------------------------------------------+
 
 Polymorphic Functions
-~~~~~~~~~~~~~~~~~~~~~
+---------------------
 
 The arguments and/or return value of a parametrically polymorphic function can
 be a variable type. The function can be `instantiated` for any value of the
@@ -161,6 +182,9 @@ the result type in the following function must be the same::
   id :: a -> a
   id :: Int -> Int
   id :: Char -> Char
+
+Type Signatures
+~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | A programmer-written type signature is implicitly quantified over its free  |
@@ -251,7 +275,7 @@ the result type in the following function must be the same::
 +-----------------------------------------------------------------------------+
 
 Higher Rank Parametric Polymorphism
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+-----------------------------------
 
 When all the type variables of a function are universally quantified the values
 of type variables and therefore the function instance is completely decided by
@@ -339,9 +363,16 @@ grouping it with a forall keyword. For example::
 | assume that x’s type has no foralls in it.                                  |
 +-----------------------------------------------------------------------------+
 
+Operational Aspects
+-------------------
+
 Specializing Polymorphic Types
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-TBD
-
 Inlining. Expansion - specialization + inlining.
+
+Polymorphic Recursion
+~~~~~~~~~~~~~~~~~~~~~
+
+Type Class Dictionaries
+~~~~~~~~~~~~~~~~~~~~~~~

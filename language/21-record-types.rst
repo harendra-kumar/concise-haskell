@@ -1,5 +1,8 @@
-Records
--------
+Record Types
+============
+
+Record Syntax
+-------------
 
 +-----------------------------------------------------------------------------+
 | `-XNoTraditionalRecordSyntax` (7.4.1) -- to disable the record syntax       |
@@ -57,6 +60,9 @@ Records
 |  import M (R(x))               -- even when x is ambiguous field            |
 +-----------------------------------------------------------------------------+
 
+Construction And Pattern Matching
+---------------------------------
+
 +-----------------------------------------------------------------------------+
 | Construction and pattern matching                                           |
 +=============================================================================+
@@ -111,6 +117,9 @@ Records
 |                            | ``f (R {..})             = ...                 |
 |                            | -- f (R {y = y})``                             |
 +----------------------------+------------------------------------------------+
+
+Access and Update
+-----------------
 
 +-----------------------------------------------------------------------------+
 | Access and update                                                           |
@@ -202,3 +211,11 @@ arguments if the function signature requires it. For example::
   main = func (def (#b := "hello"))
 
 In this example the argument "a" is optional and "b" is mandatory.
+
+Use the keyword-arg example in examples dir.
+
+GHC Internals
+-------------
+
+* GHC.OverloadedLabels
+* GHC.Records

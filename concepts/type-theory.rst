@@ -21,7 +21,8 @@ Terminology
 | Inhabited                       | A type is inhabited if a value of that type exists              |
 +---------------------------------+-----------------------------------------------------------------+
 | Isomorphic                      | A is isomorphic to B when B represents A in just another form   |
-|                                 | and vice versa                                                  |
+|                                 | and vice versa, in other words they can morph into each other.  |
+|                                 | Isomorphic objects are equivalent.                              |
 +---------------------------------+-----------------------------------------------------------------+
 | `Curry-Howard Correspondence`_  | If a type is inhabited it proves a theorem                      |
 +---------------------------------+-----------------------------------------------------------------+

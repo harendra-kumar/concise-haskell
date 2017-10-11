@@ -1,15 +1,30 @@
 Flow Based Programming
 ======================
 
-Logic & Data Flow
------------------
+.. need a good quote
+
+.. contents:: Table of Contents
+   :depth: 1
+
+.. sectnum::
+
+Operational Composition
+-----------------------
+
+The previous chapter discussed purely denotational details of composition in
+Haskell. This chapter discusses the details of `operational composition`.
+Operational details include how data flows in the program, and how data flows
+are composed rather than how the processing logic is composed.
+
+Logic vs Data Flow
+~~~~~~~~~~~~~~~~~~
 
 `Logic` and `data flow` are the two fundamental dimensions of any program. For
 scaling a program, logic must follow data flow or vice versa. If these two are
 orthogonal to each other we will not be able to scale the program.
 
 Example
--------
+~~~~~~~
 
 We have to write the input data to a file and compute its length. There are
 multiple ways of doing that:
@@ -21,8 +36,8 @@ multiple ways of doing that:
 and each pipe does different things to data like writing to a file or computing
 its length.
 
-Program Structure
------------------
+Structuring Data Flow
+---------------------
 
 There are two ways to structure your program.
 
@@ -56,8 +71,8 @@ The `logic drives data` model is more like the whole village dipping in the
 pool while `data drives logic` is like a pipeline based supply system and
 everyone drinks from the tap.
 
-Composing Programs
-------------------
+Composing Data Flow: Streaming
+------------------------------
 
 Functions are low level pipes: Pipes are very similar to functions but at a
 higher level of abstraction. Like functions they also take an input and produce
@@ -117,8 +132,24 @@ evaluation and fuse that whole logic together to make it more efficient.
 Can we automatically make everything strict rather than lazy depending on
 feasibility?
 
-Comparison with Imperative Design Patterns
-------------------------------------------
+Consumer and Producer Model
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Consume | Produce | what                   |
+N       | N       | Not a pipe             |
+N       | Y       | Contra-effect (Source) |
+Y       | N       | effect (sink)          |
+Y       | Y       | pipe                   |
+
+Analogies
+~~~~~~~~~
+
+* Water pipelines
+* Electronic circuit networks
+* Unix pipes
+
+Imperative Design Patterns
+--------------------------
 
 Programmer drives everything
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~

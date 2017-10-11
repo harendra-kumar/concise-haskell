@@ -16,7 +16,10 @@ Terminology
 +------------------------+----------------------------------------------------+
 | Term                   |                                                    |
 +------------------------+----------------------------------------------------+
-| Expression             |                                                    |
+| Expression             | A Haskell expression is a combination of           |
+|                        | functions and values                               |
+|                        | e.g. ``(square ((1 + 2) * 3)) + 4``                |
+|                        | Note: ``+`` and ``*`` are infix functions          |
 +------------------------+----------------------------------------------------+
 | Equation               |                                                    |
 +------------------------+----------------------------------------------------+
@@ -298,6 +301,7 @@ Tying the Knot - Cycles
 
   -- infinite loop
   x
+* http://blog.sigfpe.com/2006/12/tying-knots-generically.html
 
 Structure of a Haskell Program
 ------------------------------
@@ -332,6 +336,31 @@ A Haskell program is nothing but an equation with a special name called `main`:
 +------------+--------------+-------------------------------------------------+
 
 Mathematical substitution of terms in the equations.
+
+Denotational Aspects
+--------------------
+
+Equational Reasoning
+~~~~~~~~~~~~~~~~~~~~
+
+Reasoning by substitution.
+
+Ulitmately what do we get from referential transparency (purity) and
+denotational semantics? Ability to easily reason about or understand how a
+program works. Equational reasoning.
+
+A Haskell program is nothing but a set of equations. Each function definiton is
+a set of equations which expand to other set of equations and so on.
+
+expression A = expression B
+
+Where expression A could be a function definition at top
+level or in a let or where binding inside a function.
+
+Thanks to referential transparency, we can freely substitute a term by its
+equivalent equation without worrying about any side effects. This works just
+like mathematical equations. By way of substitution we can prove equivalence of
+two expressions.
 
 Appendix
 --------

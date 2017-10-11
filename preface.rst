@@ -1,5 +1,24 @@
+About this book
+---------------
+
+The goal of the book is to systematically explain GHC Haskell from a
+programmer's perspective so that he/she can easily find all the details
+required for using the language at one place.  It is not the goal of this book
+to describe the theory behind the implementation or the language. It explains
+concepts or theory only where it is important for the effective use of the
+language for practical programming.
+
+..
+  This is intended to be an open source, live and evolving book. I intend to keep
+  uploading new material as it becomes ready. I will try to keep things in order
+  but sometimes it may be out of order. I expect to keep improving the text over
+  time. I also expect the readers to help me out in improving it by providing
+  feedback and contributions in content.
+
 How you learn?
 --------------
+
+The big picture vs tiny details.
 
 In my experience, there are two phases in learning a programming language. In
 the beginner phase you learn in bits and pieces and mostly by example or by
@@ -25,35 +44,47 @@ you have learnt the basics.
 Building Intuition
 ------------------
 
-This text goes from the basic first principles to higher level abstractions
+This text goes from the first principles to higher level abstractions
 incrementally, building higher level stuff on lower level stuff.  Each chapter
 is self contained and has a comprehensive reference for everything related to
 that concept.  In addition to systematically building new concepts on top of
-the previous concepts we also try to discuss the dual concpets alongside each
+the previous concepts we also try to discuss dual concepts alongside each
 other for a better and deeper understanding.  We want to create a deeper
 understanding of the concepts and inculcate intuition about abstractions and
 how they are built in the first place so that the reader can easily apply the
-same process to novel situations.  You will basically learn how to learn
-Haskell.
+same process to novel situations.  It is important to learn how to learn
+Haskell!
 
-Haskell is overwhelming, there is too much to imbibe. However it is
-overwhelming because the boon of Haskell is also the curse of Haskell. It has
-systematic building blocks and you can use any permutations or combinations of
-those and as they multiply the numbers increase rapidly. However, if we know
-the building blocks, correspondences, duals etc.  systematically we can just
-abstract out most of stuff  and derive it rather than remembering in an ad-hoc
-manner. That is the approach we are taking in this book.
+When I started learning Haskell I dived into things as I encountered them. In
+the absence of a good comprehensive reference it led to grokking code, reading
+papers, struggling with category theory. I got completely bogged down with
+stuff that I did not need for using the language, leading to big diversions,
+wasting a lot of time. However, if I had access to a good reference where all
+the related concepts are condensed together and shown in relation to each other
+I could have learnt the big picture faster and then looked at details when I
+needed. What I felt lacking is what this book tries to present.  Everything at
+one place with a top down big picture.  Fully self-contained, including full
+Haskell and GHC language reference so that the reader does not need to keep
+searching for missing stuff at different places.
 
-For example if we applicatives, arrows and monads, their duals, free/cofree
+Haskell is overwhelming, there is a lot to imbibe. However, it is overwhelming
+because the boon of Haskell is also the curse of Haskell. It has systematic
+building blocks and you can use permutations or combinations of those building
+blocks and as combinations multiply they grow rapidly. However, if we know the
+building blocks, correspondences, duals etc. systematically we can just
+abstract out most of stuff  and derive it rather than remembering everything in
+an ad-hoc manner. That is the approach we are taking in this book.
+
+For example if we use applicatives, arrows and monads, their duals, free/cofree
 versions it easily becomes tens of concepts to learn but in fact they are all
 manifestations of some sort of transformation and composition and if we know
 how they relate to the basic concepts and to each other they are easy to
-remember.
+follow and remember.
 
 One important aspect to building a deeper understanding is knowing the big
 picture and how things relate to each other. For example how recursion, folds,
 lists, monoids are related? When we know the precise relationships it is easier
-to understand them better and remember them easily.
+to understand them better and remember them.
 
 GHC Haskell reference
 ---------------------
@@ -87,10 +118,10 @@ for an intuitive understanding of the concepts.
 Note on Jargon
 --------------
 
-Haskell provides several dimensions of abstraction and beautiful mathematical
-concepts that fit together elegantly. To think about the concepts
-systematically it is important to get familiarised with the vocabulary and know
-the precise meanings of the terms involved.
+Haskell has several dimensions and layers of abstraction and beautiful
+mathematical concepts that fit together elegantly. However, to think about the
+concepts systematically it is important to get familiarised with the vocabulary
+and know the precise meanings of the terms involved.
 
 This text tries to avoid jargon where possible but many terms that allow you to
 express concepts in a concise and clear manner are necessary. We define the

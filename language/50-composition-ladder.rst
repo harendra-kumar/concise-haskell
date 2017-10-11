@@ -79,6 +79,38 @@ operations, ignoring currying as an implementation convenience.
 +-----------------------------------+-----------------------------------------+
 | Mealy Machine                     | Moore Machine                           |
 +-----------------------------------+-----------------------------------------+
+
+Abstraction
+-----------
+
+Abstraction is applied to both data and type spaces.  The most basic
+abstraction is function. In fact, any abstraction can in general be equated
+with a function or mapping.
+
+Functions are further abstracted using parametric and ad-hoc polymorphism.
+Typeclasses and type families provide facilities to implement ad-hoc
+polymorphism in Haskell.
+
+The fundamentals of abstraction are studied formally in a branch of mathematics
+called `lambda calculus`.  Abstraction facilities in Haskell are discussed in
+detail in XYZ.
+
+Abstraction vs Performance
+--------------------------
+
+An abstraction is also an indirection in terms of implementation. An
+indirection creates a performance overhead when the indirection is a runtime
+indirection and not just compile time. For example a function creates an
+indirection of a function call.  A data constructor creates a layer of
+indirection. A free monad creates another layer of indirection compared to a
+monad. However the type level abstraction is static and mostly can be removed
+at the compile time. But if we use free structures we add a runtime abstraction
+too.
+
+However, we should note that performance impacts are not always intuitive or
+easily quantified. In a given scenario performance may not be important or the
+impact may not be significant because of the 80/20 rule.
+
 Abstraction Ladders
 -------------------
 

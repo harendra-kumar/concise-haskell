@@ -1,5 +1,5 @@
-Haskell Semantics
-=================
+Operational Semantics: Evaluating Expressions
+=============================================
 
 .. contents:: Table of Contents
    :depth: 1
@@ -7,17 +7,6 @@ Haskell Semantics
 Terminology
 -----------
 
-+------------------------+----------------------------------------------------+
-| Expression             | A Haskell expression is a combination of           |
-|                        | functions and values                               |
-|                        | e.g. ``(square ((1 + 2) * 3)) + 4``                |
-|                        | Note: ``+`` and ``*`` are infix functions          |
-+------------------------+----------------------------------------------------+
-| Denotation             | Meaning of a term or expression                    |
-+------------------------+----------------------------------------------------+
-| Denotational semantics | Each term or expression has a well defined         |
-|                        | denotation or meaning, in some universe of         |
-|                        | mathematical meanings.                             |
 +------------------------+----------------------------------------------------+
 | Side effect            | A change in environment (global state, IO)         |
 |                        | effected by a function                             |
@@ -34,10 +23,6 @@ Terminology
 | Referential            | any variable can be replaced with its actual value |
 | transparency           | at any point of execution (because the variable can|
 |                        | never change)                                      |
-+------------------------+----------------------------------------------------+
-| Equational reasoning   | Reasoning about a program just like mathematical   |
-|                        | equations by substituting terms with their         |
-|                        | definitions.                                       |
 +------------------------+----------------------------------------------------+
 | Reduction              | Applying functions in an expression to reduce      |
 |                        | it to a shorter expression                         |
@@ -97,10 +82,10 @@ Terminology
 +------------------------+----------------------------------------------------+
 
 Concepts and Implementations
-----------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-------------------------------------+---------------------------------------+
-| Concept                             | Implementation                        |
+| Conceptual Term                     | Specific Implementation Term          |
 +=====================================+=======================================+
 | Reduction                           | Evaluation                            |
 +-------------------------------------+---------------------------------------+
@@ -111,61 +96,14 @@ Concepts and Implementations
 | Abstraction                         | Programming                           |
 +-------------------------------------+---------------------------------------+
 
-Denotational vs Operational Semantics
--------------------------------------
+Overview
+--------
 
-+------------------------------------+----------------------------------------+
-| Denotational                       | Operational                            |
-+====================================+========================================+
-| What a program does                | How it does it                         |
-+------------------------------------+----------------------------------------+
-| Specification                      | Implementation & Execution             |
-+------------------------------------+----------------------------------------+
-| Reason about the meaning and       | Reason about performance               |
-| correctness                        |                                        |
-+------------------------------------+----------------------------------------+
-| Equational reasoning for           | Space leaks, Optimal evaluation,       |
-| correctness                        | Garbage collection                     |
-+------------------------------------+----------------------------------------+
-
-Pure Functional vs Imperative
------------------------------
-
-+------------------------------+----------------------------+
-| Haskell (or pure functional) | Imperative languages       |
-+==============================+============================+
-| Denotational first           | Operational first          |
-+------------------------------+----------------------------+
-
-Pure functional and imperative language designs are duals of each other.
-Therefore, where they excel and where they lack is opposite of each other.
-Functional design is strong in denotational aspects whereas the imperative
-design is strong in operational aspects:
-
-* Haskell enforces referential transparency but adds manual (by discipline)
-  control over some operational semantics by using strictness annotations, for
-  example.
-* Imperative languages have better control over operational semantics by
-  default but allow referential transparency by discipline.
-
-Haskell Semantic Features
--------------------------
-
-+----------------------+--------------------------+---------------------------+
-| User level feature   | Language feature         | Underlying enabler        |
-+======================+==========================+===========================+
-| Equational Reasoning | Denotational Semantics   | Referential Transparency  |
-+----------------------+--------------------------+---------------------------+
-| Expressive Power     | Infinite data structures | Non-strict semantics      |
-+----------------------+                          |                           |
-| Modularity           |                          |                           |
-+----------------------+--------------------------+---------------------------+
-
-Denotational Aspects
---------------------
+This chapter contains the operational details about the denotational aspects
+that we discussed in the previous chapter.
 
 Referential Transparency
-~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------
 
 Pure functional programming has a property called referential transparency or
 immutability. All expressions n Haskell are referentially transparent.
@@ -183,109 +121,8 @@ place and used somewhere else.
 This allows us to use a function in any environment without any fear of
 changing the meaning of the program in unintended ways.
 
-Denotational Semantics
-~~~~~~~~~~~~~~~~~~~~~~
-
-Constructing mathematical objects (called denotations) that describe the
-meanings of expressions from the programming language. An important tenet of
-denotational semantics is that semantics should be compositional: the
-denotation of a program phrase should be built out of the denotations of its
-subphrases.
-
-Equational Reasoning
-~~~~~~~~~~~~~~~~~~~~
-
-Reasoning by substitution.
-
-Ulitmately what do we get from referential transparency (purity) and
-denotational semantics? Ability to easily reason about or understand how a
-program works. Equational reasoning.
-
-A Haskell program is nothing but a set of equations. Each function definiton is
-a set of equations which expand to other set of equations and so on.
-
-expression A = expression B
-
-Where expression A could be a function definition at top
-level or in a let or where binding inside a function.
-
-Thanks to referential transparency, we can freely substitute a term by its
-equivalent equation without worrying about any side effects. This works just
-like mathematical equations. By way of substitution we can prove equivalence of
-two expressions.
-
-Non-Strict Reduction
-~~~~~~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| Haskell reduces expressions in a non-strict manner                          |
-+-----------------------------------------------------------------------------+
-
-TODO: We need a picture of an expression here.
-
-::
-
-  fst (square (1 + 2), square 3)
-
-  f a b c = case a > b of
-    True -> c
-    False -> 1
-
-  f (1 + 2) (3 * 4) (12 / 2)
-
-
-Non-strict semantics require an expression to be reduced in an outside-in
-fashion or in a top down fashion if the expression is represented as a tree
-with root on top. Outside-in reduction of an expression ensures that a
-subexpression will `never` be computed if it is not used in the expression.
-
-How does (A OR B) get evaluated where A and B are redexes? We will know whether
-they are TRUE or FALSE only after evaluating them. Which one gets evaluated
-first?
-
-Default semantics:
-
-* pattern matching in case (and function definitions) is strict (WHNF)
-* However pattern matching in let and where is lazy
-* strict pattern match is the only way to strictness
-
-Strict and Non-strict functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-+-----------------------------------------------------------------------------+
-| A function which always needs an argument (technically in WHNF) is called   |
-| strict in that argument.                                                    |
-+-----------------------------------------------------------------------------+
-| GHC performs a strictness analysis to detect whether a function is always   |
-| strict and may deploy eager evaluation when it is strict.                   |
-+-----------------------------------------------------------------------------+
-| Strictness check                                                            |
-+-----------------------------------+-----------------------------------------+
-| f is strict in first argument iff | ``f _|_ a = _|_``                       |
-+-----------------------------------+-----------------------------------------+
-| ``id x = x``                                                                |
-+-----------------------------------------------------------------------------+
-| ``fst (a, b) = a -- strict in first argument``                              |
-+-----------------------------------------------------------------------------+
-| Non-strict functions                                                        |
-+-----------------------------------------------------------------------------+
-| A function which discards an argument is called non-strict in that argument.|
-| GHC implements this using lazy evaluation to honor non-strict semantics.    |
-+-----------------------------------------------------------------------------+
-| ``fst (a, b) = a -- non-strict in second argument``                         |
-+-----------------------------------------------------------------------------+
-
-* A constructor is always lazy
-* A single argument function is either lazy or strict in its argument.
-* A multiple argument function is lazy or strict in an argument conditional on
-  the values of other arguments. For example::
-
-    f x y = if y > 10 then x + 1 else 1
-    f x 1  -- does not need x
-    f x 11 -- needs x
-
 Bottom
-~~~~~~
+------
 
 Bottom does not have an explicit denotation in the language but is an implicit
 concept to understand the meaning of several language constructs in
@@ -296,124 +133,49 @@ mathematical terms:
 * Infinite data structures
 * undefined values (lazy eval)
 
-Bottom - Denotation for special cases
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..
+  Bottom - Denotation for special cases
+  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-We say that ⊥ is the completely "undefined" value or function. Every basic data
-type like Integer or () contains one ⊥ besides their usual elements. So the
-possible values of type Integer are
-{\displaystyle \bot ,0,+1,-1,+2,-2,+3,-3,\dots } \bot
-,0,+1,-1,+2,-2,+3,-3,\dots
+  We say that ⊥ is the completely "undefined" value or function. Every basic data
+  type like Integer or () contains one ⊥ besides their usual elements. So the
+  possible values of type Integer are
+  {\displaystyle \bot ,0,+1,-1,+2,-2,+3,-3,\dots } \bot
+  ,0,+1,-1,+2,-2,+3,-3,\dots
 
-Adding ⊥ to the set of values is also called lifting.
+  Adding ⊥ to the set of values is also called lifting.
 
-As another example, the type () with only one element actually has two
-inhabitants:
-{\displaystyle \bot ,()} \bot ,()
+  As another example, the type () with only one element actually has two
+  inhabitants:
+  {\displaystyle \bot ,()} \bot ,()
 
-Now, {\displaystyle \bot } \bot  (bottom type) gives us the possibility to
-denote partial functions:
-{\displaystyle f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}} f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}
+  Now, {\displaystyle \bot } \bot  (bottom type) gives us the possibility to
+  denote partial functions:
+  {\displaystyle f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}} f(n)={\begin{cases}1&{\mbox{ if }}n{\mbox{ is }}0\\-2&{\mbox{ if }}n{\mbox{ is }}1\\\bot &{\mbox{ else }}\end{cases}}
 
-Partial order picture with bottom at the bottom.
+  Partial order picture with bottom at the bottom.
 
-Alegbraic data construction
+  Alegbraic data construction
 
-In a strict language, all constructors are strict by default, i.e. Just ⊥ = ⊥
-As a consequence, all domains of a strict language are flat.
+  In a strict language, all constructors are strict by default, i.e. Just ⊥ = ⊥
+  As a consequence, all domains of a strict language are flat.
 
-But in a non-strict language like Haskell, constructors are non-strict by
-default and Just ⊥ is a new element different from ⊥, because we can write a
-function that reacts differently to them:
+  But in a non-strict language like Haskell, constructors are non-strict by
+  default and Just ⊥ is a new element different from ⊥, because we can write a
+  function that reacts differently to them:
 
-f (Just _) = 4
-f Nothing  = 7
+  f (Just _) = 4
+  f Nothing  = 7
 
-This gives rise to non-flat domains as depicted in the former graph. What
-should these be of use for?
-In the context of Graph Reduction, we may also think of ⊥ as an unevaluated
-expression. Thus, a value x = Just ⊥ may tell us that a computation (say a
-lookup) succeeded and is not Nothing, but that the true value has not been
-evaluated yet.
-
-Operational Aspects
--------------------
-
-Lazy vs Eager Evaluation
-~~~~~~~~~~~~~~~~~~~~~~~~
-
-I have come to the conclusion that neither an eager (a/k/a strict, e.g. most languages) nor lazy (a/k/a total, e.g. Haskell) language is vastly superior to the other. They each have tradeoffs, because they are categorical duals.
-
-Eager is an *inductive* evaluation model, meaning we run the leaves as we as build the nested function tree of runtime possibilities.
-
-Lazy is a *coinductive* evaluation model, meaning we run the leaves as needed from the nested function tree of runtime possibilities.
-
-Eager can't instantiate coinductive types, such as bottom (i.e. the entire Universe) or any infinite type, but it can instantiate inductive types such as the natural numbers.
-
-Lazy can instantiate coinductive types, such as bottom and infinite types, but it can't instantiate inductive types such as the natural numbers.
-
-See Harper's explanation:
-
-http://existentialtype.wordpress.com/2011/04/24/the-real-point-of-laziness/#comment-798
-
-Eager does not have conjunctive products, so we can't do general function composition (e.g. or . map p) without potentially doing evaluation that is not shared (i.e. required) by the conjunctive result.
-
-Lazy does not have disjunctive sums, so we can't do logic such as:
-
-((if ... then 1 else 2),3) == if ... then (1,3) else (2,3)
-
-For example, if we only evaluate the second element in a lazy language and if ... has an exception, then the left version will not generate the exception, but the right version will.
-
-I suppose most people think rather inductively.
-
-'''Space & Latency Indeterminism'''
-
-Lazy also has latency indeterminism (relative to the imperative world, e.g. IO monad).
-
-My point is that with eager, debugging the changes in the program's state machine at any function step, will be bounded to the function hierarchy inside the body of the function, so the programmer can correlate changes in the state machine to what the function is expected to do.
-
-Whereas, with lazy any function may backtrack into functions that were in the argument hierarchy of the current function, and inside functions called an indeterminant time prior. Afaics, lazy debugging should be roughly analogous to debugging random event callbacks, and reverse engineering the state machine in a blackbox event generation module.
-
-As I understand from Filinksi's thesis, eager and lazy are categorical duals in terms of the induction and coinductive values in the program. Eager doesn't have products (e.g. conjunctive logic, "and") and lazy doesn't have coproducts (e.g. disjunctive, "or"). So this means that lazy imposes imperative control logic incorrectness from the outside-in, because coinductive types are built from observations and their structure (coalgebra) is not known until the finality when the program ends. Whereas, eager's incorrectness is from the inside-out, because inductive types have a a priori known structure (algebra) built from an initiality. Afaics, this explains why debugging eager has a known constructive structure and debugging lazy is analogous to guessing the structure of a blackbox event callback generation module.
-
-'''Parallel Execution'''
-
-For a compiler strategy that dynamically subdivided map for parallel execution on multiple cores requires it not be lazy.
-
-Data Dependencies - Lazy vs Eager Evaluation
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-The high level difference in lazy evaluation and eager evaluation is that the
-latter puts the burden of specifying data dependencies on the programmer while
-the former infers it automatically.
-
-In imperative languages dependencies among computations are specified by the
-sequence of statements in the program.  The programmer has to think about
-dependencies and encode them in the sequence of statements.  A statement
-computing a data element must come before another statement using the data
-element.  If the sequence of statements changes, the dependencies will change
-and the meaning of the program will change.
-
-A Haskell program figures out the dependencies among program elements
-automatically, and the program execution is driven by these implicit dependency
-relationships rather than the sequence of statements as written in the program.
-The sequence of statements in the program is irrelevant.  However, the
-dependencies and therefore the execution sequence can be explicitly controlled
-when desired (e.g. IO Monad).
-
-Eager Evaluation
-~~~~~~~~~~~~~~~~
-
-In eager evaluation strategy, everything is evaluated in the specified sequence
-including the arguments of a function. The expressions representing the
-arguments of a function are completely evaluated before the function call
-proceeds.  This strategy means that the evaluation of an argument happens
-irrespective of whether the argument will be actually used inside the function
-or not. The evaluation is based on the `static structure of the expression`.
-Therefore, the decision can be easily made at compile time.
+  This gives rise to non-flat domains as depicted in the former graph. What
+  should these be of use for?
+  In the context of Graph Reduction, we may also think of ⊥ as an unevaluated
+  expression. Thus, a value x = Just ⊥ may tell us that a computation (say a
+  lookup) succeeded and is not Nothing, but that the true value has not been
+  evaluated yet.
 
 Lazy Evaluation
-~~~~~~~~~~~~~~~
+---------------
 
 A function may or may not need its arguments at run-time, depending on its
 implementation. However, we may not be able to determine that fact at compile
@@ -483,6 +245,76 @@ constructor application creates new data.
 +------------+-------------+----------------+---------------------------------+
 | Data       | Deconstruct | pattern match  | Expression or Constructor       |
 +------------+-------------+----------------+---------------------------------+
+
+Non-Strict Reduction
+~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| Haskell reduces expressions in a non-strict manner                          |
++-----------------------------------------------------------------------------+
+
+TODO: We need a picture of an expression here.
+
+::
+
+  fst (square (1 + 2), square 3)
+
+  f a b c = case a > b of
+    True -> c
+    False -> 1
+
+  f (1 + 2) (3 * 4) (12 / 2)
+
+
+Non-strict semantics require an expression to be reduced in an outside-in
+fashion or in a top down fashion if the expression is represented as a tree
+with root on top. Outside-in reduction of an expression ensures that a
+subexpression will `never` be computed if it is not used in the expression.
+
+How does (A OR B) get evaluated where A and B are redexes? We will know whether
+they are TRUE or FALSE only after evaluating them. Which one gets evaluated
+first?
+
+Default semantics:
+
+* pattern matching in case (and function definitions) is strict (WHNF)
+* However pattern matching in let and where is lazy
+* strict pattern match is the only way to strictness
+
+Strict and Non-strict functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A function which always needs an argument (technically in WHNF) is called   |
+| strict in that argument.                                                    |
++-----------------------------------------------------------------------------+
+| GHC performs a strictness analysis to detect whether a function is always   |
+| strict and may deploy eager evaluation when it is strict.                   |
++-----------------------------------------------------------------------------+
+| Strictness check                                                            |
++-----------------------------------+-----------------------------------------+
+| f is strict in first argument iff | ``f _|_ a = _|_``                       |
++-----------------------------------+-----------------------------------------+
+| ``id x = x``                                                                |
++-----------------------------------------------------------------------------+
+| ``fst (a, b) = a -- strict in first argument``                              |
++-----------------------------------------------------------------------------+
+| Non-strict functions                                                        |
++-----------------------------------------------------------------------------+
+| A function which discards an argument is called non-strict in that argument.|
+| GHC implements this using lazy evaluation to honor non-strict semantics.    |
++-----------------------------------------------------------------------------+
+| ``fst (a, b) = a -- non-strict in second argument``                         |
++-----------------------------------------------------------------------------+
+
+* A constructor is always lazy
+* A single argument function is either lazy or strict in its argument.
+* A multiple argument function is lazy or strict in an argument conditional on
+  the values of other arguments. For example::
+
+    f x y = if y > 10 then x + 1 else 1
+    f x 1  -- does not need x
+    f x 11 -- needs x
 
 Evaluation
 ~~~~~~~~~~
@@ -574,30 +406,14 @@ closure is created by its parent closure. The parent closure inserts the
 references to the closures of the free variables (evaluated or not) at the time
 of its creation.
 
-Controlling Evaluation
-^^^^^^^^^^^^^^^^^^^^^^
-
-Fundamentally, the language has to respect non-strict semantics, however when
-it does not impact the semantics of the program strict evaluation can be
-employed.
-
-* bang patterns
-* strict by default extension
-
-Strict vs Lazy Evaluation
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Comparison of strict evaluation and lazy evaluation. Closures vs stack based
-evaluation.
-
-Garbage Collection
-~~~~~~~~~~~~~~~~~~
+Garbage Collection & Space Leaks
+--------------------------------
 
 Explain how garbage collection works. For example, if we have to update the
 last node of a list, what all will get garbage collected. Draw a picture.
 
-Lazy Evaluation, Streaming and Space Leaks
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Space Leaks
+~~~~~~~~~~~
 
 Lazy evaluation is like a streaming paradigm built into the language. It is
 consumer driven, the whole machinery is cranked only when the last guy in the
@@ -615,19 +431,116 @@ it then we might end up consuming too much memory, this is called a space leak.
 To avoid space leaks we must design the program in such a way that we consume
 the produced data as soon as possible.
 
+Performance & Controlling Evaluation
+------------------------------------
+
+Fundamentally, the language has to respect non-strict semantics, however when
+it does not impact the semantics of the program strict evaluation can be
+employed.
+
+* strictness analysis
+* bang patterns
+* strict by default extension
+
 Understanding a Haskell Program
 -------------------------------
 
-An imperative mind runs a program in the head line by line. On the other hand,
-a lazy Haskell mind composes a program in the head. When reading Haskell do not
-try to run each statement then and there, just think that this is being
-composed and then it will be run in the required order when needed. It might
-get composed further or transformed and then composed to create a bigger
-composition. Just keep your mind lazy!  This is perhaps the hardest part for an
-imperatively trained mind.
+When understanding a program a programmer evaluates the program in his/her
+mind.  The difference in evaluation strategy can make a huge difference when
+trying to understand a program. An imperatively trained mind runs a program in
+the head line by line, sequentially. On the other hand, a lazily trained
+Haskell mind has to compose a program in the head. If you are coming from an
+imperative mindset, when reading Haskell do not try to run each statement then
+and there, just think that this is being composed and then it will be run in
+the required order when needed. It might get composed further or transformed
+and then composed to create a bigger composition. Just keep your mind lazy!
+This is perhaps the hardest part for an imperatively trained mind.
 
 We need to understand the dependency relationships among the components of a
 program.
+
+Lazy vs Eager Evaluation
+------------------------
+
+Data Dependencies - Lazy vs Eager Evaluation
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The high level difference in lazy evaluation and eager evaluation is that the
+latter puts the burden of specifying data dependencies on the programmer while
+the former infers it automatically.
+
+In imperative languages dependencies among computations are specified by the
+sequence of statements in the program.  The programmer has to think about
+dependencies and encode them in the sequence of statements.  A statement
+computing a data element must come before another statement using the data
+element.  If the sequence of statements changes, the dependencies will change
+and the meaning of the program will change.
+
+A Haskell program figures out the dependencies among program elements
+automatically, and the program execution is driven by these implicit dependency
+relationships rather than the sequence of statements as written in the program.
+The sequence of statements in the program is irrelevant.  However, the
+dependencies and therefore the execution sequence can be explicitly controlled
+when desired (e.g. IO Monad).
+
+Eager Evaluation
+~~~~~~~~~~~~~~~~
+
+In eager evaluation strategy, everything is evaluated in the specified sequence
+including the arguments of a function. The expressions representing the
+arguments of a function are completely evaluated before the function call
+proceeds.  This strategy means that the evaluation of an argument happens
+irrespective of whether the argument will be actually used inside the function
+or not. The evaluation is based on the `static structure of the expression`.
+Therefore, the decision can be easily made at compile time.
+
+Stack vs Heap
+~~~~~~~~~~~~~
+
+Comparison of strict evaluation and lazy evaluation. Closures vs stack based
+evaluation.
+
+..
+  Lazy vs Eager Evaluation
+  ~~~~~~~~~~~~~~~~~~~~~~~~
+
+  I have come to the conclusion that neither an eager (a/k/a strict, e.g. most languages) nor lazy (a/k/a total, e.g. Haskell) language is vastly superior to the other. They each have tradeoffs, because they are categorical duals.
+
+  Eager is an *inductive* evaluation model, meaning we run the leaves as we as build the nested function tree of runtime possibilities.
+
+  Lazy is a *coinductive* evaluation model, meaning we run the leaves as needed from the nested function tree of runtime possibilities.
+
+  Eager can't instantiate coinductive types, such as bottom (i.e. the entire Universe) or any infinite type, but it can instantiate inductive types such as the natural numbers.
+
+  Lazy can instantiate coinductive types, such as bottom and infinite types, but it can't instantiate inductive types such as the natural numbers.
+
+  See Harper's explanation:
+
+  http://existentialtype.wordpress.com/2011/04/24/the-real-point-of-laziness/#comment-798
+
+  Eager does not have conjunctive products, so we can't do general function composition (e.g. or . map p) without potentially doing evaluation that is not shared (i.e. required) by the conjunctive result.
+
+  Lazy does not have disjunctive sums, so we can't do logic such as:
+
+  ((if ... then 1 else 2),3) == if ... then (1,3) else (2,3)
+
+  For example, if we only evaluate the second element in a lazy language and if ... has an exception, then the left version will not generate the exception, but the right version will.
+
+  I suppose most people think rather inductively.
+
+  '''Space & Latency Indeterminism'''
+
+  Lazy also has latency indeterminism (relative to the imperative world, e.g. IO monad).
+
+  My point is that with eager, debugging the changes in the program's state machine at any function step, will be bounded to the function hierarchy inside the body of the function, so the programmer can correlate changes in the state machine to what the function is expected to do.
+
+  Whereas, with lazy any function may backtrack into functions that were in the argument hierarchy of the current function, and inside functions called an indeterminant time prior. Afaics, lazy debugging should be roughly analogous to debugging random event callbacks, and reverse engineering the state machine in a blackbox event generation module.
+
+  As I understand from Filinksi's thesis, eager and lazy are categorical duals in terms of the induction and coinductive values in the program. Eager doesn't have products (e.g. conjunctive logic, "and") and lazy doesn't have coproducts (e.g. disjunctive, "or"). So this means that lazy imposes imperative control logic incorrectness from the outside-in, because coinductive types are built from observations and their structure (coalgebra) is not known until the finality when the program ends. Whereas, eager's incorrectness is from the inside-out, because inductive types have a a priori known structure (algebra) built from an initiality. Afaics, this explains why debugging eager has a known constructive structure and debugging lazy is analogous to guessing the structure of a blackbox event callback generation module.
+
+  '''Parallel Execution'''
+
+  For a compiler strategy that dynamically subdivided map for parallel execution on multiple cores requires it not be lazy.
 
 References
 ----------

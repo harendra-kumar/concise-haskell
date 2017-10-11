@@ -4,6 +4,8 @@ Recursion
 .. contents:: Table of Contents
    :depth: 1
 
+.. sectnum::
+
 Terminology
 -----------
 
@@ -146,7 +148,7 @@ analyze codata `using the patterns` induced by the agreed constructors.
 +-------------------------------------+---------------------------------------+
 | inductive                           | coinductive                           |
 +-------------------------------------+---------------------------------------+
-| finite objects                      | infinite objects                      |
+| necessarily finite                  | potentially infinite                  |
 +-------------------------------------+---------------------------------------+
 | structural recursion                | guarded corecursion                   |
 +-------------------------------------+---------------------------------------+
@@ -210,8 +212,8 @@ In Haskell, data and codata both are defined in the same way, there is no type
 level distinction:
 
 * recursive data is usually a sum type because we need a base case to build
-  upon. `data A a = Base a | Recurse a (A a)` . canonical example is a list.
-* corecursive structure is usually a product type `data A a = Y (A a)` because
+  upon. `data a = Base a | Recurse a (A a)` . canonical example is a list.
+* corecursive structure is usually a product type `data a = Y (A a)` because
   there is no base case and we start from the final case itself. canonical
   example is a stream.
 
@@ -242,6 +244,8 @@ non-recursive seed structure, it is called corecursion.
 +-------------------------------------+---------------------------------------+
 | data                                | codata                                |
 +-------------------------------------+---------------------------------------+
+| Sum types                           | Product types                         |
++-------------------------------------+---------------------------------------+
 | algebra                             | coalgebra                             |
 +-------------------------------------+---------------------------------------+
 | Mealy machine                       | Moore machine                         |
@@ -255,8 +259,9 @@ we're allowed to use the constructor.
 
 The rule is: you're only allowed to use structural recursion with data and
 guarded recursion with codata. With that rule, we're guaranteed that our
-recursions will always be safe, and yet that we can still have open-ended loops
-in our code. Sometimes these are called recursion and corecursion respectively.
+recursions will always be safe, and yet we can have open-ended loops
+in our code. These forms of recursion are called recursion and corecursion
+respectively.
 
 Recursive Algebraic Data Types
 ------------------------------
@@ -337,6 +342,13 @@ scrutiny of `x` are produced in the loop. For example:
 
     -- prints "yes" in infinite loop
     x = putStrLn "yes" >> x >> putStrLn "no"
+
+Recursive Polymorphic Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+::
+
+  data Free f a = Pure a | Free (f (Free f a))
 
 Recursive Functions
 ^^^^^^^^^^^^^^^^^^^
@@ -436,6 +448,12 @@ Similarly, at another level, recursive and iterative are two different ways to
 accomplish a task. Any of them can be employed to accomplish a task. Both
 recursion and co-recursion can be expressed in iterative manner.
 
+Corecursive Polymorphic Data
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+::
+
+  data Cofree f a = a :< f (Cofree f a)
+
 Corecursive Functions
 ^^^^^^^^^^^^^^^^^^^^^
 
@@ -457,7 +475,8 @@ data it uses does not have to be. Here the data is recursive but the functions
 used by it do not have to be.
 
 Corecursive definition can also be called a coinductive definition of a
-function.
+function. Corecursive definition starts with a constructor, the top of the
+expression is a constructor.
 
 Transform a stream::
 
@@ -691,6 +710,11 @@ Mutual Recursion
 
   x = f y
   y = g x
+
+Packages
+--------
+
+* https://hackage.haskell.org/package/data-fix
 
 References
 ----------

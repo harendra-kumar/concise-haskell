@@ -1,3 +1,25 @@
+Arrows
+======
+
++-----------------------------------------------------------------------------+
+| Arrows                                                                      |
++-----------------------------------------------------------------------------+
+| Composing unary transformations in a functor context                        |
++---------------------------------+-------------------------+-----------------+
+|                                 | Values                  | Functions       |
++=================================+=========================+=================+
+| Lift                            | arr                                       |
+|                                 +-------------------------------------------+
+|                                 | ArrowChoice                               |
+|                                 |                                           |
++---------------------------------+-------------------------+-----------------+
+| Product                         | ArrowApply              |                 |
++----------------+----------------+-------------------------+-----------------+
+| Sum            | Semigroup      | ArrowPlus (<+>)         | .               |
+|                +----------------+-------------------------+-----------------+
+|                | Monoid         | ArrowZero (zeroArrow)   | id              |
++----------------+----------------+-------------------------+-----------------+
+
   * Arrows (category composition) (binary composition)
       They are equivalents of binary functions that can be composed, they are
       profunctors.
@@ -14,14 +36,11 @@ example above illustrates an arrow which takes its input in a different way, as
 a stream of values rather than a single value, so this is an example of a kind
 of computation which cannot be represented as a monad.
 
------
-My notes:
-
-Notice that a monad type is ``m a`` where a is the output type and an arrow
-type is ``c a b`` where ``a`` is the input type and ``b`` is the output type.
-Another way to put it is that a monad puts a value in a context whereas an
-arrow puts a function in a context.
-----
+..
+  Notice that a monad type is ``m a`` where a is the output type and an arrow
+  type is ``c a b`` where ``a`` is the input type and ``b`` is the output type.
+  Another way to put it is that a monad puts a value in a context whereas an
+  arrow puts a function in a context.
 
 Arrows thus offer a competing way to represent computations in Haskell.  But
 their purpose is not to replace monads, it is to bring the benefits of a shared
@@ -70,7 +89,6 @@ favor of profunctors package.
 * http://www-kb.is.s.u-tokyo.ac.jp/~asada/papers/fromComptoComp.pdf
   Categorifying Computations into Components via Arrows as Profunctors
 
--------
 * https://stackoverflow.com/questions/17668452/can-someone-explain-to-me-why-the-app-function-of-arrowapply-makes-them-as-power/17673690#17673690
 
 You can use Applicative to get the generality, and you can use Monads to get
@@ -96,12 +114,11 @@ ArrowApply but function application -> is used directly in Monad. This
 distinction is what makes programming with Arrows feel different in many ways
 to programming in monads, despite the equivalence of ArrowApply and Monad.
 
--------
 
 * http://haskell.cs.yale.edu/wp-content/uploads/2012/06/FromJFP.pdf Yampa
   arrows
 * http://homepages.inf.ed.ac.uk/wadler/papers/arrows-and-idioms/arrows-and-idioms.pdf
-Idioms are oblivious, arrows are meticulous, monads are promiscuous
+  Idioms are oblivious, arrows are meticulous, monads are promiscuous
 
 Use Cases
 ----------

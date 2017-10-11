@@ -1,153 +1,12 @@
-Container Abstractions
-======================
+Folds, Traversals and Optics
+============================
 
 The common operations that you perform on containers are folds and traversals.
 
 base | distributive | mono-traversable | lens | lens-action
 
 * the ``foldl`` and ``folds`` packages
-
-Conventions
------------
-
-TBD - need to decide whether arrows should be is-a or inverse of that.
-Higher level stuff above and lower level below?
-
-Basic Typeclasses
------------------
-
-Traversable -> Distributive  -- function application (fmap, functor) and fold (foldable) results
-|                            -- unfold a value and distribute as argument for consumption
-|
-v
-Functor, Foldable   -- values folded as pure data (does not require functor instance)
-
-Foldable
---------
-
-Typeclass Functions
-~~~~~~~~~~~~~~~~~~~
-
-::
-
-  fold $ map Sum [1,2,3]
-  foldMap Sum [1,2,3]
-
-+--------+------+--------+------+---------+---------+-----+---------+
-| toList | null | length | elem | maximum | minimum | sum | product |
-+--------+------+--------+------+---------+---------+-----+---------+
-
-Other Functions
-~~~~~~~~~~~~~~~
-
-+---------+-----------+-----+----+-----+-----+-----------+-----------+
-| concat  | concatMap | and | or | any | all | maximumBy | minimumBy |
-+---------+-----------+-----+----+-----+-----+-----------+-----------+
-
-+---------+-----------+
-| notElem | find      |
-+---------+-----------+
-
-Fold Actions
-~~~~~~~~~~~~
-
-+--------------------------------------------------------------------+
-| Fold actions - ignore results                                      |
-+--------------------+---------------------+-------------------------+
-|                    | Applicative         | Monadic                 |
-+--------------------+---------------------+-------------------------+
-| Map & evaluate     | ``traverse_/for_``  | ``mapM_/forM_``         |
-+--------------------+---------------------+-------------------------+
-| Evaluate           |  ``sequenceA_``     | ``sequence_``           |
-+--------------------+---------------------+-------------------------+
-| Sum                | ``asum``            | ``msum``                |
-+--------------------+---------------------+-------------------------+
-
-Traversable & Distributive
---------------------------
-
-Traversable and Distributive are duals of each other
-
-+---------------------------------------------------------------------------------+
-| sequence and distribute are duals of each other.                                |
-+------------+----------------------------------+---------------------------------+
-| sequence   | Collect the outputs of,          | ``sequence [print 1, print 2]`` |
-|            | producers in the container, to   |                                 |
-|            | produce a single output          |                                 |
-+------------+----------------------------------+---------------------------------+
-| distribute | Consume a single input and       |                                 |
-|            | distribute it to the consumers   | ``distribute [(+1), (+2)] 1``   |
-|            | in the container                 |                                 |
-+------------+----------------------------------+---------------------------------+
-
-+-----------------------------------------------------------------------------------+
-| traverse and cotraverse are duals of each other.                                  |
-+------------+----------------------------------+-----------------------------------+
-| traverse   | maps a function over the members |                                   |
-|            | of container before `sequence`   | ``traverse print [1,2]``          |
-+------------+----------------------------------+-----------------------------------+
-| cotraverse | applies a function to the        |                                   |
-|            | container after `distribute`     | ``cotraverse sum [(+1), (+2)] 1`` |
-+------------+----------------------------------+-----------------------------------+
-
-Traversable
------------
-
-+--------------------------------------------------------+
-| Traversable (Functor, Foldable) - Collect the outputs  |
-| of producers in a container.                           |
-+-------------------+------------------------------------+
-| Applicative       | Monadic                            |
-+-------------------+------------------------------------+
-|  ``traverse/for`` | ``mapM/forM``                      |
-|                   |                                    |
-+-------------------+------------------------------------+
-|  ``sequenceA``    | ``sequence``                       |
-+-------------------+------------------------------------+
-
-Distributive
-------------
-
-To be distributable a container will need to have a way to consistently zip a
-potentially infinite number of copies of itself. This effectively means that
-the holes in all values of that type, must have the same cardinality, fixed
-sized vectors, infinite streams, functions, etc. and no extra information to
-try to merge together.
-
-+-----------------------------------------------------------------------------+
-| Distributive (Functor) - Distribute input to consumers in a container.      |
-+----------------------------------------+------------------------------------+
-| Functor                                | Monadic                            |
-+----------------------------------------+------------------------------------+
-|                                        | ``collectM``                       |
-| ``collect f = distribute . fmap f``    |                                    |
-+----------------------------------------+------------------------------------+
-| ``cotraverse f = fmap f . distribute`` | ``comapM``                         |
-|                                        |                                    |
-+----------------------------------------+------------------------------------+
-| ``distribute``                         | ``distributeM``                    |
-|                                        |                                    |
-+----------------------------------------+------------------------------------+
-
-::
-
-  Distributive g
-
-  sequenceA  :: Applicative f => t (f a) -> f (t a)
-  distribute :: Functor f     => f (g a) -> g (f a)
-
-  traverse   :: Applicative f => (a -> f b) -> t a -> f (t b)
-  cotraverse :: Functor f     => (f a -> b) -> f (g a) -> g b
-
-::
-
-  Distributive ((->) e) -- function application is distributive
-
-  distribute [(+1), (+2)] 1
-  collect id [(+1), (+2)] 1
-  collect ((+1) . ) [(+1), (+2)] 1
-
-  sequence_ $ distributeM [print, putStrLn] "5"
+* https://hackage.haskell.org/package/unfoldable
 
 lens
 ----
@@ -284,7 +143,7 @@ Operators
   https://hackage.haskell.org/package/lens-4.15/docs/Control-Lens-Lens.html
 
 +-----------------------------------------------------------+
-| A ^ prefix implies view/fold operations                   |
+| view/fold operations (^ prefix)                           |
 +=======================================+===================+
 | view (a)                              | ``^.``            |
 +---------------------------------------+-------------------+
@@ -306,16 +165,16 @@ Operators
 +---------------------------------------+-------------------+
 
 +-----------------------------------------------------------------------------+
-| Set or traversal ops                                                        |
+| Set or traversal ops (~ or = suffix, optional < or << prefix)               |
 +=============================================================================+
-| A ~ or = suffix implies set or traversal ops                                |
+| Suffixes ~ or = indicate set or traversal ops                               |
 +-----------+-------------------+--------------------------+------------------+
 | Suffix ~  | set pure          | ``(10,20) & _2  +~ 1``   | ``(10,21)``      |
 +-----------+-------------------+--------------------------+------------------+
 | Suffix =  | set state monad   | ``execState (do _2 += 1) | ``(10,21)``      |
 |           |                   | (10,20)``                |                  |
 +-----------+-------------------+--------------------------+------------------+
-| May optionally have a prefix which is either < or <<                        |
+| < or << prefixes are used to return the new or old value respectively       |
 +-----------+-------------------+--------------------------+------------------+
 | Prefix <  | return the result | ``(10,20) & _2 <+~ 1``   | ``(21,(10,21))`` |
 +-----------+-------------------+--------------------------+------------------+
@@ -325,14 +184,15 @@ Operators
 
 +-------------------------------------------+
 | Set or traversal operations               |
-+===========================================+
-| Supporting ~ = < << suffixes              |
++===================+=======================+
+| Opt Prefixes: < <<| Suffixes: ~ =         |
 +-------------------+-----------------------+
 | set               | ``.``                 |
 +-------------------+-----------------------+
 | over              | ``%``                 |
 +-------------------+-----------------------+
-| Supporting ~ = < suffixes                 |
++-------------------+-----------------------+
+| Opt Prefix: <     | Suffixes: ~ =         |
 +-------------------+-----------------------+
 | iover             | ``%@``                |
 +-------------------+-----------------------+
@@ -346,7 +206,8 @@ Operators
 +-------------------+-----------------------+
 | FilePath          | ``</> <.>``           |
 +-------------------+-----------------------+
-| Supporting ~ = suffixes only              |
++-------------------+-----------------------+
+|                   | Suffixes: ~ =         |
 +-------------------+-----------------------+
 | iset              | ``.@``                |
 +-------------------+-----------------------+
@@ -366,4 +227,5 @@ References
 * http://blog.jakubarnold.cz/2014/07/14/lens-tutorial-introduction-part-1.html
 * http://blog.jakuba.net/2014/08/06/lens-tutorial-stab-traversal-part-2.html
 * https://artyom.me/lens-over-tea-4
-
+* https://patternsinfp.wordpress.com/2011/01/31/lenses-are-the-coalgebras-for-the-costate-comonad/
+* https://arxiv.org/pdf/1103.2841.pdf Functor is to Lens as Applicative is to Biplate Introducing Multiplate

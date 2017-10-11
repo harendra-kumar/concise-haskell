@@ -30,8 +30,31 @@ the essential tools for composing are transformation and combining. These two
 basic concepts will run as a recurring theme everywhere in this text in
 different forms and at different levels of abstraction.
 
+Turing Machine: Logic and Data
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+`Logic and Data:` For performing a computation we need memory and processing
+logic. In a Haskell program algebraic data is the memory, and functions are the
+logic. Functions encode the decision making or the branching logic as a map
+from one type to another. A function retrieves data from an algebraic data
+structure, processes it and stores the results back into another algebraic data
+structure.
+
+.. In fact, functions can also be represented as data, see representable
+   functors.  But we will talk about functions as functions for simplicity.
+
+`Transform and Combine:` All expressions in Haskell evaluate to either a bare
+function or an Algebraic Data Type.  There are two basic operations that we can
+perform on functions and data, (1) we can combine two or more data types into a
+new data type, (2) we can transform a data type into another data type using
+some logic. All Haskell programs can be imagined as a combination of these two
+basic operations.
+
+Data Types
+----------
+
 Types of Terms and Expressions
-------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 A common programming mistake in `untyped` or weakly typed languages is using a
 wrong value i.e. use an `orange` in a computation where we were supposed to use
@@ -41,7 +64,7 @@ program?
 Haskell expressions are made of functions applied to terms. Every term in an
 expression has a unique `type` associated with it.  A type is a label that
 determines the legal values that the data can assume.  A function application
-in an expression is the `only way` to combine values and produce new values.
+in an expression is the `only way` to combine terms and produce new terms.
 The typechecker knows what type of arguments a function expects and if the
 types applied to it do not match compilation fails. The type of an expression
 is inferred from the type resulting from the outermost function application in
@@ -57,15 +80,20 @@ argument is inferred to accept an `Orange` at one place you cannot pass an
 no chance of passing an incorrectly typed value anywhere in the program.
 Haskell provides very strong type checking guarantees.
 
+.. Use shapes e.g. triangle and square rather than apple and oranges. Shapes
+   can be used as a recurring theme for comparing types.
+
 Types can usually be inferred via `type inference` but if there is an ambiguity
 the programmer can explicitly specify the type of an expression or function
 using `type signatures` (also known as `type annotations`).
+
+.. Add examples and exercises
 
 Type Checking and Inference
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 As long as the programmer assigns unique types to the data structures being
-used in a program Haskell guarantees that that distinct types of values cannot
+used in a program, Haskell guarantees that distinct types of values cannot
 accidentally be used in place of each other.  The types are analyzed at compile
 time by the `typechecker`.  It essentially checks if the types used in the
 program are consistent and we are not using one type in place of another. Type
@@ -99,22 +127,13 @@ the type of an expression can be inferred the same way as a function.
 In a pattern match the type of a deconstructed component can be inferred from
 the type of the component in the data element being deconstructed.
 
-Logic and Data
---------------
+.. Add an example of inference
 
-For performing a computation we need memory and processing logic. In a Haskell
-program algebraic data is the memory, and functions are the logic. A function
-retrieves data from an algebraic data structure, processes it and stores the
-results back into another algebraic data structure.  All expressions in Haskell
-evaluate to either a bare function or an Algebraic Data Type.
-
-There are two basic operations that we can perform on data, (1) we can combine
-two or more data types into a new data type, (2) we can transform a data type
-into another data type using some logic. All Haskell programming is a
-combination of these two basic operations.
+Algebraic Data Types
+--------------------
 
 Built-in Algebraic Data Types
------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +----------+--------------------------------+---------------------------------+
 | Type     | Examples                       | Notes                           |
@@ -130,8 +149,8 @@ Built-in Algebraic Data Types
 | Double   | -5.3     | 0.3333333333333333  | Double precision floating point |
 +----------+----------+---------------------+---------------------------------+
 
-User Defined Algebraic Data Types
----------------------------------
+Defining Algebraic Data Types
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Algebraic data is constructed using and only using `data constructors` which
 are special functions defined as part of data type definitions. Data
@@ -304,7 +323,7 @@ as nested boxes. For example a `Red Tiny Triangle` can be visualized as:
 TBD - picture
 
 Case Analysis
--------------
+~~~~~~~~~~~~~
 
 A case analysis allows us to examine sum or product types. A sum represents
 multiple choices whereas a product represents a set or collection. As we keep
@@ -435,11 +454,118 @@ possibilities and match with the one which this particular instance represents.
 We always have to match against all possiblities in all cases of this data
 type.
 
+Sum as the fundamental type
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A type is nothing but a collection of choices.  A sum type is an enumeration of
+values belonging to the type.  Using a sum type we can assign different tags to
+different choices of a type.
+
+::
+
+  data Void            -- No choices, cannot be constructed
+                       -- can be used only at type level, not term level
+  data A = A           -- Single choice, tagged A
+  data Bool = True | False -- Two choices, tagged True, False (sum)
+
+In addition to enumerating choices a sum type can also put all the choices of
+two types together in one type (coproduct). The choices from each type can be
+tagged differently to uniquely identify all choices in the combined type. The
+total number of choices are a sum of the choices of all component types.
+
+Choices have a correspondence with the transformation operation. If there are
+no choices there is nothing to transform no choices to map from or map to i.e.
+there is no need to branch.  Having choices is equivalent to having the ability
+to map. So choices are an integral part of the transform operation.
+
+Sum is the most fundamental type. There is an important difference between sum
+and product types indicating an asymmetry between the two. A product type
+always builds types from existing types whereas a sum type can build new
+primitive types.  Just like addition is a primitive operation and
+multiplication is just a convenient tool to do repeated addition.
+
+We must note that a Sum can combine things of different types into a single
+overarching type, creating a container of varied things, each requiring an
+ad-hoc or case analysis based handling. Whereas a product combines multiple
+things of exactly the same type. Therefore a product type allows for pattern
+based handling, all the elements of a product can be handled in the same way.
+In general, a product is an expression of a pattern whereas a sum is an
+enumeration or a collection of different things.
+
+A product of sums can be expressed as a sum of products and vice-versa?
+
+Product as a multiplier of choices
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+A product type is a nested combining rather than a flat combining like sum, it
+multiplies all the choices from one type with all the choices from another
+type. That is, for each choice from type 1 we have a choice to make from type
+2. In imperative terms this is like nested for loops, if we have to enumerate
+all the choices in the type we can write something like "foreach type1
+{foreach type2 {print (type1, type2)}}"
+
+::
+
+  data A = A X Y       -- X x Y choices, tagged A    (product)
+  Either X Y           -- X + Y choices (coproduct)
+
+Types as Shapes
+~~~~~~~~~~~~~~~
+
+When we want to think about types in more concrete terms we often refer to them
+as shapes. A function input hole expects objects of the shape matching the
+shape of the hole. Objects of the same shape can be stacked on top of each
+other to form a product but objects of different shapes cannot be. Objects of
+any shape can be put together as a sum to form a composite shape.
+
+When multiple choices form a pattern we have a product type. For example
+`Product A B`, this type defines many objects, all of them are of the same
+shape, the shape includes one part from A and another from B. On the other hand
+in a sum type all the choices combine together to form one composite whole e.g.
+`Sum A B`, this type defines one composite object that includes all the choices
+from A and all the choices from B.
+
+.. relate sum and products with counting. How multiplication is a pattern.
+   extend this to multidimensional things. Only things of similar shape can be
+   multiplied.
+
+.. A car is a sum of its constituent types. There are many different types of
+   components that joined together make a car. A stack of tyres is a product.
+   Only similar things can be stacked together. Show a picture of slotted
+   shapes of the same type that fit together and can be stacked. A
+   representable functor is like that each component having similar shape so
+   that it can be represented as a product.
+
+`Fixed vs Variable Shape Sum Types:` All the objects belonging to a product
+type always have the same shape by construction. However, the objects or
+choices of a Sum type may be of the same shape or they may have different
+shapes. When all the tags of a sum type have the same shape we call it a fixed
+shape type otherwise a variable shape type.
+
+When a type has a fixed shape a single function can operate on all the choices
+of the type without requiring a case analysis. A variable shape type
+necessarily requires a case analysis to discriminate between different types of
+shapes and handle them accordingly. A type having all the choices of the same
+shape is essentially equivalent to a product type.
+
+Coproducts
+~~~~~~~~~~
+
+* Note a product of types can be defined in terms of other types.
+* A sum type in Haskell  is a sum of data constructor tags belonging to the
+  same type and not a sum of other types. A sum of other types would be called
+  a coproduct.
+* However the only way to define a sum type in terms of other types (i.e. a
+  coproduct of types) is Either. Either is a product type that represents a sum
+  of two types!
+* dependent-sum package generalizes either
+* dependent-map?
+
 Case Analysis
-^^^^^^^^^^^^^
+-------------
 
 Deconstructing Data By Pattern Matching
-+++++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 +-----------------------------------------------------------------------------+
 | `pattern match` is exact opposite of data construction, it de-constructs a  |
@@ -458,7 +584,7 @@ Deconstructing Data By Pattern Matching
 +-----------------------------------------------------------------------------+
 
 Implementing a Function using `case`
-++++++++++++++++++++++++++++++++++++
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 -- use case n of 1, 2, 3 etc.
 
@@ -777,6 +903,27 @@ is the essence of transformation.
 | Combine                         | Constructors                              |
 +---------------------------------+-------------------------------------------+
 
+Mathematical function
+~~~~~~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| TODO: explain how the parameters are mapped to a value by the function      |
+| red -> red ball, blue -> blue ball, green -> green ball etc.                |
+| Or when one parameter is applied to a three param function how it maps to   |
+| a function of two params and so on.                                         |
++-----------------------------------------------------------------------------+
+
+A picture here with input data -> case pattern match (this is basically a
+function) -> function application -> output data.
+
++-----------------------------------------------------------------------------+
+| Case expressions: Map input values to output values                         |
++=============================+=================+=============================+
+| Decompose and inspect input | Decision switch | Compose output              |
++-----------------------------+-----------------+-----------------------------+
+| Pattern Match               | case            | Function Application        |
++-----------------------------+-----------------+-----------------------------+
+
 Transform
 ~~~~~~~~~
 
@@ -814,28 +961,6 @@ Case is the essence of a mathematical definition of a function. All other
 abstractions including functions, boolean operations, branching etc. are built
 on top of case and algebraic data constructors.
 
-
-Mathematical function
----------------------
-
-+-----------------------------------------------------------------------------+
-| TODO: explain how the parameters are mapped to a value by the function      |
-| red -> red ball, blue -> blue ball, green -> green ball etc.                |
-| Or when one parameter is applied to a three param function how it maps to   |
-| a function of two params and so on.                                         |
-+-----------------------------------------------------------------------------+
-
-A picture here with input data -> case pattern match (this is basically a
-function) -> function application -> output data.
-
-+-----------------------------------------------------------------------------+
-| Case expressions: Map input values to output values                         |
-+=============================+=================+=============================+
-| Decompose and inspect input | Decision switch | Compose output              |
-+-----------------------------+-----------------+-----------------------------+
-| Pattern Match               | case            | Function Application        |
-+-----------------------------+-----------------+-----------------------------+
-
 Combine
 ~~~~~~~
 
@@ -855,25 +980,455 @@ transform types in interesting ways.
 |                | ``C :: A -> B -> C``                                       |
 +----------------+------------------------------------------------------------+
 
+Syntax In Types
+---------------
+
+Type Signatures
+~~~~~~~~~~~~~~~
+
+Ideally the only place where a programmer needs to provide types is a data type
+declaration. The whole program then infers the types with the data types taken
+as the anchors. However, there may be situations where the inferred type may be
+ambiguous. In such cases, the programmer can provide type annotations or type
+signatures to remove the ambiguity. Also, it is recommended to specify type
+signatures for all top level declarations it helps in diagnosing the type
+errors. One way to narrow down type errors is by specifying type signatures to
+the known types involved in an expression.
+
+A programmer can specify type signatures at the following places:
+
+* declarations - function definitions, let or where clauses
+* expressions - any part of an expression can be given a type
+* pattern matches
+
+Let's take an example of an identifier `v` representing a concrete data value::
+
+     Value              Type
+  +----------+         +----------+
+  |          |         |          |
+  |          |   v     |          |
+  |          |         |          |
+  |   33     |         |   Int    |
+  +----------+         +----------+
+
+
++-----------------------------------------------------------------------------+
+| Types are associated to a value by a `type signature`.                      |
++---------------------------------+-------------------------------------------+
+| v :: Int                        | Type Level Program (type signature)       |
++---------------------------------+-------------------------------------------+
+| v = 33                          | Term Level Program (value equation)       |
++---------------------------------+-------------------------------------------+
+| Identifier `v` represents the value ``33`` of type ``Int``.                 |
+| `Term level program` uses an `=` to bind an identifier to a value while the |
+| `type level program` uses a `::` to bind an identifier to a type.           |
++-----------------------------------------------------------------------------+
+
+Type Signatures
+~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| A type signature can be associated with an identifer or an expression using |
+| the ``::`` operator which can be read as `has type`.                        |
++----------------+------------------------------------------------------------+
+| Type signature | ``<identifier or expression> :: <type>``                   |
++----------------+------------------------------------------------------------+
+| A type is denoted by an identifier, or an expression involving type         |
+| functions. Type level identifiers live in their own namespace.              |
++-----------------------------------------------------------------------------+
+
++--------------------+--------------------------------------------------------+
+| Identifier         | ::                                                     |
+|                    |                                                        |
+|                    |   v :: Int                                             |
+|                    |   v = 10                                               |
++--------------------+--------------------------------------------------------+
+| Expression         | ::                                                     |
+|                    |                                                        |
+|                    |   v = 10 :: Int                                        |
++--------------------+--------------------------------------------------------+
+| Typed Holes (GHC 7.8.1)                                                     |
++-----------------------------------------------------------------------------+
+| Use ``_`` wildcard in place of a value to indicate a type hole. GHC         |
+| will report the inferred type of the value to be used in place of the hole. |
++--------------------+--------------------------------------------------------+
+| Typed hole         | ::                                                     |
+|                    |                                                        |
+|                    |  v :: Int                                              |
+|                    |  v = _ + 10                                            |
++--------------------+--------------------------------------------------------+
+
+Pattern Matching
+~~~~~~~~~~~~~~~~
+
+Refer to the `Basic Syntax` chapter for basic pattern matching.
+
++-----------------------------------------------------------------------------+
+| A lazy pattern match does not force evaluation of the scrutinee.            |
+| For example `f undefined` will work on the following:                       |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|   f ~(x,y) = 1    -- will not evaluate the tuple                            |
++-----------------------------------------------------------------------------+
+| Since it does not evaluate the scrutinee it always matches i.e. it is       |
+| irrefutable. Therefore any patterns after a lazy pattern will always be     |
+| ignored. For this reason, lazy patterns work well only for single           |
+| constructor types e.g. tuples.                                              |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f ~(Just x) = 1                                                            |
+|  f Nothing   = 2    -- will never match                                     |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| -XBangPatterns: make pattern matching strict by prefixing it with a ``!``   |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  f1 !x = True       -- it will always evaluate x                            |
+|  f2 (!x, y) = [x,y] -- nested pattern, x will always get evaluated          |
++-----------------------------------------------------------------------------+
+| TODO more on bangpatterns, -XStrictData, -XStrict,                          |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| -XPatternGuards: deconstruct a value inside a guard                         |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- boolean guards can be freely mixed with pattern guards                  |
+|  f x | [(y,z)] <- x                                                         |
+|      , y > 3                                                                |
+|      , Just i <- z                                                          |
+|      = i                                                                    |
++-----------------------------------------------------------------------------+
+| Inside a guard expression, pattern guard ``<pat> <- <exp>`` evaluates       |
+| ``<exp>`` and then matches it against the pattern ``<pat>``:                |
+|                                                                             |
+| * If the match fails then the whole guard fails                             |
+| * If it succeeds, then the next condition in the guard is evaluated         |
+| * The variables bound by the pattern guard scope over all the remaining     |
+|   guard conditions, and over the RHS of the guard equation.                 |
++-----------------------------------------------------------------------------+
+| -XViewPatterns: Pattern match after applying an expression to the incoming  |
+| value                                                                       |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  example :: Maybe ((String -> Integer,Integer), String) -> Bool             |
+|  example Just ((f,_), f -> 4) = True -- left match can be used on right     |
+|                                                                             |
+|  example :: (String -> Integer) -> String -> Bool                           |
+|  example f (f -> 4) = True           -- left args can be used on right      |
++-----------------------------------------------------------------------------+
+| Inside any pattern match, a view pattern ``<exp> -> <pat>`` applies         |
+| ``<exp>`` to whatever we’re trying to match against, and then match the     |
+| result of that application against ``<pat>``:                               |
+|                                                                             |
+| * In a single pattern, variables bound by patterns to the left of a view    |
+|   pattern expression are in scope.                                          |
+| * In function definitions, variables bound by matching earlier curried      |
+|   arguments may be used in view pattern expressions in later arguments      |
+| * In mutually recursive bindings, such as let, where, or the top level,     |
+|   view patterns in one declaration may not mention variables bound by other |
+|   declarations.                                                             |
+| * If ⟨exp⟩ has type ⟨T1⟩ -> ⟨T2⟩ and ⟨pat⟩ matches a ⟨T2⟩, then the whole   |
+|   view pattern matches a ⟨T1⟩.                                              |
++-----------------------------------------------------------------------------+
+| -XNPlusKPatterns                                                            |
++-----------------------------------------------------------------------------+
+|  TBD                                                                        |
++-----------------------------------------------------------------------------+
+
+Useless pattern matches
+^^^^^^^^^^^^^^^^^^^^^^^
+
+When a pattern match does not a bind a variable, it is useless.
+
+::
+
+  x = 2
+  y = Just 5
+
+  -- pattern matches without producing a binding:
+  1 = 2
+  1 = x
+
+  Nothing = Just 5
+  Nothing = y
+
+Though if you make the match strict it can be used as an assert::
+
+  -- these will fail at runtime
+  let !1 = 2 in "hello"
+  let !Nothing = y in "hello"
+
+Pattern Synonyms
+~~~~~~~~~~~~~~~~
+
++-----------------------------------------------------------------------------+
+| `-XPatternSynonyms` (7.8.1)                                                 |
++=============================================================================+
+| A pattern synonym is a function that generates a pattern or a constructor   |
++---------------------+-------------------------------------------------------+
+| Match only          | ::                                                    |
+|                     |                                                       |
+|                     |  -- match the head of a list                          |
+|                     |                                                       |
+|                     |  pattern HeadP x <- x : xs  -- define                 |
+|                     |  let HeadP x = [1..]        -- match                  |
++---------------------+-------------------------------------------------------+
+| Match and construct or `bidirectional` pattern synonyms:                    |
+|                                                                             |
+| * all the variables on the right-hand side must also occur on the left-hand |
+|   side                                                                      |
+| * wildcard patterns and view patterns are not allowed                       |
++---------------------+-------------------------------------------------------+
+| Match and construct | ::                                                    |
+| (Symmetric)         |                                                       |
+|                     |  -- match or construct a singleton list               |
+|                     |  pattern Singleton x  =  [x]  -- define               |
+|                     |                                                       |
+|                     |  let single = Singleton 'a'   -- construct            |
+|                     |  let Singleton x = [1]        -- match                |
++---------------------+-------------------------------------------------------+
+| Match and construct | ::                                                    |
+| (Asymmetric)        |                                                       |
+|                     |  pattern Head x <- x:xs where   -- define match       |
+|                     |      Head x = [x]               -- define construct   |
+|                     |                                                       |
+|                     |  let list = Head 'a'            -- construct          |
+|                     |  let Head x = [1..]             -- match              |
++---------------------+-------------------------------------------------------+
+| * Bidirectional patterns can be used as expressions                         |
+| * You can use view patterns in pattern synonyms                             |
++---------------------+-------------------------------------------------------+
+| A pattern synonym:                                                          |
+|                                                                             |
+| * starts with an uppercase letter just like a constructor.                  |
+| * can be defined only at top level and not as a local definition.           |
+| * can be defined as infix as well.                                          |
+| * can be used in another pattern synonym or recursively                     |
++-----------------------------------------------------------------------------+
+| Import and export                                                           |
++-----------------------------------------------------------------------------+
+| Standalone                                                                  |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  module M (pattern Head) where ... -- export, only the pattern              |
+|  import M (pattern Head)           -- import, only the pattern              |
+|  import Data.Maybe (pattern Just)  -- import, only data constructor 'Just'  |
+|                                    -- but not the type constructor 'Maybe'  |
++-----------------------------------------------------------------------------+
+| Bundled with type constructor                                               |
+| (must be same type as the type constructor)                                 |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  module M (List(Head)) where ...     -- bundle with List type constructor   |
+|  module M (List(.., Head)) where ... -- append to all currently bundled     |
+|                                      -- constructors                        |
++-----------------------------------------------------------------------------+
+| Expressing the types of pattern synonyms                                    |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- General type signature                                                  |
+|  pattern P ::                                                               |
+|            CReq                 -- constraint required to match the pattern |
+|         => CProv                -- constraint provided on pattern match     |
+|         => t1 -> t2 -> ...      -- parameters                               |
+|  pattern P var1  var2  ... <- pat                                           |
+|                                                                             |
+|  -- Type signature with CProv omitted                                       |
+|  pattern P :: CReq => ...                                                   |
+|                                                                             |
+|  -- Type signature with Creq omitted                                        |
+|  pattern P :: () => CProv => ...                                            |
+|                                                                             |
+|  -- When using a bidirectional pattern synonym as an expression,            |
+|  -- it has the following type:                                              |
+|  (CReq, CProv) => t1 -> t2 -> ...                                           |
++-----------------------------------------------------------------------------+
+
++-----------------------------------------------------------------------------+
+| A record pattern synonym behaves just like a record.                        |
+| (Does not seem to work before 8.0.1)                                        |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  pattern Point :: Int -> Int -> (Int, Int)                                  |
+|  pattern Point {x, y} = (x, y)                                              |
++-----------------------------------------------------------------------------+
+| All record operations can be used on this definition now.                   |
++-----------------------------------------------------------------------------+
+| A pattern match only record pattern synonym defines record selectors as well|
++---------------+---------------------------+---------------------------------+
+| Construction  | ``zero = Point 0 0``      | ``zero = Point { x = 0, y = 0}``|
++---------------+---------------------------+---------------------------------+
+| Pattern match | ``f (Point 0 0) = True``  | ``f (Point { x = 0, y = 0 })``  |
++---------------+---------------------------+---------------------------------+
+| Access        | ``x (0,0) == 0``                                            |
++---------------+-------------------------------------------------------------+
+| Update        | ``(0, 0) { x = 1 } == (1,0)``                               |
++---------------+-------------------------------------------------------------+
+
+Pattern Synonyms Notes
+~~~~~~~~~~~~~~~~~~~~~~
+
+Give name to unstructured data:
+
+We can use pattern synonyms to give a name to otherwise unidentifiable data
+values. For example, if we have to pattern match on certain integers::
+
+  f 1 = ...
+  f 2 = ...
+  f 3 = ...
+
+Instead we can use::
+
+  pattern One <- 1
+  pattern Two <- 2
+  pattern Three <- 3
+
+  f One = ...
+  f Two = ...
+
+The alternative would be::
+
+  data MyNums = One Int | Two Int | Three Int
+  toMyNums 1 = One 1
+  toMyNums 2 = Two 2
+
+  fromMyNums One = 1
+
+But this has a runtime cost.
+
+* https://ocharles.org.uk/blog/posts/2014-12-03-pattern-synonyms.html
+* https://www.schoolofhaskell.com/user/icelandj/Pattern%20synonyms
+* https://mpickering.github.io/posts/2014-11-27-pain-free.html
+
+Operational Aspects of Pattern Matching
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Given a data element, a pattern match essentially identifies the individual
+constructor if it is a sum type and then branches to a target code based on the
+constructor. The target code can then break it down into its components if it
+is a product constructor.
+
+A data element of a given type is physically represented by a closure on heap.
+When a type has 8 or fewer constructors the lowest three bits of the heap
+pointer (pointer tag) are used to store a constructor identifier (0-7)
+otherwise the constructor id is kept inside the closure requiring an
+additional memory lookup.
+
+Once the constructor is identified we need to jump to the target branch of a
+case statement based on the constructor id. Depending on the number of
+constructors and sparseness of the jump table it is either implemented as a
+lookup table (array indexing) or as a binary search.
+
+Physical Representation of ADTs
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+TBD
+
+..
+  Plugs and Sockets
+  ~~~~~~~~~~~~~~~~~
+
+  If a value expression is a plug and the function input is a socket, the type
+  checker makes sure that the plugs correctly fit into the sockets. Haskell
+  program is a network of different types of plugs and sockets.
+
+  `Inference`: If two plugs fit into the same socket then they must be of the
+  same type. If two sockets accept the same plug then they must be of the same
+  type.
+
+  Insert graphic plug and socket.
+  Insert "input >=> output" Haskell program zigsaw puzzle.
+
+Term & Type Level Programming
+-----------------------------
+
+A Haskell program is an expression consisting of terms and function
+applications. The terms or functions used in an expression may be defined by
+independent equations.  We will call building this expression and parts of it
+as the `term level program`.
+
+Each term and function used in the expression has a type associated with it.
+The types are specified via type signatures. We can call these type annotations
+collectively as the `type level program`. The type level programming can be as
+advanced as the term level programming itself as we will see later.
+
+Type & Data Namespaces
+~~~~~~~~~~~~~~~~~~~~~~
+
+Type and data identifiers have their own distinct namespaces. Types (e.g. Int)
+always start with an uppercase letter, however type level variables start with
+a lowercase letter. Everything in data namespace except data constructors,
+which are discussed later, start with a lowercase letter. Data constructors
+always start with an uppercase letter.
+
++-----------------------------------------------------------------------------+
+| Identifiers starting with a `lowercase` letter                              |
++------------------------------------+----------------------------------------+
+| type variables (type namespace)    | term variables (data namespace)        |
++------------------------------------+----------------------------------------+
+| These two namespaces can use the same identifier name without conflict.     |
+| The compiler can distinguish them by the context.                           |
++-----------------------------------------------------------------------------+
+| ::                                                                          |
+|                                                                             |
+|  -- The following is a valid Haskell code where the identifier 'play'       |
+|  -- refers to multiple distinct objects in two independent namespaces       |
+|  play ::            -- 'play' refers to a function name in data namespace   |
+|       play -> play  -- 'play' is a type variable in type namespace          |
+|  play play = ...    -- both 'play' are term variables in data namespace     |
+|                     -- first one refers to the name of the function name    |
+|                     -- and second one to a parameter of the function        |
++-----------------------------------------------------------------------------+
+
+Namespaces
+~~~~~~~~~~
+
+The names or identifiers in one level (data, type or kind) should not be
+confused or conflated with the names in other level. An identifier of the same
+name can be used in different levels without any problem.
+
+Tips: Understanding a Haskell Program
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Names of data constructor functions and types could be the same, which can be
+confusing for beginners. Similarly type variables in type level and type
+parameters in data level could be same or different, they should not be
+confused with each other.
+
 Basic Algebraic Data Types (Prelude)
 ------------------------------------
 
 * TODO: provide links to the definitions in base
 * Provide the definitions as well
 
-+-----------------------------------------------------------------------------+
-| import "base" Prelude                                                       |
-+----------+----------------------------------+-------------------------------+
-| Type     | Values                           | Description                   |
-+==========+==========+==========+============+===============================+
-| ()       | ()       |          |            | Unit data type, empty tuple   |
-+----------+----------+----------+------------+-------------------------------+
-| (a, b)   | (1, 'a') | (0.3, 1) | (1, 2)     | Two Tuple                     |
-+----------+----------+----------+------------+-------------------------------+
-| Bool     | True     | False    |            | Boolean type                  |
-+----------+----------+----------+------------+-------------------------------+
-| Ordering |  LT      | EQ       | GT         | Comparison                    |
-+----------+----------+----------+------------+-------------------------------+
++--------------------------------------------------------------------------------+
+| import "base" Prelude                                                          |
++-------------+----------------------------------+-------------------------------+
+| Type        | Values                           | Description                   |
++=============+==========+==========+============+===============================+
+| ()          | ()       |          |            | Unit data type, empty tuple   |
++-------------+----------+----------+------------+-------------------------------+
+| (a, b)      | (1, 'a') | (0.3, 1) | (1, 2)     | Two Tuple                     |
++-------------+----------+----------+------------+-------------------------------+
+| Bool        | True     | False    |            | Boolean type                  |
++-------------+----------+----------+------------+-------------------------------+
+| Ordering    |  LT      | EQ       | GT         | Comparison                    |
++-------------+----------+----------+------------+-------------------------------+
+| Maybe a     | Nothing  | Just a   |            | Presence or absence           |
++-------------+----------+----------+------------+-------------------------------+
+| Either a b  | Left a   | Right b  |            | Choice                        |
++-------------+----------+----------+------------+-------------------------------+
 
 Bool
 ~~~~
@@ -987,431 +1542,6 @@ Tuples
 
 * TBD
 * TBD - tuple sections
-
-Type Signatures
-~~~~~~~~~~~~~~~
-
-Ideally the only place where a programmer needs to provide types is a data type
-declaration. The whole program then infers the types with the data types taken
-as the anchors. However, there may be situations where the inferred type may be
-ambiguous. In such cases, the programmer can provide type annotations or type
-signatures to remove the ambiguity. Also, it is recommended to specify type
-signatures for all top level declarations it helps in diagnosing the type
-errors. One way to narrow down type errors is by specifying type signatures to
-the known types involved in an expression.
-
-A programmer can specify type signatures at the following places:
-
-* declarations - function definitions, let or where clauses
-* expressions - any part of an expression can be given a type
-* pattern matches
-
-Let's take an example of an identifier `v` representing a concrete data value::
-
-     Value              Type
-  +----------+         +----------+
-  |          |         |          |
-  |          |   v     |          |
-  |          |         |          |
-  |   33     |         |   Int    |
-  +----------+         +----------+
-
-
-+-----------------------------------------------------------------------------+
-| Types are associated to a value by a `type signature`.                      |
-+---------------------------------+-------------------------------------------+
-| v :: Int                        | Type Level Program (type signature)       |
-+---------------------------------+-------------------------------------------+
-| v = 33                          | Term Level Program (value equation)       |
-+---------------------------------+-------------------------------------------+
-| Identifier `v` represents the value ``33`` of type ``Int``.                 |
-| `Term level program` uses an `=` to bind an identifier to a value while the |
-| `type level program` uses a `::` to bind an identifier to a type.           |
-+-----------------------------------------------------------------------------+
-
-Type Level Syntax
------------------
-
-Type Signatures
-~~~~~~~~~~~~~~~
-
-+-----------------------------------------------------------------------------+
-| A type signature can be associated with an identifer or an expression using |
-| the ``::`` operator which can be read as `has type`.                        |
-+----------------+------------------------------------------------------------+
-| Type signature | ``<identifier or expression> :: <type>``                   |
-+----------------+------------------------------------------------------------+
-| A type is denoted by an identifier, or an expression involving type         |
-| functions. Type level identifiers live in their own namespace.              |
-+-----------------------------------------------------------------------------+
-
-+--------------------+--------------------------------------------------------+
-| Identifier         | ::                                                     |
-|                    |                                                        |
-|                    |   v :: Int                                             |
-|                    |   v = 10                                               |
-+--------------------+--------------------------------------------------------+
-| Expression         | ::                                                     |
-|                    |                                                        |
-|                    |   v = 10 :: Int                                        |
-+--------------------+--------------------------------------------------------+
-| Typed Holes (GHC 7.8.1)                                                     |
-+-----------------------------------------------------------------------------+
-| Use ``_`` wildcard in place of a value to indicate a type hole. GHC         |
-| will report the inferred type of the value to be used in place of the hole. |
-+--------------------+--------------------------------------------------------+
-| Typed hole         | ::                                                     |
-|                    |                                                        |
-|                    |  v :: Int                                              |
-|                    |  v = _ + 10                                            |
-+--------------------+--------------------------------------------------------+
-
-Pattern Matching
-----------------
-
-Refer to the `Basic Syntax` chapter for basic pattern matching.
-
-+-----------------------------------------------------------------------------+
-| A lazy pattern match does not force evaluation of the scrutinee.            |
-| For example `f undefined` will work on the following:                       |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|   f ~(x,y) = 1    -- will not evaluate the tuple                            |
-+-----------------------------------------------------------------------------+
-| Since it does not evaluate the scrutinee it always matches i.e. it is       |
-| irrefutable. Therefore any patterns after a lazy pattern will always be     |
-| ignored. For this reason, lazy patterns work well only for single           |
-| constructor types e.g. tuples.                                              |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  f ~(Just x) = 1                                                            |
-|  f Nothing   = 2    -- will never match                                     |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| -XBangPatterns: make pattern matching strict by prefixing it with a ``!``   |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  f1 !x = True       -- it will always evaluate x                            |
-|  f2 (!x, y) = [x,y] -- nested pattern, x will always get evaluated          |
-+-----------------------------------------------------------------------------+
-| TODO more on bangpatterns, -XStrictData, -XStrict,                          |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| -XPatternGuards: deconstruct a value inside a guard                         |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- boolean guards can be freely mixed with pattern guards                  |
-|  f x | [(y,z)] <- x                                                         |
-|      , y > 3                                                                |
-|      , Just i <- z                                                          |
-|      = i                                                                    |
-+-----------------------------------------------------------------------------+
-| Inside a guard expression, pattern guard ``<pat> <- <exp>`` evaluates       |
-| ``<exp>`` and then matches it against the pattern ``<pat>``:                |
-|                                                                             |
-| * If the match fails then the whole guard fails                             |
-| * If it succeeds, then the next condition in the guard is evaluated         |
-| * The variables bound by the pattern guard scope over all the remaining     |
-|   guard conditions, and over the RHS of the guard equation.                 |
-+-----------------------------------------------------------------------------+
-| -XViewPatterns: Pattern match after applying an expression to the incoming  |
-| value                                                                       |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  example :: Maybe ((String -> Integer,Integer), String) -> Bool             |
-|  example Just ((f,_), f -> 4) = True -- left match can be used on right     |
-|                                                                             |
-|  example :: (String -> Integer) -> String -> Bool                           |
-|  example f (f -> 4) = True           -- left args can be used on right      |
-+-----------------------------------------------------------------------------+
-| Inside any pattern match, a view pattern ``<exp> -> <pat>`` applies         |
-| ``<exp>`` to whatever we’re trying to match against, and then match the     |
-| result of that application against ``<pat>``:                               |
-|                                                                             |
-| * In a single pattern, variables bound by patterns to the left of a view    |
-|   pattern expression are in scope.                                          |
-| * In function definitions, variables bound by matching earlier curried      |
-|   arguments may be used in view pattern expressions in later arguments      |
-| * In mutually recursive bindings, such as let, where, or the top level,     |
-|   view patterns in one declaration may not mention variables bound by other |
-|   declarations.                                                             |
-| * If ⟨exp⟩ has type ⟨T1⟩ -> ⟨T2⟩ and ⟨pat⟩ matches a ⟨T2⟩, then the whole   |
-|   view pattern matches a ⟨T1⟩.                                              |
-+-----------------------------------------------------------------------------+
-| -XNPlusKPatterns                                                            |
-+-----------------------------------------------------------------------------+
-|  TBD                                                                        |
-+-----------------------------------------------------------------------------+
-
-Useless pattern matches
-~~~~~~~~~~~~~~~~~~~~~~~
-
-When a pattern match does not a bind a variable, it is useless.
-
-::
-
-  x = 2
-  y = Just 5
-
-  -- pattern matches without producing a binding:
-  1 = 2
-  1 = x
-
-  Nothing = Just 5
-  Nothing = y
-
-Though if you make the match strict it can be used as an assert::
-
-  -- these will fail at runtime
-  let !1 = 2 in "hello"
-  let !Nothing = y in "hello"
-
-Pattern Synonyms
-----------------
-
-+-----------------------------------------------------------------------------+
-| `-XPatternSynonyms` (7.8.1)                                                 |
-+=============================================================================+
-| A pattern synonym is a function that generates a pattern or a constructor   |
-+---------------------+-------------------------------------------------------+
-| Match only          | ::                                                    |
-|                     |                                                       |
-|                     |  -- match the head of a list                          |
-|                     |                                                       |
-|                     |  pattern HeadP x <- x : xs  -- define                 |
-|                     |  let HeadP x = [1..]        -- match                  |
-+---------------------+-------------------------------------------------------+
-| Match and construct or `bidirectional` pattern synonyms:                    |
-|                                                                             |
-| * all the variables on the right-hand side must also occur on the left-hand |
-|   side                                                                      |
-| * wildcard patterns and view patterns are not allowed                       |
-+---------------------+-------------------------------------------------------+
-| Match and construct | ::                                                    |
-| (Symmetric)         |                                                       |
-|                     |  -- match or construct a singleton list               |
-|                     |  pattern Singleton x  =  [x]  -- define               |
-|                     |                                                       |
-|                     |  let single = Singleton 'a'   -- construct            |
-|                     |  let Singleton x = [1]        -- match                |
-+---------------------+-------------------------------------------------------+
-| Match and construct | ::                                                    |
-| (Asymmetric)        |                                                       |
-|                     |  pattern Head x <- x:xs where   -- define match       |
-|                     |      Head x = [x]               -- define construct   |
-|                     |                                                       |
-|                     |  let list = Head 'a'            -- construct          |
-|                     |  let Head x = [1..]             -- match              |
-+---------------------+-------------------------------------------------------+
-| * Bidirectional patterns can be used as expressions                         |
-| * You can use view patterns in pattern synonyms                             |
-+---------------------+-------------------------------------------------------+
-| A pattern synonym:                                                          |
-|                                                                             |
-| * starts with an uppercase letter just like a constructor.                  |
-| * can be defined only at top level and not as a local definition.           |
-| * can be defined as infix as well.                                          |
-| * can be used in another pattern synonym or recursively                     |
-+-----------------------------------------------------------------------------+
-| Import and export                                                           |
-+-----------------------------------------------------------------------------+
-| Standalone                                                                  |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  module M (pattern Head) where ... -- export, only the pattern              |
-|  import M (pattern Head)           -- import, only the pattern              |
-|  import Data.Maybe (pattern Just)  -- import, only data constructor 'Just'  |
-|                                    -- but not the type constructor 'Maybe'  |
-+-----------------------------------------------------------------------------+
-| Bundled with type constructor                                               |
-| (must be same type as the type constructor)                                 |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  module M (List(Head)) where ...     -- bundle with List type constructor   |
-|  module M (List(.., Head)) where ... -- append to all currently bundled     |
-|                                      -- constructors                        |
-+-----------------------------------------------------------------------------+
-| Expressing the types of pattern synonyms                                    |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- General type signature                                                  |
-|  pattern P ::                                                               |
-|            CReq                 -- constraint required to match the pattern |
-|         => CProv                -- constraint provided on pattern match     |
-|         => t1 -> t2 -> ...      -- parameters                               |
-|  pattern P var1  var2  ... <- pat                                           |
-|                                                                             |
-|  -- Type signature with CProv omitted                                       |
-|  pattern P :: CReq => ...                                                   |
-|                                                                             |
-|  -- Type signature with Creq omitted                                        |
-|  pattern P :: () => CProv => ...                                            |
-|                                                                             |
-|  -- When using a bidirectional pattern synonym as an expression,            |
-|  -- it has the following type:                                              |
-|  (CReq, CProv) => t1 -> t2 -> ...                                           |
-+-----------------------------------------------------------------------------+
-
-+-----------------------------------------------------------------------------+
-| A record pattern synonym behaves just like a record.                        |
-| (Does not seem to work before 8.0.1)                                        |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  pattern Point :: Int -> Int -> (Int, Int)                                  |
-|  pattern Point {x, y} = (x, y)                                              |
-+-----------------------------------------------------------------------------+
-| All record operations can be used on this definition now.                   |
-+-----------------------------------------------------------------------------+
-| A pattern match only record pattern synonym defines record selectors as well|
-+---------------+---------------------------+---------------------------------+
-| Construction  | ``zero = Point 0 0``      | ``zero = Point { x = 0, y = 0}``|
-+---------------+---------------------------+---------------------------------+
-| Pattern match | ``f (Point 0 0) = True``  | ``f (Point { x = 0, y = 0 })``  |
-+---------------+---------------------------+---------------------------------+
-| Access        | ``x (0,0) == 0``                                            |
-+---------------+-------------------------------------------------------------+
-| Update        | ``(0, 0) { x = 1 } == (1,0)``                               |
-+---------------+-------------------------------------------------------------+
-
-Pattern Synonyms Notes
-----------------------
-
-Give name to unstructured data:
-
-We can use pattern synonyms to give a name to otherwise unidentifiable data
-values. For example, if we have to pattern match on certain integers::
-
-  f 1 = ...
-  f 2 = ...
-  f 3 = ...
-
-Instead we can use::
-
-  pattern One <- 1
-  pattern Two <- 2
-  pattern Three <- 3
-
-  f One = ...
-  f Two = ...
-
-The alternative would be::
-
-  data MyNums = One Int | Two Int | Three Int
-  toMyNums 1 = One 1
-  toMyNums 2 = Two 2
-
-  fromMyNums One = 1
-
-But this has a runtime cost.
-
-* https://ocharles.org.uk/blog/posts/2014-12-03-pattern-synonyms.html
-* https://www.schoolofhaskell.com/user/icelandj/Pattern%20synonyms
-* https://mpickering.github.io/posts/2014-11-27-pain-free.html
-
-Operational Aspects of Pattern Matching
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Given a data element, a pattern match essentially identifies the individual
-constructor if it is a sum type and then branches to a target code based on the
-constructor. The target code can then break it down into its components if it
-is a product constructor.
-
-A data element of a given type is physically represented by a closure on heap.
-When a type has 8 or fewer constructors the lowest three bits of the heap
-pointer (pointer tag) are used to store a constructor identifier (0-7)
-otherwise the constructor id is kept inside the closure requiring an
-additional memory lookup.
-
-Once the constructor is identified we need to jump to the target branch of a
-case statement based on the constructor id. Depending on the number of
-constructors and sparseness of the jump table it is either implemented as a
-lookup table (array indexing) or as a binary search.
-
-Physical Representation of ADTs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-TBD
-
-Plugs and Sockets
-~~~~~~~~~~~~~~~~~
-
-If a value expression is a plug and the function input is a socket, the type
-checker makes sure that the plugs correctly fit into the sockets. Haskell
-program is a network of different types of plugs and sockets.
-
-`Inference`: If two plugs fit into the same socket then they must be of the
-same type. If two sockets accept the same plug then they must be of the same
-type.
-
-Insert graphic plug and socket.
-Insert "input >=> output" Haskell program zigsaw puzzle.
-
-Term & Type Level Programming
------------------------------
-
-A Haskell program is an expression consisting of terms and function
-applications. The terms or functions used in an expression may be defined by
-independent equations.  We will call building this expression and parts of it
-as the `term level program`.
-
-Each term and function used in the expression has a type associated with it.
-The types are specified via type signatures. We can call these type annotations
-collectively as the `type level program`. The type level programming can be as
-advanced as the term level programming itself as we will see later.
-
-Type & Data Namespaces
-----------------------
-
-Type and data identifiers have their own distinct namespaces. Types (e.g. Int)
-always start with an uppercase letter, however type level variables start with
-a lowercase letter. Everything in data namespace except data constructors,
-which are discussed later, start with a lowercase letter. Data constructors
-always start with an uppercase letter.
-
-+-----------------------------------------------------------------------------+
-| Identifiers starting with a `lowercase` letter                              |
-+------------------------------------+----------------------------------------+
-| type variables (type namespace)    | term variables (data namespace)        |
-+------------------------------------+----------------------------------------+
-| These two namespaces can use the same identifier name without conflict.     |
-| The compiler can distinguish them by the context.                           |
-+-----------------------------------------------------------------------------+
-| ::                                                                          |
-|                                                                             |
-|  -- The following is a valid Haskell code where the identifier 'play'       |
-|  -- refers to multiple distinct objects in two independent namespaces       |
-|  play ::            -- 'play' refers to a function name in data namespace   |
-|       play -> play  -- 'play' is a type variable in type namespace          |
-|  play play = ...    -- both 'play' are term variables in data namespace     |
-|                     -- first one refers to the name of the function name    |
-|                     -- and second one to a parameter of the function        |
-+-----------------------------------------------------------------------------+
-
-Namespaces
-----------
-
-The names or identifiers in one level (data, type or kind) should not be
-confused or conflated with the names in other level. An identifier of the same
-name can be used in different levels without any problem.
-
-Tips: Understanding a Haskell Program
--------------------------------------
-
-Names of data constructor functions and types could be the same, which can be
-confusing for beginners. Similarly type variables in type level and type
-parameters in data level could be same or different, they should not be
-confused with each other.
 
 References
 ----------

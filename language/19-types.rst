@@ -11,8 +11,8 @@
 .. role:: red
 .. role:: blk
 
-Type-o-pedia
-============
+Data Types
+==========
 
 .. contents:: Table of Contents
    :depth: 1
@@ -79,26 +79,6 @@ undefined constant. The undefined constant is often used when you want
 something to have the empty type, because undefined matches any type (so is
 kind of a "subtype" of all types), and attempting to evaluate undefined will
 cause the program to abort, therefore it never returns an answer.
-
-How to think about types
-------------------------
-
-It helps to think about the following about any type:
-* what are the constructors for a type i.e. how to get into a type
-* What are the eliminators for a type i.e. how to get out of the type into any
-  other type.
-* operations which operate from the same type to the same type.
-
-When you are programming you usually need to convert from some type to this type
-then you need to look for constructors. when you want to generate some other
-type from this one then look for destructors or eliminators.
-
-Type Conversions
-----------------
-
-* lossy conversion?
-* explain fromInteger et al
-* type coercion, dynamic types, cast etc.
 
 Lifted Types
 ------------
@@ -622,79 +602,3 @@ Constraints are just handled as types of the kind `Constraint`.
 | must use ``-XUndecidableInstances`` to signal that you don’t mind if the    |
 | type checker fails to terminate.                                            |
 +-----------------------------------------------------------------------------+
-
-Data.Type.Equality (base package)
----------------------------------
-
-Definition of propositional equality (:~:). Pattern-matching on a variable of
-type (a :~: b) produces a proof that a ~ b.
-
-Fun With Types
---------------
-
-Smart Constructors
-~~~~~~~~~~~~~~~~~~
-
-Runtime validations on type constructions.
-
-Function wrappers around constructors.
-
-* Type system is limited in expressing restrictions on types
-* For example how do you represent a positive number less than 10?
-* To overcome the limitation we wrap the type constructors in "smart
-  constructors" which are nothing but functions with additional checks on the
-  constructed value. The original type constructors are not exported so the
-  only way to construct is via smart constructors which check additional rules.
-
-For example::
-
-    data LessThanTen = LTT Int
-    mkLTT n = if n < 0 || n >= 10
-      then error "Invalid value"
-      else LTT n
-
-Phantom Types
-~~~~~~~~~~~~~
-
-::
-
-  data T = TI Int | TS String
-  plus :: T -> T -> T
-  concat :: T -> T -> T
-
-  data T a = TI Int | TS String
-  plus :: T Int -> T Int -> T Int
-  concat :: T String -> T String -> T String
-
-Dictionary Reification
-~~~~~~~~~~~~~~~~~~~~~~
-
-+------------------------------------------------------------+-------------------------------------------------------+
-| ::                                                         | ::                                                    |
-|                                                            |                                                       |
-|  data NumInst a = Num a => MkNumInst                       |   data NumInst a where                                |
-|                                                            |    MkNumInst :: Num a => NumInst a                    |
-+------------------------------------------------------------+-------------------------------------------------------+
-| We can pattern match on ``MkNumInst`` instead of using a ``Num`` constraint on ``a``::                             |
-|                                                                                                                    |
-|  plus :: NumInst a -> a -> a -> a                                                                                  |
-|  plus MkNumInst p q = p + q                                                                                        |
-+--------------------------------------------------------------------------------------------------------------------+
-
-Controlled access to data
-~~~~~~~~~~~~~~~~~~~~~~~~~
-
-* Expose smart constructors, hide original constructors
-* Use pattern synonyms
-
-  * constructor synonyms - control construction
-  * pattern match synonyms - control pattern match
-
-Type level:
-* Use existential quantification - create a local scope for type variables
-* Type synonyms - specialize a type by fixing certain parameters
-
-References
-----------
-
-* https://www.microsoft.com/en-us/research/wp-content/uploads/2012/01/icfp12.pdf Equality proofs and deferred type errors A compiler pearl
