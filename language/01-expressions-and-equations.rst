@@ -70,6 +70,23 @@ Terms
 | functions or operators e.g. `f` and `g` in `f . g`.                         |
 +-----------------------------------------------------------------------------+
 
+Some important conventions about identifier naming:
+
+* Identifiers consist of one or more alphabetic characters and no special
+  characters except ``_`` or ``'``.
+* Variable or function name identifiers always start with a `lowercase` letter
+  or ``_``.
+* Variable or function identifiers starting with ``_`` are considered
+  deliberately unused and compiler will not produce a warning for them.
+* The following names are reserved and cannot be used as identifiers::
+
+    case class data default deriving do else
+    foreign if import in infix infixl
+    infixr instance let module newtype of
+    then type where _
+
+* Constructor identifiers always start with an `uppercase` letter.
+
 Functions
 ~~~~~~~~~
 
@@ -78,9 +95,6 @@ Functions
 +===========+===========+=====================================================+
 | print 'a' | even 10   | subtract 0.5 10.5                                   |
 +-----------+-----------+-----------------------------------------------------+
-| Function names always start with a smallcase alphabetic character and       |
-| cannot contain any other special characters except ``_`` or ``'``.          |
-+-----------------------------------------------------------------------------+
 
 Operators
 ~~~~~~~~~
@@ -98,6 +112,47 @@ Operators
 +---------+---------+---------------------------------------------------------+
 | (+) 5 4 | (-) 5 4 | (^) 2 3                                                 |
 +---------+---------+---------------------------------------------------------+
+
+Some important conventions about operator naming:
+
+* User defined operators can be named using any Unicode symbol or punctuation
+  or any of the following ascii symbols::
+
+    ! # $ % & ⋆ + . / < = > ? @ \ ^ | - ~ :
+
+* User defined operators cannot consist of::
+
+    ( ) [ ] { } _ " ' ` , ;
+
+* The following operators are reserved and cannot be used as valid user defined
+  operator names::
+
+    .. : :: = \ | <- -> @ ~ => []
+
+* Operators starting with a ``:`` are considered as constructor operators.
+* Variable and constructor identifiers can be used in infix form using the
+  special backtick syntax e.g. ```add``` is an infix form.
+* Each infix operator can be used in a section to yield partially applied
+  operators e.g. (+ 3).
+
+Notes on Naming
+~~~~~~~~~~~~~~~
+
+Overall there are six different kind of names used in Haskell:
+
+Always start with small letters and can be infix:
+
+* variables
+* constructors
+
+Always start with capital letters and cannot be infix:
+
+* type variables
+* type constructors
+* type classes
+* modules (dot separated)
+
+Identifiers can be used qualified with the module name e.g. ``Data.List.null``.
 
 Composing Expressions
 ~~~~~~~~~~~~~~~~~~~~~

@@ -184,7 +184,7 @@ Use side options:
   -Wall-missed-specialisations
   -ddump-spec
 
-Is not possible with polymorphic recursion.
+Specialization is not possible with polymorphic recursion.
 
 * https://stackoverflow.com/questions/18341146/specialization-of-polymorphic-functions
 
@@ -197,7 +197,7 @@ Rewrite rules can interact with the inliner (also called simplifier).
 
   -fenable-rewrite-rules
   -fno-enable-rewrite-rules -- note that GHC builtin rules still fire.
-  However rules in GHC.Base or any other libraries are disabled.
+        However rules in GHC.Base or any other libraries are disabled.
 
   -ddump-simpl-stats
   -ddump-rule-firings
@@ -208,6 +208,11 @@ Rewrite rules can interact with the inliner (also called simplifier).
 
 Strictness
 ----------
+
+using a bang pattern in a function argument does not seem to have exactly the
+same effect as using $! when calling the function. Using bang pattern in
+argument seems to be more efficient. Also, if we use both together the effect
+is much adverse. Need more research on this.
 
 ::
 

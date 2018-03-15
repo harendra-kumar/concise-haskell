@@ -217,11 +217,6 @@ Functions: Pure Transformations
   output.  Any Haskell composition transforms its inputs into a single output
   using precisely two conceptual primitives viz. `combine` and `transform`.
 
-If we had only the combine operation, we can only store and retrieve data, it
-just provides a data container. Now let us add a transform operation as well
-along with the ability to combine data. We will see that we can express all
-composition in terms of combine and unary transform operations.
-
 A pure transform is a mapping from one data type to another, a unary function
 in mathematical terms. N-ary functions compose `n` inputs into one output type
 that we call a product of the inputs. However, at the primitive level we can
@@ -351,6 +346,15 @@ Functors: Generalizing Containers and Transformations
   * Only a multi-functor can have a choice, does not make sense for a single parameter functor because no choice exists.
   * In a functor a regular function has to be lifted for application to the functor value
   * In an applicative values also have to be lifted for application
+
+In general, we can express all composition in terms of containers and unary
+transform operations (natural transformations). Later we will see that even a
+transform can be expressed as a data container. The pure transformation that we
+discussed in the previous section can be considered as a special case of
+functorial composition where the functor is an `Identity` functor.
+
+.. details - show that by replacing the functor by an identity functor we
+  arrive at equivalents of pure operations.
 
 +----------------------------------------------------------------------+
 | Composing Values in a functor context                                |

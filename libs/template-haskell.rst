@@ -91,24 +91,25 @@ do many things.
 How it works?
 -------------
 
-A programmer writes a `template` or `splice` which is Haskell code, and is used
+A programmer writes a `template` or `splice` which is Haskell code that is used
 to generate a representation of some Haskell source at compile time. These
-templates can be spliced with the host program source at locations chosen by
+templates can be spliced with the `host` program source at locations chosen by
 the programmer. Just like macro pre-processing, in a pre-compile phase the
 templates are first compiled and then run in the context of the hosting source
 (at the splice point) to generate the desired Haskell source. The generated
 Haskell source is then spliced with the host program source and the combined
 Haskell program is then compiled.
 
-As a trivial example, the expression ``5 + 1`` can be evaluated and replaced by
-``6`` at compile time. Arbitrary Haskell source code can be represented and
-produced by template haskell. We can examine and use information about the
-hosting source to expand the splice. We can even perform IO to gather
-information to generate the source.
+As a trivial example, the expression ``5 + 1`` can be evaluated and the result
+``6`` can be spliced in the source at compile time. Arbitrary Haskell source
+code can be represented and produced by template haskell. Template Haskell can
+examine and use information about the hosting source ans use it in the splice.
+We can even perform IO to gather information to generate the source.
 
-So in Template Haskell type checking takes place in stages:
+When using Template Haskell type checking takes place in stages:
 
-* First type check the body of the splice; in this case it is::
+* First type check the body of the splice, a splice is just Haskell source. For
+  example::
 
     (printf "Error: %s on line %d") :: Expr.
 
@@ -123,6 +124,9 @@ So in Template Haskell type checking takes place in stages:
   had written that program in the first place.
   Hence, type checking is intimately interleaved with (compile-time)
   execution.
+
+Points to Note
+--------------
 
 Template Haskell is a compile-time only meta-system. The metalevel
 operators (brackets, splices, reification) should not appear in
@@ -172,7 +176,7 @@ Concrete syntax is what the programmer writes. Abstract syntax is a
 representation of the source program as a data structure.  It is represented as
 a tree data structure (Abstract Syntax Tree or AST) with each node representing
 a specific construct in the concrete syntax. The abstract syntax tree is
-represented as an ADT in Haskell.
+represented as an ADT (Algebraic Data Types) in Haskell.
 
 A template Haskell expression (splice) is first compiled and then run to
 evaluate it to Haskell's abstract syntax and the resulting AST entity is
@@ -315,8 +319,10 @@ following algebraic data types:
 | Q [Dec]      | A list of declarations at top level                          |
 +--------------+--------------------------------------------------------------+
 
-These data types (also known as splices) are the interface between template
-haskell and the Haskell source where they are spliced in. For example, a splice
+These data types help compose splices. Splices are the interface between template
+haskell and the Haskell source where they are spliced in. Splices are
+equivalent to regular Haskell source code written by the programmer, the only
+difference is that they are generated programmatically. For example, a splice
 of type ``Q Exp`` can be used wherever we can use an expression in the Haskell
 source.
 
@@ -590,8 +596,8 @@ types. Furthermore, it is possible to derive Lift instances automatically by
 using the -XDeriveLift language extension. See Deriving Lift instances for more
 information.
 
-Quasiquotation for Haskell Source
----------------------------------
+Quasiquotation for Haskell Source: `-XTemplateHaskellQuotes`
+------------------------------------------------------------
 
 The compiler provides a built-in quotation syntax using Oxford brackets to
 generate splices by just `quoting` Haskell source.  The result of the quoted
@@ -600,6 +606,7 @@ source. This is a more convenient (high level) way of building splices.
 
 +-----------------------------------------------------------------------------+
 | `-XTemplateHaskellQuotes`: Enable only Template Haskell’s quotation syntax. |
+| Implied by `-XTemplateHaskell`.                                             |
 +---------------------------------------+-------------------------------------+
 | [| <expression> \|]                   | Q Exp                               |
 +---------------------------------------+                                     |
@@ -699,6 +706,15 @@ the Q monad::
 Quasiquotation for Arbitrary DSLs
 ---------------------------------
 
+Quasi-quotation allows patterns and expressions to be written using
+programmer-defined concrete syntax; the motivation behind the extension and
+several examples are documented in “Why It’s Nice to be Quoted: Quasiquoting
+for Haskell” (Proc Haskell Workshop 2007).
+
+Quasiquotation appeared in GHC 6.9 and is enabled with the QuasiQuotes language
+option (-XQuasiQuotes on the command line or {-# LANGUAGE  QuasiQuotes #-} in a
+source file).
+
 There are many cases when it would be useful to
 have an object language that is different from the metalanguage.
 The canonical example of a metaprogram is a compiler, which typically
@@ -714,12 +730,45 @@ quasiquoting arbitrary languages most compelling in the context of
 metaprogramming, quasiquoting is useful any time a complex data
 type can be given concrete syntax
 
+Here are the salient features
+
+A quasi-quote has the form [quoter| string \|].
+
+* The ⟨quoter⟩ must be the name of an imported quoter, either qualified or unqualified; it cannot be an arbitrary expression.
+* The ⟨quoter⟩ cannot be “e”, “t”, “d”, or “p”, since those overlap with Template Haskell quotations.
+* There must be no spaces in the token [quoter|.
+* The quoted ⟨string⟩ can be arbitrary, and may contain newlines.
+* The quoted ⟨string⟩ finishes at the first occurrence of the two-character sequence "\|]". Absolutely no escaping is performed. If you want to embed that character sequence in the string, you must invent your own escape convention (such as, say, using the string "\|~]" instead), and make your quoter function interpret "\|~]" as "\|]". One way to implement this is to compose your quoter with a pre-processing pass to perform your escape conversion. See the discussion in Trac #5348 for details.
+* A quasiquote may appear in place of
+
+  * An expression
+  * A pattern
+  * A type
+  * A top-level declaration
+
+Useful Compiler Options
+-----------------------
+
+* -ddump-splices
+* The flag -dth-dec-file=⟨file⟩ shows the expansions of all top-level TH
+  declaration splices
+
+Packages
+--------
+
+* https://hackage.haskell.org/package/template-haskell
+* https://hackage.haskell.org/package/th-abstraction
+
 References
 ----------
 
+* https://markkarpov.com/tutorial/th.html
+* https://wiki.haskell.org/Quasiquotation
 * https://www.schoolofhaskell.com/user/marcin/template-haskell-101
 * https://wiki.haskell.org/A_practical_Template_Haskell_Tutorial
 * https://www.microsoft.com/en-us/research/wp-content/uploads/2016/02/meta-haskell.pdf
 * https://www.schoolofhaskell.com/user/marcin/quasiquotation-101
 * http://www.cs.tufts.edu/comp/150FP/archive/geoff-mainland/quasiquoting.pdf
 * https://www.schoolofhaskell.com/user/edwardk/bound
+* https://wiki.haskell.org/Template_haskell/Instance_deriving_example
+* https://stackoverflow.com/questions/10857030/whats-so-bad-about-template-haskell

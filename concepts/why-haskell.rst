@@ -19,6 +19,9 @@ Why Haskell?
 |                       | possible due to purity                              |
 +-----------------------+-----------------------------------------------------+
 
+Programming in other languages is like playing Jenga whereas programming in
+Haskell is like playing Lego.
+
 What is unique about Haskell?
 -----------------------------
 
@@ -180,3 +183,5 @@ References
 
 * http://www.youscience.com/what-is-sequential-reasoning-and-why-does-it-matter/
 * http://www.erasmatazz.com/library/the-mind/history-of-thinking/033d91601d1f41bdbb9d/verbal-reasoning.html
+
+* https://www.snoyman.com/blog/2017/12/what-makes-haskell-unique

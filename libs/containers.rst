@@ -18,6 +18,9 @@ allow you to traverse or fold all or a part of any data structure not just
 containers like lists but even monomorphic type data structures. Lenses can be
 composed to create more sophisticated traversal or fold mechanisms.
 
+There are two types of lens combinators, the ones that work on pure data
+structures and the ones that work in the State monad.
+
 Lens:
 * Source object: s
 * The part inside the source that we are focusing on: a

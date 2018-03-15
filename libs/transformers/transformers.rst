@@ -783,9 +783,14 @@ Therefore mtl adds the convenience of not having to lift operations yourself.
 Any monad which implements the `MonadReader` class can use operations from a
 reader buried somewhere down the transformer stack without explicit lifting.
 For example we can just use the `ask` operation and it will retrieve the
-environment of a reader somewhere down in the stack.
+environment of a reader from anywhere down in the stack.
 
 Provide an example class here.
+
+As everyone is well aware, when a monad transformer shows up multiple times in
+the monad stack, the automatic type class resolution mechanism doesn't work,
+and you need to explicitly say which monad transformer you want to interact
+with.
 
 Extensible Exceptions
 ---------------------
@@ -806,6 +811,7 @@ Packages
 * base
 * transformers
 * transformers-base
+* mtl
 * monad-control
 * lifted-base
 * lifted-async
@@ -814,6 +820,7 @@ Packages
 References
 -----------
 
+* http://blog.ezyang.com/2013/09/if-youre-using-lift-youre-doing-it-wrong-probably/
 * https://hackage.haskell.org/package/transformers-0.5.4.0/docs/Control-Monad-Trans-Class.html
 * https://www.schoolofhaskell.com/user/jwiegley/monad-control
 * http://www.yesodweb.com/book/monad-control

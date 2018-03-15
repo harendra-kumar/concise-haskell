@@ -381,6 +381,10 @@ Data types
       lookup () (GMapUnit v)   = v
       insert () v (GMapUnit _) = GMapUnit $ Just v
 
+Are the associated type functions available outside the typeclass instance?
+Are they available where the instance is used? Yes they are available outside
+the type class, not restricted to the typeclass.
+
 Type synonyms
 
 Examples: Variable argument function

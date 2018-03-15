@@ -170,3 +170,9 @@ the length.
 
 In haskell you will use two pipes instead. The first one will write the data to
 the output file and the second one will compute the length.
+
+Push vs pull
+------------
+
+* push based: strict evaluation (left fold)
+* pull based: lazy evaluation (right fold)

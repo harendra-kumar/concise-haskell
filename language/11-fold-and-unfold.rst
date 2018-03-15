@@ -114,8 +114,8 @@ that we can feed back the output into the input.
 
 C :: A -> B -> B
 
-Semigroup Composition
-~~~~~~~~~~~~~~~~~~~~~
+Semigroup Composition (Non-Empty Containers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When the objects being combined are of different types the only way to compose
 is using a funciton or constructor. But when the objects being combined are of
@@ -127,8 +127,8 @@ A semigroup can combine two or more objects using a binary operation. A
 semigroup is a non-empty container since there is no way to represent an empty
 value. A semigroup can be made a Monoid by using Option as a wrapper around it.
 
-Monoidal Composition
-~~~~~~~~~~~~~~~~~~~~
+Monoidal Composition (Possibly Empty Containers)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 When the type has an identity we can have a more general composition where we
 can combine 0 to n number of objects in the same way.
@@ -143,6 +143,10 @@ can combine 0 to n number of objects in the same way.
     initial :: b
     combine :: a -> b -> b
   you can fold t a : t a -> b
+
+folds are general as they fold many elements into a potentially different type.
+A monoid type folds into itself, that's why it is a MONO-id, it is mono and it
+has an id!
 
 Enables folding of 0 or more objects of the same type.
 A monoid adds the concept of empty to the semigroup. It is a convenience over
@@ -159,6 +163,7 @@ and collect 0 or more objects. A stream may yield 0 or more objects, collecting
 and folding a stream requires a monoid unless we have an initial object to fold
 with. A monoid is therefore useful in more cases because it can be used where a
 semigroup can be used unless we specifically want to preclude the empty state.
+However lesser types will have a Monoid instance compared to semigroup.
 
 The same code that requires two objects to combine can work with just one
 object by supplying the other one as empty. This simplifies code over
@@ -183,18 +188,18 @@ of its elements::
 
 The right associative version is called the right fold and the left associative
 version is called the left fold. Note in foldr the fold operation is at the top
-of the expression and recursion occurs as part of it. In foldl recursive call
-is at the top level of the expression and the fold operation occurs as part of
-it.
+level of the expression and recursion occurs as part of it. In foldl recursive
+call is at the top level of the expression and the fold operation occurs as
+part of it.
 
 Now, the behavior of these operations depends on the evaluation strategy. When
 the operation (+) is strict the right fold puts the whole structure on the
 stack and unravels it in the end, whereas the left fold does not use the stack
-at all. Note that when the container is strict we have already consumed space
-in the container and the left fold does not require more space, on the other
-hand when the container is lazy it is not using any space but we need that
-space at the end when folding so they both are equivalent in that sense. They
-are just duals of each other.
+at all. Note that when the container being folded is strict (a memory buffer
+for example) we have already consumed space in the container and the left fold
+does not require more space, on the other hand when the container is lazy it is
+not using any space but we need that space at the end when folding so they both
+are equivalent in that sense. They are just duals of each other.
 
 On the other hand when the operation is lazy in the second argument, the right
 fold can keep yielding the next element from the container whereas the left
@@ -211,10 +216,33 @@ a large structure with a left fold may not be a good idea, it may not scale.
 When we need to do that dividing up the structure in chunks and then folding is
 a good strategy.
 
-Lazy right fold = good - pull - infinite structures ok
-Strict left fold = good - push - infinite structures ok
-Strict right fold = bad - structure must be finite -- consumes the whole structure strictly, accumulating it on the stack.
-Lazy left fold = bad - structure must be finite -- builds a lazy structure
+Right = yield or distribute
+Left = accumulate
+
+Lazy right fold = scalable/transform - consumer pulls lazily from it - infinite structures ok
+Strict left fold = scalable/transform - producer can push to it - infinite structures ok
+Strict right fold = not scalable/buffer whole - yield the whole thing strictly - structure must be finite -- consumes the whole structure strictly, accumulating it on the stack.
+Lazy left fold = not scalable/buffer whole - accumulate a lazy structure - structure must be finite -- builds a lazy structure
+
+A lazy left fold can be used to reverse a list without looking at the elements
+of the list. We will be using memory only for the spine of the list and not for
+the lazy elements of the list. It can basically accumulates any structure
+into a lazy structure.
+
+A strict left fold can be used to sum the elements of a list. It basically
+accumulates any structure into a strict value.
+
+A lazy right fold can be used as a pipeline to join a lazy computation with
+another lazy computation, passing one element at a time from the source to the
+consumer. It basically distributes any structure as a lazy value.
+
+A strict right fold distributes any structure as a strict value. For example it
+can be used to convert a lazy structure into a strict array. For example it can
+be used to serialize a lazy structure in memory.
+
+Strict right fold and lazy left fold can use compact regions automatically to
+scale. They should be used for serializations and conversions rather than as
+part of a lazy transformation pipeline. They buffer the whole thing.
 
 Note that IO monad is strict. So to finally consume the output or input it is
 inevitable to face the combination of strict evaluation and lazy structures.

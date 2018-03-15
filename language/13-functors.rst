@@ -924,6 +924,8 @@ converted to `f (t a)`.
 ..  Every pair of adjoint functors defines a monad and a comonad. Conversely,
     every monad or comonad may be factorized into a pair of adjoint functors —
     this factorization is not unique, though.
+    Every Adjunction F -| G : C -> D, gives rise to a monad GF on D and a
+    Comonad FG on C.
 
 Free Construction
 -----------------

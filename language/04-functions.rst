@@ -31,6 +31,12 @@ Terminology
 +------------------------+----------------------------------------------------+
 | Arity                  | The number of parameters of a function             |
 +------------------------+----------------------------------------------------+
+| Nullary                | A function or constructor with arity 0             |
++------------------------+----------------------------------------------------+
+| Unary                  | A function or constructor with arity 1             |
++------------------------+----------------------------------------------------+
+| Binary                 | A function or constructor with arity 2             |
++------------------------+----------------------------------------------------+
 | Function application   | Applying a function to its argument(s)             |
 +------------------------+----------------------------------------------------+
 | Application            | Function application                               |
@@ -295,6 +301,19 @@ Function Application: Currying
 +-----------------------------------------------------------------------------+
 | This operation is left associative i.e. ``f a b c <=> ((f a) b) c``         |
 +-----------------------------------------------------------------------------+
+
+Function Application: Reverse
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+There are two ways to think about a function application.  The first is
+applying a function to a value (``f $ x``) and the other applying a value to a
+function (``($ x) f``).  Function eats value or value eats function, its the
+same thing. However to make the value eat function we have to turn it into a
+function.  Former is the more common way and gives rise to curried functions
+whereas the latter is less common and gives rise to continuations.  Both are
+duals to each other, both give rise to higher order functions in a dual or
+opposite sense.  The first one returns function as values and the second one
+takes functions as arguments.
 
 What is a Function?
 ~~~~~~~~~~~~~~~~~~~
@@ -874,6 +893,33 @@ Any two types or all the three types could be different or the same::
   f :: a -> b -> b
 
 How is a binary operation useful?
+
+Church Encoding
+---------------
+
+The church and unchurch functions convert between nonnegative integers and
+their corresponding Church numerals.
+
+::
+
+  type Church a = (a -> a) -> a -> a
+
+  church :: Integer -> Church Integer
+  church 0 = \f -> \x -> x
+  church n = \f -> \x -> f (church (n-1) f x)
+
+  unchurch :: Church Integer -> Integer
+  unchurch cn = cn (+ 1) 0
+
+The term "church encoding" is used in a more general sense. For example, see
+this doc in the streaming package:
+
+::
+
+  destroy :: (Functor f, Monad m) => Stream f m r -> (f b -> b) -> (m b -> b) -> (r -> b) -> b
+
+  Map a stream directly to its church encoding.
+
 Operational Aspects
 -------------------
 

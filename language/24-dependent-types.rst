@@ -22,7 +22,7 @@ that they were promoted from the expression language.)
 Furthermore, type families can express functions on this typelevel data, such
 as one that computes whether one natural number is less than another.::
 
-  type family (m ::Nat) :<(n ::Nat) ::Bool
+  type family (m ::Nat) :< (n ::Nat) ::Bool
   type instance m :< ’Zero = ’False
   type instance ’Zero :<(’Succ n) = ’True
   type instance (’Succ m):<(’Succ n) = m :<n
@@ -43,8 +43,8 @@ this index, called a singleton, that can be used for computation.
 The type of singleton values for natural numbers is SNat, a GADT
 indexed by a type of kind Nat.::
 
-  data SNat ::Nat → ∗ where
-  SZero ::SNat ’Zero
+  data SNat :: Nat → ∗ where
+  SZero :: SNat ’Zero
   SSucc :: ∀ (n ::Nat). SNat n → SNat (’Succ n)
 
 A graphical schematic of the relationship between the original

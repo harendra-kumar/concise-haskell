@@ -445,6 +445,20 @@ newtype
 | closure                    |                        |                               |
 +----------------------------+------------------------+-------------------------------+
 
+newtypes for composition
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+newtypes are often used to wrap a type into a new type for different styles of
+composition. For example, the ZipList type supports a different applicative
+style composition for a list that zips two lists instead of multiplying them as
+in the standard applicative instance of a list.
+
+A newtype may compose differently but it has exactly the same underlying
+representation as the original type, in fact it is the same type in a new
+bottle that may use different semantics than the original type for the same
+composition operators. Types with the same internal representation can be
+interconverted safely using the `coerce` operation.
+
 Type Signatures
 ---------------
 

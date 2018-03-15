@@ -115,6 +115,25 @@ Essential concepts are separated from deeper treatments where necessary.  The
 descriptions of concepts are not formal or rigorous in any sense, they are only
 for an intuitive understanding of the concepts.
 
+Forward and Reverse Reading Styles
+----------------------------------
+
+This book has been written in a dependency order, that is the most fundamental
+concepts are introduced first and those building upon those are introduced
+later, in that sequence, wherever possible. When you start to learn Haskell the
+natural reading style is read the book from start to end. However, that is not
+how it works practically. While learning Haskell and being an expert at the
+language, you would still want to be able to read existing code written by
+others and understand it, which may not be possible unless you know all the
+features, concepts, syntax used in that piece of code.  This creates difficulty
+until you have read and understood a lot of concepts.  To overcome this problem
+this books introduces a reverse index as well. When you encounter a particular
+syntax, concept or feature you can look it up in the index, which has a small
+description as well as reference to full explanation of the concept in the
+book. That way with the help of this book working as a dictionary you can
+deciper any Haskell code even if you are not yet an expert in Haskell. This
+helps you learn Haskell on the job.
+
 Note on Jargon
 --------------
 

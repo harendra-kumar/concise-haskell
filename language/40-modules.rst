@@ -48,6 +48,17 @@ Terminology
 |          | matching.                                                        |
 +----------+------------------------------------------------------------------+
 
+Comments
+--------
+
+::
+
+  -- This is single line comment.
+  {-
+    This is a multiline
+    block comment.
+  -}
+
 Files & Modules
 ---------------
 
@@ -309,10 +320,42 @@ All keywords, functions, variables start with lowercase letters
 |  class Clay where ...    -- type (typeclass)                                |
 +-----------------------------------------------------------------------------+
 
+Term Level Namespace
+^^^^^^^^^^^^^^^^^^^^
+
+Definitions defining identifiers without any preceding keywords.
+
+Type Level Namespace
+^^^^^^^^^^^^^^^^^^^^
+
+Definitions with type, newtype or data keywords. In a data or newtype
+definition, constructors are term level whereas their arguments are type level.
+Constructors are somewhat special as they are a bridge or binding between type
+and term level.
+
+* Everything in a type synonym is in type level namespace.
+* In a type signature everything on the right side of a `::` is in type level
+  namespace.
+* Everything in a class declaration is type level except the default
+  definitions of the class functions.
+
+Kind level Namespace
+^^^^^^^^^^^^^^^^^^^^
+
+Whenever we use a `::` on a type then everything on the right side of
+`::` is in kind level namespace.
+
+Wherever a type can be used a kind can also be used. To remove the ambiguity in
+such cases we start the kind level identifiers with a `'`. In a type context if
+an identifier does not start with `'` or is not on the right side of a `::`
+then it is considered a type otherwise it is considered a kind.
+
+Do not confuse the kind level `'` or `''` used in template haskell context.
+
 Pragmas
 ~~~~~~~
 
-Language pragmas must be on top before module declaration.
+Language pragmas must be declared on top before module declaration.
 
 Notational Conventions
 ----------------------

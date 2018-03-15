@@ -107,9 +107,9 @@ Categorical Composition
 Combining pure (unary) transformations themselves:
 semigroupoid, monoid (category) composition.
 
-* `Composition`: When the input type of a function matches the output type of
-  another function, the two functions can be chained together by feeding the
-  output of the latter to the input of the former::
+* `Direct Composition`: When the input type of a function matches the output
+  type of another function, the two functions can be chained together by
+  feeding the output of the latter to the input of the former::
 
     -- the arity of the composed function is at least n1 + n2 - 1
     -- output modification, same order, arity
@@ -124,7 +124,11 @@ semigroupoid, monoid (category) composition.
      k :: c -> b
      k = f . g
 
-* `Composition`:: Composing functions where the input of one of them is a
+  This is the direct style or forward style composition. The output of a
+  function is used by another function inside the caller of this function i.e.
+  outside this function.
+
+* `CPS Composition`:: Composing functions where the input of one of them is a
   function (higher order function)::
 
      -- the order of the combined function is at most max (n1, n2)
@@ -134,6 +138,10 @@ semigroupoid, monoid (category) composition.
 
      k :: a -> d
      k x = g (f x)
+
+  This is a CPS style or backward style composition. A function passes its
+  output to another function inside this function i.e. the function to be
+  invoked is one of the inputs to this function.
 
 Function Applications (Currying)
 --------------------------------
@@ -318,7 +326,7 @@ Similarly, `b` is in negative position in `f` and is therefore consumed by `f`.
 Function Extensions
 -------------------
 
-`Extension`: Like an application reduces the arity, an extension increase the
+`Extension`: Like an application reduces the arity, an extension increases the
 order of a function. A function and a value can be used such that the input
 of the function is modified to accept a function whose output matches the
 input of original function::
@@ -462,3 +470,262 @@ their result type is the same as the result type of the whole computation.
     | forall z. Await (z -> Plan k o a) (k z) (Plan k o a)
     | Fail
 
++--------------------------------------+--------------------------------------+
+| Direct Style                         | CPS style                            |
++--------------------------------------+--------------------------------------+
+| Has a function needs a value         | Has a value needs a function         |
++--------------------------------------+--------------------------------------+
+| Has "a -> r" needs an "a"            | Has an "a" needs an "a -> r"         |
++--------------------------------------+--------------------------------------+
+| A direct monad composes functions    | In a CPS monad the input type is     |
+| with the return value of the same    | decided by the function and the      |
+| type i.e. b in (a -> m b)            | output type is decided by the cont   |
+| All function return the same type    | i.e. r in "(a -> m r) -> m r" is free|
++--------------------------------------+--------------------------------------+
+| Functions are fixed, arguments vary  | Arguments are fixed, functions vary  |
++--------------------------------------+--------------------------------------+
+| Values go to functions               | functions go to values               |
++--------------------------------------+--------------------------------------+
+| Values are passed around             | Functions are passed around.         |
++--------------------------------------+--------------------------------------+
+| The type is a sum of values          | The type is a product of functions   |
+| Stop | Yield a (Stream a)            | f :: m r -> (a -> m r -> m r) -> m r |
++--------------------------------------+--------------------------------------+
+| Types/structure of values are fixed  | Types/structure of functions r fixed |
++--------------------------------------+--------------------------------------+
+
+Direct Style
+~~~~~~~~~~~~
+
+::
+
+  -- The data structure is represented by Constructors
+  data Stream a = Stop | Yield a (Stream a)
+
+  -- Generation - destruction, followed by construction of Stream
+  -- We keep calling the constructors and finally when we stop we call the base
+  -- constructor.
+  unfoldr :: (b -> Maybe (a, b)) -> b -> Stream a
+  unfoldr step seed =
+    case step seed of
+      Nothing -> Stop
+      Just (a, b) -> Yield a (unfoldr step b)
+
+  -- Consumption: destruction of Stream, followed by construction
+  -- We pattern match the constructors and recurse until we reach the base case.
+  length :: Stream a -> Int
+  length s = go s 0
+    where go s1 n =
+      case s1 of
+        Stop -> n
+        Yield _ r = go r (n + 1)
+
+CPS Style
+~~~~~~~~~
+
+::
+
+  -- The data structure is represented by functions
+  -- First argument is Stop, the second argument is Yield, r is the Stream and
+  -- a is the element in the stream.
+  {-# LANGUAGE RankNTypes #-}
+  module Test where
+
+  -- r represents the final data structure that we have to build. It will be
+  -- decided by the actual continuations passed when we call runStream.
+  data Stream a = Stream {runStream :: forall r. (r -> (a -> (Stream a) -> r) -> r)}
+
+  -- We keep calling yield function and finally we call the stop function when
+  -- reach the end. The stop and yield continuations are just like constructors,
+  -- the Stop and Yield constructors in direct style, they are closures.
+  -- Constructors and closures are in fact represented in the same way at
+  -- implementation level.
+  -- Finally when we process the stream we provide these continuation closures.
+  unfoldr :: (b -> Maybe (a, b)) -> b -> Stream a
+  unfoldr step seed = Stream $ \stop yield ->
+      case step seed of
+          Nothing -> stop
+          Just (a, b) -> yield a (unfoldr step b)
+
+  -- The consumer defines the continuations rather than calling them. The
+  -- continuations stop and yield will be called when the stream is constructed
+  -- e.g. by unfoldr.
+  length :: Stream a -> Int
+  length s = go s 0
+    where go s1 n =
+              let stop = n
+                  yield _ r = go r (n + 1)
+              in (runStream s) stop yield
+
+  length $ unfoldr ...
+
+Notice how the control flow works in imperative terms - the consumer (length)
+supplies functions that are called directly by the producer (unfoldr) who is
+building the data structure in the first place. So the data structure is not
+actually built in memory it is directly consumed via a pipeline of functions.
+
+The continuation is consumer, it is made available directly to the
+producer, if and when it needs to call it.
+
+CPS Style Variants
+~~~~~~~~~~~~~~~~~~
+
+`Consumer driven`: In the previous example we yielded one element and the rest
+of the stream. The consumer consumes one element and then processes the rest of
+the stream again recursively. That is the remaining stream is threaded around
+in the recursive computation. The recursion is driven from the consumer side
+i.e. yield will be called repeatedly by the consumer until the stream ends.
+
+In this case it is easy to switch producers or multiplex the producers. But its
+not easy to multiplex the consumers.  We pull remotely from the producer and
+have the processing logic near where we build, that's why the pipeline has
+visibility of multiple producers but only one consumer.
+
+
+`Producer driven`: There is a dual of this model where instead of yielding the
+rest of the stream we yield an element and the output built till now. That is
+the accumulated output is threaded around in the recursive computation. The
+recursion is driven from the producer side i.e. "build" is called repeatedly by
+the producer until the stream ends.
+For example::
+
+  newtype Stream m a =
+      Stream {
+          runStream :: forall r.
+                 Maybe (SVar m a)           -- local state
+              -> r                          -- accumulator
+              -> (a -> r -> ExceptT r m r)  -- build
+              -> ExceptT r m r
+      }
+
+In this case it is easy to switch or multiplex the consumers. But its not easy
+to multiplex the producers.  We fold at the producer and push the output to the
+remote consumer, that why the pipeline has the visibility of multiple consumers
+but only one producer.
+
+Advanced Example
+~~~~~~~~~~~~~~~~
+
+See simple-conduit package. It uses the producer driven recursion.
+
+Direct vs CPS Style Performance Considerations
+----------------------------------------------
+
+Constructors (or data) and functions are duals of each other and any practical
+program needs both of them to perform a task.  The same program can be
+expressed in two dual ways.  A Haskell program can be thought of as a pipeline
+with multiple stages. Each stage couples with the next stage to pass on its
+output.  The coupling between two stages can either be a function or data
+(constructor).  Its like whther you want to wear your shirt outside in or
+inside out.
+
+In a direct style the programmer models the task using constructors (data)
+first, when executing, we examine the constructors, make decisions based on
+them and then may call some functions to perform a task, which may use
+constructors to build data for the next stage and pass it on to the next stage.
+We start with data and end up building data for the next stage. The model is
+Data-Function-Data. The cupling between two stages is data, we pass around data
+(constructors).
+
+In CPS style, the programmer models the task using functions first, a function
+would process some data, may use constructors to build data and then build
+another function (continuation) to be called for the next stage of processing
+and the execution proceeds like that. We start with a function and we end up
+with building another function. The model is Function-Data-Function. The
+coupling between two stages is a function we pass around functions (closures).
+
+Both these models are duals of each other and in an ideal world both should
+work equally well. However the devil is in the operational details. Because of
+the compiler implementation, machine execution models one way may work better
+than the other for a given program. To understand them better let's take a
+closer look at both.
+
+Operational Mechanisms
+~~~~~~~~~~~~~~~~~~~~~~
+
+In operational terms pure constructors are allocated from the heap and pure
+functions use the stack to perform a function call.
+
+Direct Style:
+Constructors        Function calls/Recursion
+Heap                Stack (quite a bit)
+
+CPS Style:
+Continuation (function) call    Constructors/Closures (unfolded recursion)
+Stack (very little)             Heap
+
+Direct Style Cost Analysis
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+In direct style we construct the input as data using data constructors and pass
+it to a function. The function examines the constructors, transforms them and
+then builds more data for the next stage. This process involves dismantling
+input data which gets garbage collected and allocating new output data from the
+heap. So there is a garbage collection cost involved at each stage. However it
+is possible that the compiler optimizations cause the data to be passed on from
+one stage to another without actually allocating it from the heap i.e. using
+the registers when possible. The intermediate step to allocate and release may
+be eliminated.
+
+When we pass on the output to the function for the next stage there is a
+function call cost involved. If there is a register spill we may have to pass
+the arguments on the stack. If the function needs to return we may need to save
+the state of the current function on the stack. More the number of variables
+passed on to the next stages the more will be the cost of a funciton call. The
+longer we hold on to the data the more will be the cost of keeping it in the
+heap and saving the pointers on the stack across function calls. Large number
+of machine registers can help in passing around the variables more efficiently.
+
+Function inlining can flatten out the intermediate functions and reduce the
+cost of function calls.
+
+So the direct model translates to calling a function that needs to return back
+with some data. This means use of heap for the data and use of stack for the
+function calls to save the context since they need to return back to the
+current context.
+
+CPS Style Cost Analysis
+~~~~~~~~~~~~~~~~~~~~~~~
+
+In the CPS style, there is no state to save when we call the next function
+(continuation) as we are never going to return. We pass functions to the next
+stage function. As long as the number of functions we are passing is not many,
+the function call is cheap as there is less spill, no state to save on the
+stack. The main cost involved is in building the closures that we pass around
+to the next stage. The closures contain all the state explicitly and involve
+allocations from the heap. However, these closures/function calls cannot be
+inlined by compiler. The more the number of stages, the more will be the cost,
+this is only in the hands of the programmer and not the compiler. The heap
+allocations to make the closures is fixed since the structure of the closures
+is fixed. The only optimizations left are within a single stage.
+
+Pure Code
+~~~~~~~~~
+
+Monadic Code
+~~~~~~~~~~~~
+
+Selection Functions
+-------------------
+
+Selection is a dual of continuation.
+
+A function is a map from inputs to outputs. A selection function selects one of
+the many possible inputs of a function. Instead of taking an input and
+producing an output, it takes a function and produces the input that the
+function allows to take.
+
+::
+
+  data Sel r x = Sel {runSel :: (x → r) → x}
+
+A continuation runs forward, whereas a selection works backwards.
+
+References
+----------
+
+* https://arxiv.org/pdf/1406.2058.pdf Monad Transformers for Backtracking Search
+* http://math.andrej.com/2008/11/21/a-haskell-monad-for-infinite-search-in-finite-time/ A Haskell monad for infinite search in finite time
+* https://www.cs.bham.ac.uk/~mhe/papers/selection-escardo-oliva.pdf Selection Functions, Bar Recursion, and Backward Induction
+* https://stackoverflow.com/questions/42378073/how-to-use-the-select-monad-to-solve-n-queens
+* https://ebooks.au.dk/index.php/aul/catalog/download/4/4/26-1?inline=1 The selection monad as a CPS translation
