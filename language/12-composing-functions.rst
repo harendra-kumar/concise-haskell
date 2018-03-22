@@ -32,7 +32,7 @@ Functions are first class values. Till now we have only used functions by
 applying them to some values. However we can combine function together and
 create new functions, without applying them to values. We can pass functions to
 functions and return functions from functions. A function is like a pipe and we
-can joing many of them to create an aribtrarily complex network of pipelines.
+can join many of them to create an aribtrarily complex network of pipelines.
 This is very powerful and modular way to compose programs.
 
 Functions as Transformations

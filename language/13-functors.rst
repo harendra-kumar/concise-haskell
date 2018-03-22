@@ -114,6 +114,8 @@ If the same parameter appears on both sides the type cannot be a functor.
 One ended functors
 ~~~~~~~~~~~~~~~~~~
 
+::
+
   our type is at the one end of a pipe.
   covariant or contravariant
   Values are values in Identity functor.
@@ -121,7 +123,8 @@ One ended functors
   Continuations are monads using Identity functor?
   More types are instances of one-ended functors because it requires little
   structural constraints on the type.
-  A monad can return any type, or a comonad can accept any type.
+  A monad can return any type
+  a comonad can accept any type.
 
 Covariant vs Contravariant
 ~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -181,13 +184,13 @@ Profunctor: f1> - >v - >f2
 Double ended functors (Profunctors)
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-  We have two types at two different ends of a pipe both can be mapped.
-  Since this requires more structure, lesser number of types can conform to
-  this structure. But it provides more powerful ways to combine those types.
-  If we map both ends to id then the value just remains as the original pipe.
-  They can be composed with effectful composition, if we use an "Identity
-  profunctor" the composition will be just like function composition.
-  A profunctor can accept any type on both ends.
+We have two types at two different ends of a pipe both can be mapped.
+Since this requires more structure, lesser number of types can conform to
+this structure. But it provides more powerful ways to combine those types.
+If we map both ends to id then the value just remains as the original pipe.
+They can be composed with effectful composition, if we use an "Identity
+profunctor" the composition will be just like function composition.
+A profunctor can accept any type on both ends.
 
 +---------------+--------+-------+------------+--------+--------+------------+
 | Type Class    | Type   | input | imap       | output | omap   | Examples   |
@@ -334,13 +337,13 @@ Functors vs Functions
 
 A pure transform or unary function is a fundamental operation. It is a map from
 one type to another.  However we can represent this function in the form of
-data as well! A representable functor is just that an incarnation of a
+data as well! A `representable functor` is just that; an incarnation of a
 transform or a function in data form. It is just a fancy term for a map like
 data structure. It is a keyed container or a lookup table. A function is just
-that a map or a lookup table.  A representable functor just reifies the
-function. All functions can be represented as data structures but not all data
-structures are functions.  So those functors that are possible to be
-represented as a function are representable functors.
+that; a map or a lookup table.  A representable functor just reifies the
+function. Note that, `all functions can be represented as data structures but
+not all data structures are functions`.  So those functors that are possible to
+be represented as a function are representable functors.
 
 .. Pictures: we can represent a representable functor with a function like box
    with slots. However it will be a double outlined box to represent a functor
@@ -361,7 +364,7 @@ functions, and a function can be represented by a representable functors as
 Yoneda Lemma says. There can be many different representations of a function as
 a functor. However they all correspond to the same function when converted to
 the function form. Each representation can be converted from one to the other
-using a natural transformation i.e by covnerting the type and fmapping the
+using a natural transformation i.e by converting the type and fmapping the
 functions.
 
 We can say that everything in a Haskell program is a Functor. A function is a
@@ -609,13 +612,15 @@ Which types are Distributive?
 There are three related ways of looking at it.
 
 Product vs Sum
-^^^^^^^^^^^^^^
+..............
 
 An easy way to remember is the way multiplication distributes but addition does
-not, the same way product types distribute but sum types do not.
+not, the same way product types distribute but sum types do not. Functions are
+products so they are distributive, since representable functors are
+representations of functions they are distributive.
 
 Producer vs Consumer
-^^^^^^^^^^^^^^^^^^^^
+....................
 
 For it to always be able to consume a value, all constructors of a distributive
 functor must be isomorphic to a function using the same type argument or in
@@ -624,7 +629,7 @@ distributive because the constructor `Nothing` is not isomorphic to a function.
 Exercise, is `Either` Distributive?
 
 Representable vs Not Representable
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+..................................
 
 Note that something that is not Representable is not Distributive and
 vice-versa. Therefore Sum types, in general,  are not Distributive.

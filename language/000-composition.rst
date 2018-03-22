@@ -153,21 +153,25 @@ Composing Terms
 .. Abstraction = Term level (functions), Type level (Polymorphism)
 .. Composition = Containers -| Transformations
 
-A Haskell program is a composition of terms.  In this section we summarize the
-composition facilities available for term level programming.  Haskell provides
-principled composition facilities built from just two fundamental conceptual
-primitives,  we will call them a `container` and a `transformation`. A
-container combines multiple elements of data together and a transformation
-transforms one container to another. A container is a `functor` and
-`transformation` is a `function`. We will later see that even
-transformations can be containers or functors. In that case, we can treat all
-composition simply as composition of functors. We will see a beautiful pattern
-of composition primitives across different layers of abstraction involving a
-combination of just these two fundamental primitives, and other higher level
-primitives built on top of these.
+At the term level, a Haskell program is a composition of terms.  Haskell
+provides two fundamental conceptual primitives from which we can compose
+everything else,  we will call them the two fundamental containers, the first
+is a `data container` (constructors) and the other is a `transformation
+container` (functions).  A data container combines multiple elements of data
+together, and a transformation maps one container to another.
 
-We divide the composition facilities in three different layers in increasing
-order of abstraction. At each layer we divide them in two dimensions viz.
+Functions and constructors are pure or primitive containers. There are two
+dimensions to composition using these pure containers. One dimension is to
+compose these pure containers together, without raising the level of
+abstraction, to create more complex containers.  Another dimension is to
+abstract the composition by wrapping any existing container inside another
+container around it called a `functor`. A functor defines (hides) how the
+containers inside the functor compose with each other.  Therefore we can define
+new composition behaviors by wrapping existing types or containers inside these
+wrapper containers.
+
+We divide the composition behaviors in three different layers based on the
+level of abstraction. At each layer we divide them in two dimensions viz.
 `product` and `sum` style composition which are two fundamental ways to combine
 objects.
 
@@ -182,39 +186,55 @@ objects.
     - same functor means same color edge
     - join the functor edges to show functor composition (second track)
 
-Algebraic Data: Pure Containers
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Algebraic Data: Pure Data or Free Containers
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The first and the simplest layer of composition is the pure data composition
-layer which provides ability to define pure data containers in their simplest
-form and combining them.  It is the purest way of combining without any
-transformation or abstraction involved.  Pure data containers provide us
-facilities to store or retrieve data, it is like the memory of a computer.
+layer which provides ability to represent pure data containers in their
+simplest form and combining them without the use of any kind of transformation.
+It is the purest way of combining without any transformation or abstraction
+involved.  Pure data containers provide us facilities to store or retrieve
+data, they are just like the memory of a computer, what you store is what you
+get.
 
-There are two elementary ways to combine data, `sum` and `product`, algebraic
-data types also provide these two ways of combining. The sum type composition
+There are two elementary ways to combine objects, `sum` and `product`, algebraic
+data types provide these two ways of combining. The sum type composition
 either creates a new data type from scratch as a collection of choices, or
 unions the choices of existing data types under a new data type. Notice that
 all the choices in a sum denote the same type.  On the other hand, the product
 type is used to multiply the choices (i.e.  enumerate all combinations) of two
 or more existing data types. Sum is the most fundamental way to combine and
-product can be thought of as a convenient tool to perform repeated sum.  Notice
-that any sum style collection contains all elements of the same type whereas a
-product style collection can be heterogeneous, and may have elements of the same
-or different types.
+product can be thought of as a convenient tool to perform repeated sum.
+
+Notice that any sum style collection contains all elements of the same type
+whereas a product style collection can be heterogeneous, it may be a product of
+elements of the same or different types.
 
 .. More details in chapter "transform and combine", ADTs.
 
 +-----------------------------------------------------------------------------+
 | Composition by Algebraic Data Types (pure combining)                        |
 +============================+================================================+
+| Singleton Data             | data A = A                                     |
++----------------------------+------------------------------------------------+
 | Sum                        | data Bool = True | False                       |
 +----------------------------+------------------------------------------------+
-| Product                    | data Pair = Pair Bool Bool                     |
+| Product (free product)     | data Pair = Pair Bool Bool                     |
+|                            +------------------------------------------------+
+|                            | data (,) a b = (,) a b                         |
 +----------------------------+------------------------------------------------+
 
-Functions: Pure Transformations
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+The structures using pure data containers are called free structures. They are
+pure data with no element of transformation. However, it should be
+noted that the data containers can very well contain either data or functions
+(transformations). The important point is that the outermost layer is always
+the pure data container layer, it does not matter what is contained within.
+What you see from outside is what it is, and that and only that defines what
+they are and how they compose. A pure container is also said to be in WHNF
+in technical parlance.
+
+Functions: Pure map or Transformations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. Abstraction ~ transformation (from input domain to output domain)
 
@@ -222,9 +242,96 @@ Functions: Pure Transformations
   output.  Any Haskell composition transforms its inputs into a single output
   using precisely two conceptual primitives viz. `combine` and `transform`.
 
-A pure transform is a mapping from one data type to another, a unary function
-in mathematical terms. N-ary functions compose `n` inputs into one output type
-that we call a product of the inputs. However, at the primitive level we can
+A pure transformation is a mapping from one data type to another, a unary
+function in mathematical terms.
+
+A function is a pure mapping from one container to another with no element of
+specific data involved. However, we are talking only about the outermost layer
+of the function container. Just like pure data containers can contain functions
+inside them, the same way pure function containers can contain data inside them
+which is used for the transformation they carry out.  What we see from outside
+is what is important for composing them.  Their composition behavior is defined
+by they being functions when looking from outside.
+
+There is a fundamental difference between function containers and data
+containers. Functions are a map from one container to another whereas data
+containers are just pure containers. Functions can transform other containers.
+Note that they can even transform a data container into a function container
+(``$ x``) and a function container into a data container (``($ x) f``).
+Therefore a function application is an asymmetric relation in which each entity
+has a different role i.e. a transformer and a transformee.
+
+Just like we combine pure data to create more complex free structures, we can
+also combine pure functions to create more complex "mappings". However, as we
+discussed in the previous paragraph, functions are a different beast than data
+containers. Unlike data containers, since they are maps, functions are defined
+by an input and an output. When defining a sum style composition for functions
+we fit the input of one function with the output of another function like
+pipes. An identity function is the one whose input and output type are the
+same. We do not define a product for functions however we do have functions
+that work on product data containers.
+
++--------------------------------------------------------------------+
+| Composing Unary Transforms (functions)                             |
++===========================================+========================+
+| Singleton (first order) function          | case map               |
++-------------------------------------------+------------------------+
+|                                           | f :: a -> b            |
++-------------------------------------------+------------------------+
+| Free product (Uncurried)                  | f :: (a, b) -> c       |
++-------------------------------------------+------------------------+
+| Curried  Application (Adjunction)         | f :: a -> b -> c       |
++--------------------------+----------------+------------------------+
+| Product Dimension        | Input Side     | Extend (Cont)          |
+|                          +----------------+------------------------+
+|                          | Output side    | Bind (Direct)          |
++--------------------------+----------------+------------------------+
+| Sum                      | Semigroupoid   | .                      |
+| Dimension                +----------------+------------------------+
+| (Fold)                   | Category       |  ., id                 |
++--------------------------+----------------+------------------------+
+
+Adjunctions or Curried Applications
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Till now we talked about pure functions and pure data, now let's talk about a
+holy alliance between the two.  An adjunction is an alliance between a map
+(function) and its argument. The left side has the role of a map and the right
+side has the role of a value to be mapped.  All the composition of a program is
+just a tango between these two types of containers.
+
+We can switch the roles by using ($).  ::
+
+  $ :: (a -> b) -> a -> b -- I am an adjunction of function and value, I need a
+                          -- function and a value to become complete.
+  f :: a -> b            -- give me value (I eat you)
+  x :: a
+  ($ x) :: (a -> b) -> b -- give me function (You eat me)
+
+Any processing requires a function and an argument. We can pass around
+functions or arguments alike there is no difference. The programmer can either
+define a function that eats a value or a value that eats a function. We can
+turn them around from one role to the other.
+
+In the first order world we would only have a singleton data and a singleton
+function and we can apply the function to the value to get the output. All of
+our programming can be expressed using this primitive operation.
+
+However we get more powerful programming tools when we can combine data
+together separately without using functions and we can combine functions
+together separately without using data and then combine the two later. For
+example we can have a data product (a, b) and a function product f :: a -> b ->
+c. And then we can apply the data product to the function product to get the
+output. Thus we have higher order data and higher order functions.
+
+Provide an example where we acheive the same task by applying first order
+functions multiple times and by applying second order functions to second order
+data.
+
+N-ary functions compose `n` inputs into one output type that we call a product
+of the inputs.
+
+However, at the primitive level we can
 express an `n-ary product` in terms of a pure combine followed by a
 series of unary transforms.  An `adjunction` represents a transform as any
 other data and allows us to combine each element from an input data container
@@ -238,6 +345,12 @@ compose two or more possibly different types into a single output type.  An
 n-ary function being the prototypical example of such a composition.  This same
 concept of product style composition can be extended to the functor level
 abstraction as well.
+
++----------------+----------------+--------------------+
+| Product        | Input          | Extend             |
+|                +----------------+--------------------+
+|                | Output         | Bind               |
++----------------+----------------+--------------------+
 
 .. We will see later that the nested loop pattern from imperative style
   programming is also a form of product style composition.
@@ -275,20 +388,24 @@ abstraction as well.
   2) typeA + typeB -> combine -> output typeC : pure combine
   2) typeA + typeB -> combine-and-transform -> output typeC
 
-The product style composition combines finite number of objects of possibly
-different types in a custom manner i.e. the mapping can be freely defined by
-the programmer. Further using this primitive style,
-we can combine arbitrary number of objects occurring in a
-pattern. For example a `semigroup` style composition uses a binary operation
-(i.e. a product style composition) to combine two objects of the same type into
-another object of the same type. A semigroup composition can be used repeatedly
-to combine the resulting object with the next object in the input structure,
-and so on thus folding the whole structure into a single object. A `monoid`
-style composition is a further specialization of semigroup where we always
-require a representation for an empty or initial target container and therefore
-we can fold `zero or more` elements instead of `one or more` in case of a
-semigroup.  We call such recursive compositions `folds` or sometimes `sum` as
-the types of objects being combined are all the same.
+Sum and Product Style Compositions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+The product style composition using functions combines finite number of objects
+of possibly different types in a custom manner i.e. the mapping can be freely
+defined by the programmer.
+
+Using the product style composition, we can combine arbitrary number of objects
+of the same type in a data container.  For example a `semigroup` style
+composition uses a binary product operation to combine two objects of the same
+type into another object of the same type. A semigroup composition can be used
+repeatedly to combine the resulting object with the next object in the input
+structure, and so on, thus folding the whole structure into a single object. A
+`monoid` style composition is a further specialization of semigroup where we
+always require a representation for an empty or initial target container and
+therefore we can fold `zero or more` elements instead of `one or more` in case
+of a semigroup.  We call such recursive compositions `folds` or sometimes `sum`
+as the types of objects being combined are all the same.
 
 .. These structures are part of `magma` family which is studied in a branch of
   mathematics called `modern algebra`. Refer to the Algebra chapter.
@@ -305,6 +422,11 @@ the types of objects being combined are all the same.
 | Fold or sum        | Semigroup        | Monoid             |
 +--------------------+------------------+--------------------+
 
+In general `sum` type combining always works on objects of the same type, and
+objects of different types can only be combined using a product style
+composition. As an intuitive example, we cannot add (sum) age and height but we
+can always enumerate combinations of age and height (product).
+
 All composition can be divided into these two fundamental styles (product and
 sum) occurring in different forms at different levels of abstractions.  In the
 following table we summarize various constructs that are available at the
@@ -312,29 +434,9 @@ following table we summarize various constructs that are available at the
 these styles. In the forthcoming chapters we will develop these constructs in
 more details.
 
-`Lift` is an operation that `lifts` a type into the current type. In case of
-pure containers a `Lift` is just a constructor. In case of functions `const`
-lifts any value to a function.
-
-+------------------------------------------------------+
-| Unary Transforms                                     |
-+=================================+====================+
-| Lift                            | const              |
-+----------------+----------------+--------------------+
-| Product        | Input          | Extend             |
-|                +----------------+--------------------+
-|                | Output         | Bind               |
-+----------------+----------------+--------------------+
-| Sum (Fold)     | Semigroupoid   | .                  |
-|                +----------------+--------------------+
-|                | Category       | id                 |
-+----------------+----------------+--------------------+
-
 +-----------------------------------------------------+
-| Composing Values                                    |
+| Composing Higher order values with HO Functions     |
 +=================================+===================+
-| Lift (Free product)             | (,)               |
-+---------------------------------+-------------------+
 | Product                         | N-ary             |
 | (Adjunction)                    | Application       |
 +----------------+----------------+-------------------+
@@ -371,6 +473,9 @@ functor.
 .. details - show that by replacing the functor by an identity functor we
   arrive at equivalents of pure operations.
 
+`Lift` is an operation that `lifts` a type into the current type. Think of this
+as a constructor for the type.
+
 +----------------------------------------------------------------------+
 | Composing Values in a functor context                                |
 +---------------------------------+----------+-------------+-----------+
@@ -387,6 +492,25 @@ functor.
 |                +----------------+----------+-------------+-----------+
 |                | Monoid         |          | empty       | mzero     |
 +----------------+----------------+----------+-------------+-----------+
+
+Notice the similarity, these are all product and sum operations at different
+abstraction levels::
+
+  -- products
+  $   :: (a ->   b) ->   a ->   b    -- pure
+  <$> :: (a ->   b) -> f a -> f b    -- applicative (Apply)
+  <*> :: f (a -> b) -> (f a -> f b)
+  =<< :: (a -> m b) -> m a -> m b    -- monad (Bind)
+
+  -- sums
+  <>    ::   a ->   a ->   a        -- pure
+  <|>   :: f a -> f a -> f a        -- applicative (Alt)
+  mplus :: m a -> m a -> m a        -- monad
+
+  -- Monoid identities
+  mempty ::   a                    -- pure
+  empty  :: f a                    -- applicative
+  mzero  :: m a                    -- monad
 
 Correspondences:
 

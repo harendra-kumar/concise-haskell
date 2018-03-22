@@ -89,7 +89,7 @@ There are multiple ways to use functional style. The basic way is to get all the
 arguments to one single function. Another way is to pass all the arguments in
 records, we can also implement ways to only pass some of the arguments and keep
 other optional. Another elegant way to use a functional interface is to use
-builders. We can compose out input by multiple functions consuming their
+builders. We can compose our input by multiple functions consuming their
 arguments and returning a builder again.
 
 Applicative is less declarative and in addition to abstractions via functions
@@ -126,6 +126,9 @@ are "transform" and "combine". They come in different forms e.g. "pure" and
 implication (i.e. the function type) and combine is sum or product.
 There are two ways to combine two values, sum and product.
 
+Free and non-free computations
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
 In a non-free way the collect and compose operations are intertwined whereas in
 a free operation these are separated or modularised. A free structre separates
 the pure combining logic from the pure data. The modularisation has a cost
@@ -145,6 +148,9 @@ when you are combining two things.
 A Free structure is pure data without the logic and you can add the logic
 later. So a pure value is a free structure and a unary transformation on it is
 the logic part.
+
+Sum and Products
+~~~~~~~~~~~~~~~~
 
 A tuple (a,b) is a free "product" structure and a binary function contains the
 user of the product for implication logic.  A tuple (a,a) or "Either a b", is a
@@ -179,38 +185,72 @@ of a sum type are required only one at a time.
 A common operation on product types would be splitting and distributing, and a
 common operation on sum types would be collecting and folding.
 
-+------
-Structure       | Structure Description | Logic Operation | Description
+pure unary transformation.
 
-Pure value      | Unary value                   | Unary Function  | Pure unary transformation (a -> b)
++-----------------+-----------------------+-----------------+-----------------+
+| Structure       | Structure Description | Logic Operation | Description     |
++=================+=======================+=================+=================+
+| Pure value      | Unary value           | Unary Function  | a -> b          |
++-----------------+-----------------------+-----------------+-----------------+
 
 Product types and cartesian (conjunctive) composition
-Tuple (a,b)        | binary product of two types     | Binary Function | Pure binary composition (a, b) -> c
-                   |                                 |                 | Curried binary Composition (a,b,c) -> d = (a,b) -> x ; (x,c) -> d
-list [a]           | nary product of the same type   | Uncurried nary function application
-n-tuple (a,b,c...) | nary product of different types | Uncurried nary function application
+
++-----------------+-----------------------+-----------------+-----------------+
+| Structure       | Structure Description | Logic Operation | Description     |
++=================+=======================+=================+=================+
+| Tuple (a,b)     | binary product        | Binary Function | Pure binary     |
+|                 |                       |                 | composition     |
+|                 |                       |                 | (a, b) -> c     |
++-----------------+-----------------------+-----------------+-----------------+
+| Curried binary Composition (a,b,c) -> d = (a,b) -> x ; (x,c) -> d           |
++-----------------+-----------------------+-----------------------------------+
+| list [a]        | nary product          | Uncurried nary function app       |
++-----------------+-----------------------+-----------------------------------+
+| n-tuple         | nary product of       | Uncurried nary function           |
+| (a,b,c...)      | different types       | application                       |
++-----------------+-----------------------+-----------------------------------+
 
 Coproduct types and monoidal (disjunctive) composition
-either (Either a b)  | Two way choice different types| Real sum type
-Tuple (a,a)          | Two choices of the same type  | actually product, can be used as sum
-list [a]             | n choices of the same type    | actually product, can be used as sum type
-coproduct            | n choices of different types  |
-oneOf package        |
 
-Function with a closure | additional external/static/global inputs for the combine operation | -
-Function sequence       | Categorical Composition | Combines functions in a sequence
++-----------------+------------------------------+----------------------------+
+| Either a b      | Two way choice diff types    | Real sum type              |
++-----------------+------------------------------+----------------------------+
+| Tuple (a,a)     | Two choices of the same type | product, can be used as sum|
++-----------------+------------------------------+----------------------------+
+| list [a]        | n choices of the same type   | product, can be used as sum|
++-----------------+------------------------------+----------------------------+
+| coproduct       | n choices of different types |                            |
++-----------------+------------------------------+----------------------------+
 
-Functor             | Contextual value      | fmap            | Contextual unary transformation
-Applicative         | Contextual Sequence of values              | Nary apply
-Alternative         | Contextual choices of values
-Arrow               | Compose tree of functions with additional static inputs
-Monad               | Dependency tree of values | Embed computations between function applications in a context | combines a tree structure
-  Categorical composition like functions in Kliesli category
+* http://hackage.haskell.org/package/oneOfN generalization of either
 
-There are things that arrows can do and monads cannot i.e. the static input.
-There are things that mondas can do but arrows cannot i.e. arrowapply.
-There are things that applicatives can do but monad cannot e.g. parallel
-application.
+From functions to Monads
+------------------------
+
++-----------------+-----------------------------------------------------------+
+| Function with   | additional external/static/global inputs for the combine  |
+| a closure       | operation                                                 |
++-----------------+-------------------------+---------------------------------+
+| Composed funcs  | Categorical Composition | Combines functions in a sequence|
++-----------------+-------------------------+---------------------------------+
+| Functor         | Contextual value, fmap, Contextual unary transformation   |
++-----------------+-----------------------------------------------------------+
+| Applicative     | Contextual Sequence of values, Nary apply                 |
++-----------------+-----------------------------------------------------------+
+| Alternative     | Contextual choices of values                              |
++-----------------+-----------------------------------------------------------+
+| Arrow           | Compose tree of functions with additional static inputs   |
++-----------------+-----------------------------------------------------------+
+| Monad           | Dependency tree of values                                 |
+|                 | Embed computations between function applications in a ctxt|
+|                 | combines a tree structure                                 |
+|                 | Categorical composition like functions in Kliesli category|
++-----------------+-----------------------------------------------------------+
+
+* There are things that arrows can do and monads cannot i.e. the static input.
+* There are things that mondas can do but arrows cannot i.e. arrowapply.
+* There are things that applicatives can do but monad cannot e.g. parallel
+  application.
 
 More types can have a functor instance than Applicatives. More types can have
 an applicative instance than arrows. More types can have an arrow instance than
@@ -224,20 +264,28 @@ Transformation
 
 In what ways can we transform values? The general transformation operations
 are:
+
 * Unary transformation: a -> b
-** a -> a
+
+  * a -> a
+
 * Binary transformartion (or composition) (a,b) -> c
-** a -> b -> c
-** (a,a) -> a -- special case when types are the same. monoidal folding
+
+  * a -> b -> c
+  * (a,a) -> a -- special case when types are the same. monoidal folding
+
 * Nary transformation:
-** built using binary transformation
-*** a -> b -> c...-> d
-*** a -> a -> a...-> a -- special case when types are the same
-** Free Nary transfomation
-*** (a,b,c...) -> d
-*** fold [a] -> a -- special case, folding a free structure using a binary op.
-Note that list is a free structure here and we are folding it using a separate
-"interpreter".
+
+  * built using binary transformation
+
+    * a -> b -> c...-> d
+    * a -> a -> a...-> a -- special case when types are the same
+  * Free Nary transfomation
+
+    * (a,b,c...) -> d
+    * fold [a] -> a -- special case, folding a free structure using a binary op.
+      Note that list is a free structure here and we are folding it using a separate
+      "interpreter".
 
 This shows that Monoidal composition is just a simpler, special case of
 applicative composition where the types are the same. Also a free Monoidal
@@ -256,32 +304,36 @@ Functored Transformations
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 * Lifting the pure operations in a Functor
-** fmap puts a function inside a functor
-** Applicative applies an n-ary function to its arguments inside a functor
-** Free Applicative, use a separate structure and then apply at once
-** Alternative folds values inside a functor using a binary operation just like
-   Monoids in the pure case.
-** Free Alternative, use a separate structure to hold values and then apply at
-   once.
+
+  * fmap puts a function inside a functor
+  * Applicative applies an n-ary function to its arguments inside a functor
+  * Free Applicative, use a separate structure and then apply at once
+  * Alternative folds values inside a functor using a binary operation just like
+    Monoids in the pure case.
+  * Free Alternative, use a separate structure to hold values and then apply at
+    once.
 
 Continuations
 ~~~~~~~~~~~~~
 
 In what ways can we combine the transformation of values? The composition of
 transformation operations or we can call them continuations in general:
+
 * Categorical composition is a way to combine the most basic form i.e. unary
   transformation. It is a special, least flexible, case of a general
   continuation.
-** (a -> b), (b -> c) => a -> c : (b -> c) is the continuation of (a -> b). We
-can call it a pure continuation. This is a useful special case of the more
-general cases described below. This is a "structured" way to compose rather
-than free form. Pass on value from one function to the next. This is a simple
-chain of functions, a one dimensional sequence.
-We can combine them like Monoids using binary composition and the id function.
-* x -> a, y -> b, (a,b) -> c : (x, y) -> c. Pass on values from many functions to the next.
-  This will form a tree of functions passing values forward. No static input is
-  used. We have added the ability to compose "products" so another dimension
-  got added, making this a tree rather than a simple chain.
+
+  * ``(a -> b), (b -> c) => a -> c`` : (b -> c) is the continuation of (a -> b).
+    We can call it a pure continuation. This is a useful special case of the
+    more general cases described below. This is a "structured" way to compose
+    rather than free form. Pass on value from one function to the next. This
+    is a simple chain of functions, a one dimensional sequence.  We can
+    combine them like Monoids using binary composition and the id function.
+* ``x -> a, y -> b, (a,b) -> c`` : (x, y) -> c. Pass on values from many
+  functions to the next.  This will form a tree of functions passing values
+  forward. No static input is used. We have added the ability to compose
+  "products" so another dimension got added, making this a tree rather than a
+  simple chain.
 * x -> a, b (static input), (a,b) -> c. This will form a tree of functions
   passing values forward, but also allowing use of static input.
 * ...and so on. In general, there can be many ways in which different types of
@@ -291,7 +343,8 @@ We can combine them like Monoids using binary composition and the id function.
 Functored Continuations
 ~~~~~~~~~~~~~~~~~~~~~~~
 
-The next level is pure function continuations abstracted via a Functor.
+The next level is "pure function continuations" abstracted via a Functor.
+
 * Arrows lift the composition of functions into a functor.
 * A strong profunctor is equivalent to Arrow
 
@@ -315,7 +368,7 @@ Generalising a Monoid
 ---------------------
 
 The monoidal composition does not apply to heterogeneous type combiners because
-it is a way to combine homogeneous types. So ti does nto apply to function
+it is a way to combine homogeneous types. So it does not apply to function
 application, applicatives or the apply aspect of a Monad. However it applies to
 function composition, arrows, alternative and monads.
 
@@ -370,7 +423,7 @@ Binary operations allow convenience to the programmer. Programmer does not have
 to build a data structure and then call a function on that. Instead always use
 a binary operation even to fold n tasks. it is simpler. We can use local state
 passing to acheive some sort of limited batching combining only two adjacent
-steps. The context passing in asyncly is an example. The same concept is used
+steps. The context passing in streamly is an example. The same concept is used
 in the foldl library.
 
 However, N-ary operations can be more efficient. It affords you the full big
@@ -380,12 +433,20 @@ tasks.
 Summary: Free structures
 ------------------------
 
-Singleton  | pure type
-Tuple      | pure type, tuple, either, list | conjunctive or disjunctive composition via functions
++------------+----------------------------------------------------------------+
+| Singleton  | pure type                                                      |
++------------+----------------------------------------------------------------+
+| Tuple      | pure type, tuple, either, list                                 |
+|            | conjunctive or disjunctive composition via functions           |
++------------+----------------------------------------------------------------+
 
-Singleton? | Free Functor
-List       | Free Applicative/Alternative   |
-Tree       | Free Monad
++------------+----------------------------------------------------------------+
+| Singleton? | Free Functor                                                   |
++------------+----------------------------------------------------------------+
+| List       | Free Applicative/Alternative                                   |
++------------+----------------------------------------------------------------+
+| Tree       | Free Monad                                                     |
++------------+----------------------------------------------------------------+
 
 Consumers and Producers
 -----------------------
@@ -497,23 +558,26 @@ CoAlternative
 
 Have a "full" instead of empty.
 
--- Because of the type of 'from', 'Coaplicative' must correspond to "non-empty containers", for the usual hand-wavy definition of "container".
-class Functor f => Coapplicative f where
-  from :: f a -> a
-  separate :: f (Either a b) -> Either (f a) (f b)
+::
 
-instance Coapplicative Identity where
-  from (Identity a) = a
-  separate (Identity (Left a))  = Left  (Identity a)
-  separate (Identity (Right b)) = Right (Identity b)
+  -- Because of the type of 'from', 'Coaplicative' must correspond to
+  -- "non-empty containers", for the usual hand-wavy definition of "container".
+  class Functor f => Coapplicative f where
+    from :: f a -> a
+    separate :: f (Either a b) -> Either (f a) (f b)
 
--- Silly Haskell having no nontrivial comonoids.
-class Coapplicative f => Coalternative f where
-  full :: f a -> ()
-  full _ = ()
+  instance Coapplicative Identity where
+    from (Identity a) = a
+    separate (Identity (Left a))  = Left  (Identity a)
+    separate (Identity (Right b)) = Right (Identity b)
 
-  split :: f a -> f (a, a)
-  split = fmap (\a -> (a,a))
+  -- Silly Haskell having no nontrivial comonoids.
+  class Coapplicative f => Coalternative f where
+    full :: f a -> ()
+    full _ = ()
+
+    split :: f a -> f (a, a)
+    split = fmap (\a -> (a,a))
 
 Free Composition
 ----------------

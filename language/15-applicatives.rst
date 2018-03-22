@@ -159,7 +159,7 @@ IO action::
 Maybe:
 
 * https://stackoverflow.com/questions/24668313/arrows-are-exactly-equivalent-to-applicative-functors
-For the difference between Applicative, monadic and arrowized IO
+  For the difference between Applicative, monadic and arrowized IO
 
 Conclusion
 
